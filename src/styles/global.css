@@ -1,0 +1,17 @@
+/* 全局重置，确保覆盖浏览器默认 user-agent 样式 */
+html, body, #app {
+  height: 100%;
+  margin: 0;
+  padding: 0;
+  background: #f1f5f9;
+  color: #0f172a;
+  font-family: Avenir, Helvetica, Arial, sans-serif;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  box-sizing: border-box;
+}
+
+/* 可选：全局 box-sizing 较好 */
+*, *::before, *::after {
+  box-sizing: inherit;
+}
