@@ -6,7 +6,7 @@
       </van-swipe-item>
     </van-swipe>
 
-    <div class="notice-wrapper">
+    <div class="notice-wrapper content">
       <van-notice-bar>
         <template #left-icon>
           <img src="/icons/notice.png" alt="notice" class="notice-icon" />
@@ -55,7 +55,7 @@
               <div class="game-card-content">
                 <div class="game-card-info">{{ results.qxc.number }}期&nbsp; {{ results.qxc.time }}</div>
                 <div class="game-number-list">
-                  <div v-for="(value, index) in results.qxc.result" :key="index" class="number-ball" :class="{ yellow: index >= 6 }">
+                  <div v-for="(value, index) in results.qxc.result" :key="index" class="number-ball7" :class="{ yellow: index >= 6 }">
                     {{ value }}
                   </div>
                 </div>
@@ -67,7 +67,7 @@
               <div class="game-card-content">
                 <div class="game-card-info">{{ results.pl5.number }}期&nbsp; {{ results.pl5.time }}</div>
                 <div class="game-number-list">
-                  <div v-for="(value, index) in results.pl5.result" :key="index" class="number-ball" :class="{ yellow: index >= 5 }">
+                  <div v-for="(value, index) in results.pl5.result" :key="index" class="number-ball3" :class="{ yellow: index >= 5 }">
                     {{ value }}
                   </div>
                 </div>
@@ -79,7 +79,7 @@
               <div class="game-card-content">
                 <div class="game-card-info">{{ results.pl3.number }}期&nbsp; {{ results.pl3.time }}</div>
                 <div class="game-number-list">
-                  <div v-for="(value, index) in results.pl3.result" :key="index" class="number-ball" :class="{ yellow: index >= 5 }">
+                  <div v-for="(value, index) in results.pl3.result" :key="index" class="number-ball3" :class="{ yellow: index >= 5 }">
                     {{ value }}
                   </div>
                 </div>
@@ -157,15 +157,31 @@
           </div>
         </div>
       </div>
-
     </main>
+    <van-overlay :show="show" @click="show = false" z-index="100">
+      <div class="wrapper">
+        <div class="block" @click.stop></div>
+        <img src="/img/Notice.png" alt="" style="width: 320px;" />
+      </div>
+    </van-overlay>
   </div>
 </template>
 
 <script setup>
-import { ref } from "vue";
+import { ref, onMounted } from "vue";
 import { useRouter } from "vue-router";
 import { showToast } from "vant";
+
+
+const show = ref(false);
+onMounted(() => {
+  if (sessionStorage.getItem('notice_shown')) {
+    show.value = false;
+  } else {
+    show.value = true;
+    sessionStorage.setItem('notice_shown', '1');
+  }
+});
 
 const banner = ref([
   { id: 1, image: "/banner1.png" },
@@ -212,12 +228,25 @@ const news = ref([
 .page {
   display: flex;
   flex-direction: column;
-  background-color: #f5f5f5;
+  background-color: #f7f7f7;
   color: #0f172a;
   box-sizing: border-box;
   position: relative;
   overflow: hidden;
   min-height: 100vh;
+}
+
+.wrapper {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100vw;
+  height: 80vh;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 101;
+  flex-direction: column;
 }
 
 .content {
@@ -268,7 +297,7 @@ const news = ref([
 .result-card,
 .game-entry-card {
   background-color: #fff;
-  border-radius: 1rem;
+  border-radius: 14px;
   margin-top: 8px;
 }
 
@@ -337,7 +366,7 @@ const news = ref([
   display: flex;
   justify-content: space-between;
   align-items: center;
-  padding: 14px 10px 4px 14px;
+  padding: 10px 10px 4px 14px;
 }
 
 .header-left-icon {
@@ -406,7 +435,34 @@ const news = ref([
   color: #fff;
 }
 
+.number-ball7 {
+  width: 18px;
+  height: 18px;
+  line-height: 18px;
+  text-align: center;
+  border-radius: 50%;
+  font-size: 12px;
+  background: linear-gradient(to bottom, #989edb, #202a66);
+  color: #fff;
+}
+
+.number-ball3 {
+  width: 18px;
+  height: 18px;
+  line-height: 18px;
+  text-align: center;
+  border-radius: 50%;
+  font-size: 12px;
+  background: linear-gradient(to bottom, #df90dc, #a85094);
+  color: #fff;
+}
+
 .number-ball.yellow {
+  background: linear-gradient(to bottom, #ffd700, #ffa500);
+  color: #000;
+}
+
+.number-ball7.yellow {
   background: linear-gradient(to bottom, #ffd700, #ffa500);
   color: #000;
 }
@@ -416,7 +472,7 @@ const news = ref([
   display: grid;
   grid-template-columns: repeat(4, 1fr);
   gap: 10px;
-  padding: 10px 14px 14px;
+  padding: 10px;
   align-items: center;
 }
 
@@ -424,7 +480,7 @@ const news = ref([
   display: flex;
   flex-direction: column;
   align-items: center;
-  gap: 6px;
+  gap: 2px;
 }
 
 .entry-item-img {
@@ -536,14 +592,14 @@ const news = ref([
   padding-bottom: 0;
 }
 .news-title {
-  font-size: 1.2rem;
+  font-size: 1.1rem;
   font-weight: 600;
-  color: #d32121;
-  font-family: 'Franklin Gothic Medium', 'Arial Narrow', Arial, sans-serif;
+  color: #e31919;
+  font-family: "Franklin Gothic Medium", "Arial Narrow", Arial, sans-serif;
 }
 .news-more {
-  font-size: 0.85rem;
-  color: #888;
+  font-size: 0.8rem;
+  color: #a2a2a2;
   cursor: pointer;
 }
 .news-list {
@@ -560,7 +616,7 @@ const news = ref([
   transition: box-shadow 0.2s;
 }
 .news-item:hover {
-  box-shadow: 0 2px 8px rgba(211,33,33,0.08);
+  box-shadow: 0 2px 8px rgba(211, 33, 33, 0.08);
 }
 .news-img {
   width: 60px;
@@ -576,7 +632,7 @@ const news = ref([
   justify-content: center;
 }
 .news-item-title {
-  font-size: 0.98rem;
+  font-size: 0.9rem;
   color: #222;
   font-weight: 500;
   margin-bottom: 6px;

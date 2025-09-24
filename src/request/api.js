@@ -2,7 +2,7 @@ import axios from "axios";
 
 // axios 实例
 const instance = axios.create({
-  baseURL: "http://47.100.34.99/api",
+  baseURL: "https://lottery.hongxiu88.com/api",
   timeout: 10000,
   headers: { "Content-Type": "application/json" },
 });
@@ -33,10 +33,7 @@ instance.interceptors.response.use(
   }
 );
 
-// 导出可复用方法
 export const API = {
-  // 发送短信验证码：POST /sms/send
-  // 示例参数：{ phone: '13800000000', event: 'register', imgCode: '1234' }
   sendSms(payload) {
     return instance.post("/sms/send", payload);
   },
@@ -45,6 +42,17 @@ export const API = {
     return instance.post("/user/register", payload);
   },
 
+  login(payload) {
+    return instance.post("/user/login", payload);
+  },
+
+  forgetPassword(payload) {
+    return instance.post("user/forgetPass", payload);
+  },
+
+  forgetUser(payload) {
+    return instance.post("user/forgetUser", payload);
+  },
 };
 
 export default API;

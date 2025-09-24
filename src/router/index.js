@@ -6,6 +6,8 @@ import expert from "../view/Home/expert.vue";
 import game from "../view/Home/game.vue";
 import community from "../view/Home/community.vue";
 import my from "../view/Home/my.vue";
+import Forgetpassword from "../view/forgetpassword.vue";
+import Forgotusername from "../view/Forgotusername.vue";
 
 const routes = [
   { path: "/", redirect: "/login" },
@@ -16,6 +18,8 @@ const routes = [
   { path: "/game", name: "Game", component: game },
   { path: "/community", name: "Community", component: community },
   { path: "/my", name: "My", component: my },
+  { path: "/forgetpassword", name: "Forgetpassword", component: Forgetpassword },
+  { path: "/forgotusername", name: "Forgotusername", component: Forgotusername },
 ];
 
 const router = createRouter({

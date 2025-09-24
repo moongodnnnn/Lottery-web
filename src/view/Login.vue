@@ -8,7 +8,7 @@
 
       <van-tabs v-model:active="activeName" color="#ff272e" line-height="4px" line-width="20px">
         <van-tab title="已有账号" name="a">
-          <form class="form"   autocomplete="on" novalidate>
+          <form class="form" autocomplete="on" novalidate @submit.prevent="login">
             <label class="field">
               <span class="label">用户名</span>
               <input v-model="loginUsername" type="text" autocomplete="username" placeholder="请输入用户名" required />
@@ -24,21 +24,21 @@
               <span class="label">图形验证</span>
               <div class="input-row">
                 <input v-model="loginImgCode" type="text" inputmode="numeric" placeholder="请输入图形验证" />
-                <img @click="refreshImgCode" src="/imgcode.png" alt="图形验证码" style="width: 88px; height: 28px; border-radius: 4px" />
+                <img @click="refreshImgCode" :src="imgurl" alt="图形验证码" style="width: 88px; height: 48px; border-radius: 4px" />
               </div>
             </label>
 
-            <button class="btn" type="submit" @click="login">登录</button>
+            <button class="btn" type="submit">登录</button>
 
             <div style="display: flex; justify-content: space-between; font-size: 12px; color: #bc4749">
-              <div>忘记用户名</div>
-              <div>忘记密码</div>
+              <div @click="go('/forgotusername')">忘记用户名</div>
+              <div @click="go('/forgetpassword')">忘记密码</div>
             </div>
           </form>
         </van-tab>
 
         <van-tab title="注册账号" name="b">
-          <form class="form" @submit.prevent="onSubmit" autocomplete="on" novalidate>
+          <form class="form" @submit.prevent="register" autocomplete="on" novalidate>
             <label class="field">
               <span class="label">用户名</span>
               <input v-model="username" type="text" autocomplete="username" placeholder="请输入用户名" required />
@@ -74,11 +74,11 @@
               <span class="label">图形验证</span>
               <div class="input-row">
                 <input v-model="imgCode" type="text" inputmode="numeric" placeholder="请输入图形验证" />
-                <img @click="refreshImgCode" src="/imgcode.png" alt="图形验证码" style="width: 88px; height: 28px; border-radius: 4px" />
+                <img @click="refreshImgCode" :src="imgurl" alt="图形验证码" style="width: 88px; height: 48px; border-radius: 4px" />
               </div>
             </label>
 
-            <button class="btn" :disabled="!canSubmit" type="submit" aria-label="注册" @click="register">注册</button>
+            <button class="btn" :disabled="!canSubmit" type="submit" aria-label="注册">注册</button>
 
             <div style="font-size: 0.8rem; display: flex; align-items: center; color: #999">
               <van-checkbox v-model="checked" checked-color="#ee0a24" icon-size="16px" style="padding-right: 6px"></van-checkbox>
@@ -110,13 +110,13 @@
 </template>
 
 <script setup>
-import { ref, computed, onBeforeUnmount } from "vue";
+import { ref, computed, onBeforeUnmount, onMounted } from "vue";
 import { useRouter } from "vue-router";
 import { showToast } from "vant";
 import { useCascaderAreaData } from "@vant/area-data";
 import { API } from "../request/api";
 
-const activeName = ref("b");
+const activeName = ref("a");
 const username = ref("");
 const password = ref("");
 const confirmPassword = ref("");
@@ -136,9 +136,12 @@ const fieldValue = ref("江西省/九江市");
 const cascaderValue = ref("");
 const options = useCascaderAreaData();
 
-const loginUsername = ref("testuser");
-const loginPassword = ref("123123");
-const loginImgCode = ref("11");
+const loginUsername = ref("");
+const loginPassword = ref("");
+const loginImgCode = ref("");
+
+const imgurl = ref("");
+const uniqid = ref("");
 
 const onFinish = ({ selectedOptions }) => {
   show.value = false;
@@ -156,6 +159,18 @@ function clearTimer() {
   }
 }
 
+function getUniqId() {
+  return Date.now().toString() + Math.floor(Math.random() * 100 + 1);
+}
+function refreshImgCode() {
+  uniqid.value = getUniqId();
+  imgurl.value = `https://lottery.hongxiu88.com/index/captcha/index/id/${uniqid.value}`;
+}
+
+function go(path) {
+  router.push(path);
+}
+
 function login() {
   if (!loginUsername.value || loginUsername.value.trim() === "") {
     showToast("请完成填写用户名");
@@ -166,22 +181,23 @@ function login() {
     return;
   }
   const imgCodeTrim = (loginImgCode.value || "").trim();
-  if (!imgCodeTrim || imgCodeTrim.length < 2) {
+  if (!imgCodeTrim) {
     showToast("请填写有效的图形验证码");
     return;
   }
 
-  API.login({ username: loginUsername.value, password: loginPassword.value, imgcode: imgCodeTrim })
+  API.login({ account: loginUsername.value, password: loginPassword.value, captcha: imgCodeTrim, uniqid: uniqid.value })
     .then((res) => {
-      if (res && res.code === 1) {
-        showToast(res.msg || "登录成功");
-        router.push("/");
-      } else {
+      if (res.code == 1) {
+        localStorage.setItem("token", res.data.token);
+        localStorage.setItem("user", JSON.stringify(res.data.user));
+        router.push("/home");
+      }else{
         showToast(res.msg || "登录失败");
       }
     })
     .catch((err) => {
-      showToast(err?.message || "登录失败");
+      showToast(err?.msg || "登录失败");
     });
 }
 
@@ -286,6 +302,11 @@ function onSubmit() {
     return;
   }
 }
+
+onMounted(() => {
+  uniqid.value = getUniqId();
+  imgurl.value = `https://lottery.hongxiu88.com/index/captcha/index/id/${uniqid.value}`;
+});
 
 onBeforeUnmount(() => {
   clearTimer();
@@ -451,6 +472,6 @@ input::placeholder {
   background: rgba(255, 255, 255, 0.98);
   backdrop-filter: blur(6px);
   z-index: 50;
-   box-shadow: 0 -3px 12px rgba(15, 23, 42, 0.02);
+  box-shadow: 0 -3px 12px rgba(15, 23, 42, 0.02);
 }
 </style>
