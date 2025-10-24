@@ -1,0 +1,187 @@
+/* 篮球比赛卡片的CSS样式 */
+
+/* 卡片整体样式 */
+.basketball-card {
+  display: flex;
+  background: #ffffff;
+  border-radius: 10px;
+  margin-bottom: 10px;
+  padding: 8px;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
+  overflow: hidden;
+}
+
+/* 左侧部分样式 */
+.b-card-left {
+  flex: 2;
+  padding-right: 10px;
+  border-right: 1px solid #f0f0f0;
+  display: flex;
+  flex-direction: column;
+}
+
+/* 联赛和时间信息 */
+.b-league-info {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom:16px;
+  padding-bottom: 4px;
+  border-bottom: 1px dashed #f0f0f0;
+}
+
+.b-league-name {
+  color: #fc3c3c;
+  font-weight: 600;
+  font-size: 0.6rem;
+}
+
+.b-match-time {
+  color: #666;
+  font-size: 0.7rem;
+}
+
+/* 球队容器 */
+
+/* 球队通用样式 */
+.b-team {
+  display: flex;
+  align-items: center;
+  padding: 4px 0;
+}
+
+/* 主队和客队特定样式 */
+.b-team.home {
+  margin-bottom: 0px;
+}
+
+.b-team-badge {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  width: 14px;
+  height: 14px;
+  background: #fc3c3c;
+  color: white;
+  font-size: 0.6rem;
+  border-radius: 50%;
+  margin-left: 4px;
+}
+
+.b-team-name {
+  font-size: 0.8rem;
+  color: #333;
+  font-weight: 500;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  max-width: 100%;
+}
+
+/* 右侧部分样式 */
+.b-card-right {
+  flex: 3;
+  padding-left: 8px;
+  display: flex;
+  flex-direction: column;
+}
+
+/* 比赛状态 */
+.b-match-status {
+  text-align: center;
+
+  color: #666;
+  font-size: 0.6rem;
+  font-weight: 500;
+  margin-bottom: 6px;
+  align-self: center;
+}
+
+.b-match-status.b-live {
+  background: #ffeeee;
+  color: #fc3c3c;
+}
+
+/* 得分详情表格 */
+.b-score-details {
+  border: 1px solid #eee;
+  border-radius: 6px;
+  overflow: hidden;
+  margin-bottom: 8px;
+}
+
+/* 表头 */
+.b-score-header {
+  display: flex;
+  background: #f8f8f8;
+  border-bottom: 1px solid #eee;
+}
+
+.b-team-indicator, .b-quarter, .b-total {
+  padding: 4px 2px;
+  font-size: 0.6rem;
+  text-align: center;
+}
+
+.b-team-indicator {
+  width: 24px;
+  font-weight: 500;
+  color: #666;
+}
+
+.b-quarter {
+  flex: 1;
+  min-width: 22px;
+}
+
+.b-total {
+  width: 34px;
+  background-color: #f4f4f4;
+  font-weight: 600;
+  color: #333;
+}
+
+/* 比分行 */
+.b-score-row {
+  display: flex;
+  border-bottom: 1px solid #eee;
+}
+
+.b-score-row:last-child {
+  border-bottom: none;
+}
+
+/* 主客队指示器样式 */
+.b-team-indicator.home {
+  color: #fc3c3c;
+  background-color: #ffeeee;
+}
+
+.b-team-indicator.away {
+  color: #666;
+}
+
+/* 总分高亮显示 */
+.b-total.highlight {
+  color: #fc3c3c;
+  font-weight: bold;
+  font-size: 0.7rem;
+}
+
+/* 分差显示 */
+.b-score-diff {
+  text-align: center;
+  font-size: 0.7rem;
+  color: #666;
+  padding-top: 3px;
+}
+
+.home-winning {
+  color: #fc3c3c;
+  font-weight: bold;
+}
+
+.away-winning {
+
+  font-weight: bold;
+}

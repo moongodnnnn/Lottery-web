@@ -23,8 +23,8 @@
             </div>
           </div>
         </div>
-        <div class="user-setting">
-          <van-icon name="setting-o" color="#fff" size="28" />
+        <div class="user-setting" @click="router.push('/setting')">
+          <van-icon name="setting-o" color="#000" size="28" />
         </div>
       </div>
     </div>
@@ -32,15 +32,16 @@
     <!-- 资金卡片 -->
     <div class="balance-card">
       <div class="balance-header">
-        <div class="balance-title">店铺余额（元）</div>
+        <div class="balance-title">余额（元）</div>
         <div class="balance-detail" @click="viewDetail">账目明细</div>
       </div>
 
       <div class="balance-amount">
         <div class="amount-text">100.00</div>
         <div class="balance-actions">
-          <button class="action-btn recharge-btn" @click="recharge">充值</button>
-          <button class="action-btn withdraw-btn" @click="withdraw">提现</button>
+           <button class="action-btn withdraw-btn" @click="go('/withdraw')">提现</button>
+          <button class="action-btn recharge-btn" @click="go('/recharge')">充值</button>
+         
         </div>
       </div>
 
@@ -49,12 +50,13 @@
         <div class="reserved-amount">0元</div>
       </div>
     </div>
+    <div style="height: 8px"></div>
 
     <!-- 功能入口卡片 -->
     <div class="function-grid">
-      <!-- <div class="function-title">购彩记录</div> -->
+      <div class="function-title">购彩记录</div>
       <div class="function-items">
-        <div class="function-item" @click="goToOrders">
+        <div class="function-item" @click="go('/My_order')">
           <div class="function-icon">
             <img src="/icons/111.png" alt="我的订单" />
           </div>
@@ -88,58 +90,71 @@
     </div>
 
     <!-- 轮播banner -->
-    <div style="padding: 0rem 1rem 1rem 1rem; border-radius: 1rem">
+    <div style="padding: 0rem 1rem 0.4rem 1rem; border-radius: 1rem">
       <van-swipe class="my-swipe" :autoplay="3000" indicator-color="white">
         <van-swipe-item>
-          <img src="/img/my1.png" alt="" style="width: 100%; border-radius: 1rem;">
+          <img src="/img/my1.png" alt="" style="width: 100%; border-radius: 1rem" />
         </van-swipe-item>
         <van-swipe-item>
-          <img src="/img/my2.png" alt="" style="width: 100%; border-radius: 1rem;">
+          <img src="/img/my2.png" alt="" style="width: 100%; border-radius: 1rem" />
         </van-swipe-item>
       </van-swipe>
     </div>
 
-
-
-
-     <div class="function-grid">
-      <!-- <div class="function-title">购彩记录</div> -->
+    <div class="function-grid">
+      <div class="function-title">常用工具</div>
       <div class="function-items">
         <div class="function-item" @click="goToOrders">
-          <div class="function-icon">
-            <img src="/icons/111.png" alt="我的订单" />
+          <div class="function-icon1">
+            <img src="/icons/my11.png" alt="店主认证" />
           </div>
-          <div class="function-text">我的订单</div>
+          <div class="function-text">店主认证</div>
         </div>
-        <div class="function-item" @click="goToMyInitiated">
-          <div class="function-icon">
-            <img src="/icons/222.png" alt="我发起的" />
+        <div class="function-item" @click="go('/authentication')">
+          <div class="function-icon1">
+            <img src="/icons/my22.png" alt="实名认证" />
           </div>
-          <div class="function-text">我发起的</div>
+          <div class="function-text">实名认证</div>
         </div>
         <div class="function-item" @click="goToMyFollow">
-          <div class="function-icon">
-            <img src="/icons/333.png" alt="我的跟单" />
+          <div class="function-icon1">
+            <img src="/icons/my44.png" alt="卡包中心" />
           </div>
-          <div class="function-text">我的跟单</div>
+          <div class="function-text">卡包中心</div>
         </div>
         <div class="function-item" @click="goToMyGroup">
-          <div class="function-icon">
-            <img src="/icons/444.png" alt="我的拼单" />
+          <div class="function-icon1">
+            <img src="/icons/my33.png" alt="帮助中心" />
           </div>
-          <div class="function-text">我的拼单</div>
-        </div>
-        <div class="function-item" @click="goToMyParticipated">
-          <div class="function-icon">
-            <img src="/icons/555.png" alt="我参与的" />
-          </div>
-          <div class="function-text">我参与的</div>
+          <div class="function-text">消息中心</div>
         </div>
       </div>
-    </div>
-
-    <div style="padding: 1.2rem">
-      <van-button color="#999" plain block @click="logout">退出账号</van-button>
+      <div class="function-items">
+        <div class="function-item" @click="goToOrders">
+          <div class="function-icon1">
+            <img src="/icons/my55.png" alt="邀请店主" />
+          </div>
+          <div class="function-text">邀请店主</div>
+        </div>
+        <div class="function-item" @click="goToMyInitiated">
+          <div class="function-icon1">
+            <img src="/icons/my66.png" alt="邀请好友" />
+          </div>
+          <div class="function-text">邀请好友</div>
+        </div>
+        <div class="function-item" @click="goToMyFollow">
+          <div class="function-icon1">
+            <img src="/icons/my77.png" alt="邀请记录" />
+          </div>
+          <div class="function-text">邀请记录</div>
+        </div>
+        <div class="function-item" @click="goToMyGroup">
+          <div class="function-icon1">
+            <img src="/icons/my88.png" alt="客服中心" />
+          </div>
+          <div class="function-text">客服中心</div>
+        </div>
+      </div>
     </div>
   </div>
 </template>
@@ -153,12 +168,8 @@ const router = useRouter();
 const islogin = ref(false);
 const username = ref("请登录");
 
-function logout() {
-  localStorage.removeItem("token");
-  localStorage.removeItem("user");
-  setTimeout(() => {
-    router.push("/login");
-  }, 1000);
+function go(path) {
+  router.push(path);
 }
 
 onMounted(() => {
@@ -193,14 +204,16 @@ onMounted(() => {
   position: relative;
   overflow: hidden;
   min-height: 100vh;
+  max-width: 430px;
+  margin: 0 auto;
 }
 
 .mybg {
   width: 100%;
-  height: 220px;
-  background: url("/src/assets/mybg.png") no-repeat center center;
+  height: 200px;
   background-size: cover;
-  margin-bottom: 20px;
+  margin-bottom: 30px;
+  background-color: #fff;
   display: flex;
   align-items: flex-start;
 }
@@ -210,94 +223,108 @@ onMounted(() => {
   display: flex;
   align-items: flex-start;
   justify-content: space-between;
-  padding: 2rem 1.2rem 1.2rem 1.2rem;
+  padding: 1.2rem 1.1rem 0.7rem 1.1rem;
   box-sizing: border-box;
 }
+
 .user-info-left {
   display: flex;
   align-items: center;
 }
+
 .user-avatar.small {
-  width: 56px;
-  height: 56px;
+  width: 46px;
+  height: 46px;
   border-radius: 50%;
   object-fit: cover;
   background: #fff;
   margin-right: 10px;
   border: 1px solid #fff;
 }
+
 .user-meta {
   display: flex;
   flex-direction: column;
   justify-content: center;
 }
+
 .user-name {
-  font-size: 1.1rem;
-  color: #fff;
+  font-size: 0.9rem;
+  color: #333;
   margin-bottom: 8px;
   letter-spacing: 0.5px;
   text-shadow: 0 1px 4px rgba(0, 0, 0, 0.08);
   display: flex;
   align-items: center;
-  gap: 4px;
+  gap: 2px;
+  font-weight: 600;
   font-family: "Segoe UI", Tahoma, Geneva, Verdana, sans-serif;
 }
+
 .copy-icon {
   width: 18px;
   height: 18px;
   margin-left: 6px;
   font-weight: 600;
+  color: #fff;
   vertical-align: middle;
   cursor: pointer;
 }
+
 .user-follow-row {
   display: flex;
   align-items: center;
   gap: 8px;
 }
+
 .user-follow-item {
   display: flex;
   align-items: baseline;
   gap: 2px;
 }
-.user-follow-num {
-  font-size: 0.88rem;
-  color: #fff;
 
-  line-height: 1.1;
-}
-.user-follow-label {
+.user-follow-num {
   font-size: 0.8rem;
-  color: #fff;
+  color: #ff4901;
+  line-height: 1.1;
+  font-weight: 900;
+}
+
+.user-follow-label {
+  font-size: 0.75rem;
+  color: #000;
   margin-left: 1px;
   letter-spacing: 0.5px;
 }
+
 .user-setting {
   display: flex;
   align-items: center;
   cursor: pointer;
-  background: rgba(0, 0, 0, 0.1);
+
   border-radius: 50%;
   padding: 6px;
-  box-shadow: 0 1px 4px rgba(0, 0, 0, 0.08);
 }
+
 .user-setting :deep(.van-icon) {
   font-size: 22px !important;
 }
+
 .user-setting:hover {
   background: rgba(0, 0, 0, 0.18);
 }
 
 /* 资金卡片样式 */
 .balance-card {
-  margin: -8.4rem 1rem 0.8rem 1rem;
-  padding: 1rem;
-  background: linear-gradient(135deg, #fff2db 0%, #f4d7aa 100%);
+  margin: -9.4rem 0.8rem 0.8rem 0.8rem;
+  padding: 0.5rem 0.8rem;
+  background: linear-gradient(135deg, #ff260e 0%, #fc3c3c 100%);
   border-radius: 12px;
   box-shadow: 0 4px 12px rgba(244, 215, 170, 0.3);
   position: relative;
   overflow: hidden;
 }
+
 .balance-card::before {
   content: "";
   position: absolute;
@@ -308,103 +335,117 @@ onMounted(() => {
   background: linear-gradient(135deg, rgba(255, 255, 255, 0.2) 0%, transparent 50%);
   pointer-events: none;
 }
+
 .balance-header {
   display: flex;
   justify-content: space-between;
   align-items: center;
-  margin-bottom: 0.6rem;
+  margin-bottom: 0.4rem;
 }
+
 .balance-title {
-  font-size: 0.9rem;
-  color: #8b6914;
+  font-size: 0.8rem;
+  color: #fff;
   font-weight: 600;
 }
+
 .balance-detail {
-  font-size: 0.8rem;
-  color: #a67c00;
+  font-size: 0.7rem;
+  color: #fff;
   cursor: pointer;
   padding: 4px 8px;
   border-radius: 12px;
   background: rgba(255, 255, 255, 0.4);
   transition: all 0.2s;
 }
+
 .balance-detail:hover {
   background: rgba(255, 255, 255, 0.6);
 }
+
 .balance-amount {
   display: flex;
   justify-content: space-between;
   align-items: center;
-  margin-bottom: 0.6rem;
+  margin-bottom: 0.3rem;
 }
+
 .amount-text {
-  font-size: 2rem;
-  font-weight: 700;
-  color: #773e1d;
+  font-size: 1.7rem;
+  font-weight: 600;
+  color: #fff;
   text-shadow: 0 1px 2px rgba(139, 105, 20, 0.1);
 }
+
 .balance-actions {
   display: flex;
   gap: 8px;
 }
+
 .action-btn {
-  padding: 8px 16px;
+  padding: 5px 20px;
   border: none;
-  border-radius: 20px;
+  border-radius: 4px;
   font-size: 0.8rem;
   font-weight: 600;
   cursor: pointer;
   transition: all 0.2s;
   box-shadow: 0 2px 6px rgba(0, 0, 0, 0.1);
 }
+
 .recharge-btn {
-  background: linear-gradient(135deg, #ff6b6b, #ee5a52);
-  color: white;
+  background: linear-gradient(135deg, #feeeda, #f6baa5);
+  color: #873303;
 }
+
 .recharge-btn:hover {
   transform: translateY(-1px);
   box-shadow: 0 4px 8px rgba(255, 107, 107, 0.3);
 }
+
 .withdraw-btn {
   background: linear-gradient(135deg, #4ecdc4, #44a08d);
   color: white;
 }
+
 .withdraw-btn:hover {
   transform: translateY(-1px);
   box-shadow: 0 4px 8px rgba(78, 205, 196, 0.3);
 }
+
 .balance-footer {
   display: flex;
   justify-content: space-between;
   align-items: center;
-  padding-top: 0.8rem;
-  border-top: 1px solid rgba(139, 105, 20, 0.2);
+  padding-top: 0.3rem;
 }
+
 .reserved-text {
   font-size: 0.75rem;
-  color: #773e1d;
+  color: #fff;
   flex: 1;
   margin-right: 1rem;
 }
+
 .reserved-amount {
-  font-size: 1rem;
-  color: #773e1d;
+  font-size: 0.9rem;
+  color: #fff;
   font-weight: 600;
 }
 
 /* 功能入口样式 */
 .function-grid {
   background: #fff;
-  margin: 0 1rem 1rem 1rem;
+  margin: 0 0.8rem 0.6rem 0.8rem;
   border-radius: 12px;
   padding: 0.9rem 0.2rem;
 }
 
 .function-title {
-  font-size: 1rem;
+  font-size: 0.85rem;
   font-weight: 600;
   color: #333;
-  margin-bottom: 0.8rem;
+  margin-bottom: 1rem;
   text-align: left;
   padding-left: 0.6rem;
   font-family: "Segoe UI", Tahoma, Geneva, Verdana, sans-serif;
@@ -414,6 +455,7 @@ onMounted(() => {
   display: flex;
   justify-content: space-between;
   align-items: center;
+  margin-top: 12px;
 }
 
 .function-item {
@@ -441,17 +483,30 @@ onMounted(() => {
 }
 
 .function-icon img {
-  width: 32px;
-  height: 32px;
+  width: 30px;
+  height: 30px;
+  object-fit: contain;
+}
+
+.function-icon1 {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin-bottom: 0.5rem;
+}
+
+.function-icon1 img {
+  width: 30px;
+  height: 30px;
   object-fit: contain;
 }
 
 .function-text {
   font-size: 0.75rem;
-  color: #666;
+  color: #333;
   text-align: center;
   font-weight: 400;
-  line-height: 1.2;
+  line-height: 1.6;
 }
 
 .function-item:hover .function-text {
@@ -462,7 +517,52 @@ onMounted(() => {
   color: #fff;
   font-size: 20px;
   text-align: center;
- 
+}
+
+/* 横幅适配 */
+.banner-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin: 0 0.9rem 1.2rem 0.9rem;
+  gap: 3%;
+}
+
+.banner-bg {
+  width: 49%;
+  height: 72px;
+  border-radius: 10px;
+  background: url("/img/bg1.png") center center/cover no-repeat;
+  position: relative;
+  overflow: hidden;
+}
+
+.banner-bg1 {
+  width: 49%;
+  height: 72px;
+  border-radius: 10px;
+  background: url("/img/bg2.png") center center/cover no-repeat;
+  position: relative;
+  overflow: hidden;
+}
+
+.banner-content {
+  color: #000;
+  text-align: end;
+  padding: 10px 12px 12px 12px;
+  font-family: "Segoe UI", Tahoma, Geneva, Verdana, sans-serif;
+}
+
+.banner-title {
+  font-size: 1rem;
+  font-weight: bold;
+  margin-bottom: 2px;
+  text-shadow: 0 2px 8px rgba(0, 0, 0, 0.18);
+}
+
+.banner-desc {
+  font-size: 0.78rem;
+  text-shadow: 0 2px 8px rgba(0, 0, 0, 0.18);
 }
 
 /* 响应式适配 */

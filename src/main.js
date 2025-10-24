@@ -20,6 +20,19 @@ import {
   Button,
   Overlay,
   Icon,
+  Dialog,
+  Loading,
+  PasswordInput,
+  NumberKeyboard,
+  Empty,
+  Skeleton,
+  SkeletonTitle,
+  SkeletonImage,
+  SkeletonAvatar,
+  SkeletonParagraph,
+  List,
+  Step,
+  Steps,
 } from "vant";
 
 import "vant/lib/index.css";
@@ -38,10 +51,23 @@ createApp(App)
   .use(Swipe)
   .use(SwipeItem)
   .use(NoticeBar)
+  .use(PasswordInput)
+  .use(NumberKeyboard)
+  .use(Dialog)
+  .use(Loading)
   .use(Overlay)
+  .use(Skeleton)
+  .use(SkeletonTitle)
+  .use(SkeletonImage)
+  .use(SkeletonAvatar)
+  .use(SkeletonParagraph)
   .use(Button)
   .use(Tabbar)
   .use(Icon)
   .use(TabbarItem)
   .use(NavBar)
+  .use(Empty)
+  .use(List)
+  .use(Step)
+  .use(Steps)
   .mount("#app");

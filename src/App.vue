@@ -10,12 +10,8 @@ const hideMenu = ["/home", "/expert", "/game", "/community", "/my"];
   <div class="app-shell">
     <div class="container">
       <router-view />
-     <BottomMenu v-if="hideMenu.includes(route.path)" />
+      <BottomMenu v-if="hideMenu.includes(route.path)" />
     </div>
-
- 
-
-
   </div>
 </template>
 
@@ -30,7 +26,6 @@ body {
   /* 浅灰背景 */
 }
 
-
 :root:root {
   --van-tab-font-size: 0.9rem;
   --van-tab-active-text-color: #000;
@@ -42,9 +37,11 @@ body {
   --van-notice-bar-icon-min-width: 62px;
   --van-tabbar-height: 3.6rem;
   --van-nav-bar-background: #e33212;
+  --van-dialog-confirm-button-text-color: #e33212;
   --van-nav-bar-icon-color: #333;
   --van-nav-bar-arrow-size: 22px;
   --van-nav-bar-height: 48px;
+  --van-loading-text-color: #a3a3a3;
 
   .van-cell {
     position: relative;
@@ -89,5 +86,42 @@ body {
     left: 0;
   }
 
+  .van-overlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    z-index: var(--van-overlay-z-index);
+    width: 102%;
+    height: 102%;
+    background: var(--van-overlay-background);
+  }
+
+  .van-password-input__security li {
+    position: relative;
+    display: flex;
+    flex: 1;
+    align-items: center;
+    justify-content: center;
+    height: 90%;
+    color: var(--van-password-input-text-color);
+    font-size: var(--van-password-input-font-size);
+    line-height: 1;
+    background: #f2f3f5;
+    border-radius: 4px;
+  }
+
+  .van-dialog__message {
+    color: var(--van-text-color);
+    flex: 1;
+    max-height: var(--van-dialog-message-max-height);
+    padding: 32px;
+    overflow-y: auto;
+    font-size: 1.1rem;
+    line-height: 1;
+    white-space: pre-wrap;
+    text-align: center;
+    word-wrap: break-word;
+    -webkit-overflow-scrolling: touch;
+  }
 }
 </style>

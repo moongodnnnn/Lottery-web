@@ -3,25 +3,24 @@
     <van-tabbar-item to="/home">
       <span style="font-weight: 500">首页</span>
       <template #icon="props">
-        <img style="width: 1.9rem; height: 1.9rem" :src="props.active ? icon1.active : icon1.inactive" />
-      </template>
-    </van-tabbar-item>
-    <van-tabbar-item to="/expert">
-      <span style="font-weight: 500">专家</span>
-      <template #icon="props">
-        <img style="width: 1.9rem; height: 1.9rem" :src="props.active ? icon2.active : icon2.inactive" />
+        <img style="width: 1.8rem; height: 1.8rem" :src="props.active ? icon1.active : icon1.inactive" />
       </template>
     </van-tabbar-item>
     <van-tabbar-item to="/game">
       <span style="font-weight: 500">赛事</span>
-   <template #icon="props">
-        <img style="width: 1.9rem; height: 1.9rem" :src="props.active ? iconlive.active : iconlive.inactive" />
+      <template #icon="props">
+        <img style="width: 1.8rem; height: 1.8rem" :src="props.active ? iconlive.active : iconlive.inactive" />
+      </template>
+    </van-tabbar-item>
+    <van-tabbar-item to="/expert">
+      <template #icon="props">
+        <img style="width: 3.2rem; height: 3.2rem; margin-top: -1.2rem" :src="props.active ? icon2.active : icon2.inactive" />
       </template>
     </van-tabbar-item>
     <van-tabbar-item to="/community">
       <span style="font-weight: 500">社区</span>
       <template #icon="props">
-        <img style="width: 1.9rem; height: 1.9rem" :src="props.active ? icon3.active : icon3.inactive" />
+        <img style="width: 1.8rem; height: 1.8rem" :src="props.active ? icon3.active : icon3.inactive" />
       </template>
     </van-tabbar-item>
     <van-tabbar-item to="/my">
@@ -35,27 +34,27 @@
 
 <script>
 export default {
-  name: 'BottomMenu',
+  name: "BottomMenu",
   setup() {
     const icon1 = {
-      active: '/tabicon/icon1.png',
-      inactive: '/tabicon/icon11.png',
+      active: "/tabicon/icon1.png",
+      inactive: "/tabicon/icon11.png",
     };
     const iconlive = {
-      active: '/tabicon/icon3.png',
-      inactive: '/tabicon/icon33.png',
+      active: "/tabicon/icon3.png",
+      inactive: "/tabicon/icon33.png",
     };
     const icon2 = {
-      active: '/tabicon/icon2.png',
-       inactive: '/tabicon/icon22.png',
+      active: "/tabicon/icon22.png",
+      inactive: "/tabicon/icon2.png",
     };
     const icon3 = {
-     active: '/tabicon/icon4.png',
-      inactive: '/tabicon/icon44.png',
+      active: "/tabicon/icon4.png",
+      inactive: "/tabicon/icon44.png",
     };
     const icon4 = {
-    active: '/tabicon/icon5.png',
-      inactive: '/tabicon/icon55.png',
+      active: "/tabicon/icon5.png",
+      inactive: "/tabicon/icon55.png",
     };
     return {
       icon1,

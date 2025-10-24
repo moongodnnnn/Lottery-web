@@ -3,6 +3,7 @@
     <div style="display: flex; justify-content: center; align-items: center">
       <img src="\loginimg1.png" alt="" style="width: 100%; height: auto; max-width: 430px; text-align: center" />
     </div>
+
     <main class="content">
       <div style="height: 8px"></div>
 
@@ -106,6 +107,9 @@
         <van-cascader v-model="cascaderValue" :options="options" title="请选择省/市" @close="show = false" @finish="onFinish" />
       </van-popup>
     </main>
+    <div v-if="loading" class="global-loading-mask">
+      <van-loading size="32px" vertical>加载中...</van-loading>
+    </div>
   </div>
 </template>
 
@@ -125,10 +129,12 @@ const securityCode = ref("");
 const show = ref(false);
 const router = useRouter();
 const imgCode = ref("");
+
 const checked = ref(true);
 const pintext = ref("获取验证码");
 const sending = ref(false);
 const countdown = ref(0);
+const loading = ref(false);
 
 let timer = null;
 
@@ -185,18 +191,21 @@ function login() {
     showToast("请填写有效的图形验证码");
     return;
   }
-
+  loading.value = true;
   API.login({ account: loginUsername.value, password: loginPassword.value, captcha: imgCodeTrim, uniqid: uniqid.value })
     .then((res) => {
+      loading.value = false;
       if (res.code == 1) {
         localStorage.setItem("token", res.data.token);
         localStorage.setItem("user", JSON.stringify(res.data.user));
         router.push("/home");
-      }else{
+      } else {
         showToast(res.msg || "登录失败");
+        refreshImgCode();
       }
     })
     .catch((err) => {
+      loading.value = false;
       showToast(err?.msg || "登录失败");
     });
 }
@@ -241,17 +250,20 @@ function register() {
     showToast("请输入手机验证码");
     return;
   }
-
+  loading.value = true;
   API.register({ mobile: phoneTrim, username: username.value, password: password.value, code: securityCode.value })
     .then((res) => {
+      loading.value = false;
       if (res && res.code === 1) {
         showToast(res.msg || "注册成功");
         activeName.value = "a";
       } else {
         showToast(res.msg || "注册失败");
+        refreshImgCode();
       }
     })
     .catch((err) => {
+      loading.value = false;
       showToast(err?.message || "注册失败");
     });
 }
@@ -279,9 +291,10 @@ function sendmsg() {
     showToast("请填写图形验证码");
     return;
   }
-
+  loading.value = true;
   API.sendSms({ mobile: phoneTrim, event: "register" })
     .then((res) => {
+      loading.value = false;
       if (res && res.code === 1) {
         startCountdown(60);
         showToast(res.msg || "发送短信验证码成功");
@@ -290,6 +303,7 @@ function sendmsg() {
       }
     })
     .catch((err) => {
+      loading.value = false;
       showToast(err?.message || "发送短信验证码失败");
     });
 }
@@ -473,5 +487,21 @@ input::placeholder {
   backdrop-filter: blur(6px);
   z-index: 50;
   box-shadow: 0 -3px 12px rgba(15, 23, 42, 0.02);
+}
+</style>
+
+<style scoped>
+.global-loading-mask {
+  position: fixed;
+  left: 40%;
+  top: 40%;
+  width: 98px;
+  height: 98px;
+  background: rgba(11, 11, 11, 0.8);
+  z-index: 9999;
+  display: flex;
+  border-radius: 12px;
+  align-items: center;
+  justify-content: center;
 }
 </style>
