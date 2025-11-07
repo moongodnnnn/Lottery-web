@@ -250,8 +250,21 @@ function register() {
     showToast("请输入手机验证码");
     return;
   }
+
+  const params = {
+    mobile: phoneTrim,
+    username: username.value,
+    password: password.value,
+    code: securityCode.value
+  };
+
+  const savedRecom = localStorage.getItem("recom");
+  if (savedRecom) {
+    params.recom = savedRecom;
+  }
+
   loading.value = true;
-  API.register({ mobile: phoneTrim, username: username.value, password: password.value, code: securityCode.value })
+  API.register(params)
     .then((res) => {
       loading.value = false;
       if (res && res.code === 1) {

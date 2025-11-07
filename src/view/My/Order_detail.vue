@@ -57,6 +57,99 @@
         </div>
       </div>
 
+      <!-- 数字彩票投注内容 -->
+      <div class="info-card" v-if="isDigitalLottery">
+        <div class="card-header">
+          <div class="card-title">{{ orderDetail.cate_name }} ({{ orderDetail.periods }}期)</div>
+          <van-button size="mini" type="danger" plain @click="viewTicket">查看票样</van-button>
+        </div>
+
+        <!-- 大乐透 -->
+        <div v-if="orderDetail.cate_id === 5" class="lottery-content">
+          <div v-for="(item, index) in orderDetail.odds" :key="index" class="lottery-item">
+          
+            <div class="ball-zone">
+              <span class="zone-label">前区</span>
+              <div class="number-list">
+                <span v-for="num in item.front" :key="'front-' + num" class="number-ball red-ball">
+                  {{ String(num).padStart(2, '0') }}
+                </span>
+              </div>
+            </div>
+            <div class="ball-zone">
+              <span class="zone-label">后区</span>
+              <div class="number-list">
+                <span v-for="num in item.back" :key="'back-' + num" class="number-ball blue-ball">
+                  {{ String(num).padStart(2, '0') }}
+                </span>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- 排列三 -->
+        <div v-if="orderDetail.cate_id === 6" class="lottery-content">
+          <div v-for="(item, index) in getPl3Odds()" :key="index" class="lottery-item">
+          
+            <div class="position-group" v-if="item['1']">
+              <span class="position-label">百位</span>
+              <div class="number-list">
+                <span v-for="num in item['1']" :key="'h-' + num" class="number-ball">{{ num }}</span>
+              </div>
+            </div>
+            <div class="position-group" v-if="item['2']">
+              <span class="position-label">十位</span>
+              <div class="number-list">
+                <span v-for="num in item['2']" :key="'t-' + num" class="number-ball">{{ num }}</span>
+              </div>
+            </div>
+            <div class="position-group" v-if="item['3']">
+              <span class="position-label">个位</span>
+              <div class="number-list">
+                <span v-for="num in item['3']" :key="'u-' + num" class="number-ball">{{ num }}</span>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- 排列五 -->
+        <div v-if="orderDetail.cate_id === 7" class="lottery-content">
+          <div v-for="(item, index) in orderDetail.odds" :key="index" class="lottery-item">
+          
+            <div class="position-group" v-if="item['1']">
+              <span class="position-label">万位</span>
+              <div class="number-list">
+                <span v-for="num in item['1']" :key="'tt-' + num" class="number-ball">{{ num }}</span>
+              </div>
+            </div>
+            <div class="position-group" v-if="item['2']">
+              <span class="position-label">千位</span>
+              <div class="number-list">
+                <span v-for="num in item['2']" :key="'th-' + num" class="number-ball">{{ num }}</span>
+              </div>
+            </div>
+            <div class="position-group" v-if="item['3']">
+              <span class="position-label">百位</span>
+              <div class="number-list">
+                <span v-for="num in item['3']" :key="'h-' + num" class="number-ball">{{ num }}</span>
+              </div>
+            </div>
+            <div class="position-group" v-if="item['4']">
+              <span class="position-label">十位</span>
+              <div class="number-list">
+                <span v-for="num in item['4']" :key="'t-' + num" class="number-ball">{{ num }}</span>
+              </div>
+            </div>
+            <div class="position-group" v-if="item['5']">
+              <span class="position-label">个位</span>
+              <div class="number-list">
+                <span v-for="num in item['5']" :key="'u-' + num" class="number-ball">{{ num }}</span>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
       <!-- 比赛信息 -->
       <div class="info-card" v-if="orderDetail.games && orderDetail.games.length > 0">
         <div class="card-header">
@@ -111,9 +204,13 @@
           <span class="label">注数</span>
           <span class="value">{{ orderDetail.nums }}注</span>
         </div>
-        <div class="info-row">
+        <div class="info-row" v-if="!isDigitalLottery">
           <span class="label">串关方式</span>
           <span class="value">{{ formatRules(orderDetail.rules) }}</span>
+        </div>
+        <div class="info-row" v-if="isDigitalLottery">
+          <span class="label">期号</span>
+          <span class="value">第{{ orderDetail.periods }}期</span>
         </div>
       </div>
     </div>
@@ -125,7 +222,7 @@
 </template>
 
 <script setup>
-import { ref, onMounted } from "vue";
+import { ref, computed, onMounted } from "vue";
 import { useRouter, useRoute } from "vue-router";
 import { showToast } from "vant";
 import API from "../../request/api";
@@ -136,6 +233,23 @@ const route = useRoute();
 const orderId = route.query.id || "";
 const loading = ref(true);
 const orderDetail = ref(null);
+
+// 判断是否为数字彩票
+const isDigitalLottery = computed(() => {
+  if (!orderDetail.value) return false;
+  // cate_id: 6=排列三, 5=大乐透, 7=排列五
+  return [5, 6, 7].includes(orderDetail.value.cate_id);
+});
+
+// 获取排列三的 odds 数据
+function getPl3Odds() {
+  if (!orderDetail.value || !orderDetail.value.odds) return [];
+  // 排列三的 odds 是对象格式 {zx: [...], z3: [], z6: []}
+  if (orderDetail.value.cate_id === 6 && orderDetail.value.odds.zx) {
+    return orderDetail.value.odds.zx;
+  }
+  return [];
+}
 
 onMounted(() => {
   console.log("订单详情页面 - 订单ID:", orderId);
@@ -401,12 +515,12 @@ function goBack() {
   justify-content: space-between;
   align-items: center;
   margin-bottom: 8px;
-  padding-bottom: 8px;
+  padding-bottom: 1px;
   border-bottom: 1px solid #f5f5f5;
 }
 
 .card-title {
-  font-size: 0.85rem;
+  font-size: 0.9rem;
   font-weight: 600;
   color: #333;
 }
@@ -543,6 +657,118 @@ function goBack() {
 .option-value {
   font-size: 0.75rem;
   color: #fc3c3c;
+}
+
+/* 数字彩票样式 */
+.lottery-type-badge {
+  font-size: 0.75rem;
+  font-weight: 600;
+  color: white;
+  background: linear-gradient(135deg, #fc3c3c 0%, #ff6b6b 100%);
+  padding: 3px 10px;
+  border-radius: 4px;
+  box-shadow: 0 2px 4px rgba(252, 60, 60, 0.3);
+}
+
+.lottery-content {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  margin-top: 12px;
+}
+
+.lottery-item {
+  background: linear-gradient(135deg, #fff9f5 0%, #fff 100%);
+  border-radius: 8px;
+  padding: 0px;
+  position: relative;
+}
+
+.lottery-label {
+  font-size: 0.7rem;
+  color: #999;
+  margin-bottom: 8px;
+  font-weight: 500;
+}
+
+.position-group {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 6px 0;
+}
+
+.position-label {
+  font-size: 0.75rem;
+  font-weight: 600;
+  color: #666;
+  min-width: 40px;
+  text-align: right;
+}
+
+.ball-zone {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 6px 0;
+}
+
+.zone-label {
+  font-size: 0.75rem;
+  font-weight: 600;
+  color: #666;
+  min-width: 40px;
+  text-align: right;
+}
+
+.number-list {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  flex: 1;
+}
+
+.number-ball {
+  width: 28px;
+  height: 28px;
+  border-radius: 50%;
+  background: linear-gradient(135deg, #fc3c3c 0%, #ff6b6b 100%);
+  color: white;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 0.8rem;
+  font-weight: 600;
+  box-shadow: 0 2px 4px rgba(252, 60, 60, 0.2);
+}
+
+.red-ball {
+  background: linear-gradient(135deg, #fc3c3c 0%, #ff6b6b 100%);
+}
+
+.blue-ball {
+  background: linear-gradient(135deg, #1e90ff 0%, #4dabf7 100%);
+}
+
+.period-info {
+  margin-top: 12px;
+  padding-top: 12px;
+  border-top: 1px solid #f0f0f0;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.period-label {
+  font-size: 0.8rem;
+  color: #666;
+  font-weight: 500;
+}
+
+.period-value {
+  font-size: 0.8rem;
+  color: #fc3c3c;
+  font-weight: 600;
 }
 </style>
 

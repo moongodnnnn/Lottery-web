@@ -59,12 +59,12 @@
   display: flex;
   justify-content: center;
   align-items: center;
-  width: 14px;
-  height: 14px;
+  width: 16px;
+  height: 16px;
   background: #fc3c3c;
   color: white;
-  font-size: 0.6rem;
-  border-radius: 50%;
+  font-size: 0.7rem;
+  border-radius: 2px;
   margin-left: 4px;
 }
 
@@ -107,7 +107,7 @@
   border: 1px solid #eee;
   border-radius: 6px;
   overflow: hidden;
-  margin-bottom: 8px;
+  margin-bottom: 2px;
 }
 
 /* 表头 */

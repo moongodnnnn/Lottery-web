@@ -19,12 +19,7 @@
 
     <!-- 订单列表 -->
     <div class="orders-container">
-      <van-list
-        v-model:loading="loading"
-        :finished="finished"
-        finished-text="没有更多了"
-        @load="onLoad"
-      >
+      <van-list v-model:loading="loading" :finished="finished" finished-text="没有更多了" @load="onLoad">
         <!-- 订单卡片列表 -->
         <div class="orders-list">
           <div v-for="order in orders" :key="order.id" class="order-card" @click="viewOrderDetail(order)">
@@ -41,7 +36,6 @@
               <!-- 第一行：下注日期和投注金额 -->
               <div class="order-main-row">
                 <div class="order-date">
-              
                   <span>{{ formatDate(order.createtime) }}</span>
                 </div>
                 <div class="order-amount">¥{{ order.amount }}</div>
@@ -105,7 +99,15 @@ function onLoad() {
 // 加载订单数据
 async function loadOrders() {
   try {
-    const res = await API.get_order_list({ page: page.value });
+    // 根据不同的标签页传递不同的参数
+    const params = { page: page.value };
+
+    // 如果是"我发起的"标签页，传入 otype: 2
+    if (activeTab.value === "initiated") {
+      params.otype = 2;
+    }
+
+    const res = await API.get_order_list(params);
     console.log("订单列表:", res);
 
     if (res.code === 1 && res.data) {
@@ -141,11 +143,11 @@ async function loadOrders() {
 function getStatusClass(status) {
   // status: 0=无效订单, 1=未接单, 2=已接单, 3=中奖, 4=未中奖
   const classMap = {
-    0: "status-cancelled",  // 无效订单 - 灰色
-    1: "status-lost",       // 未接单 - 灰色
-    2: "status-pending",    // 已接单 - 绿色
-    3: "status-won",        // 中奖 - 红色
-    4: "status-lost"        // 未中奖 - 灰色
+    0: "status-cancelled", // 无效订单 - 灰色
+    1: "status-lost", // 未接单 - 灰色
+    2: "status-pending", // 已接单 - 绿色
+    3: "status-won", // 中奖 - 红色
+    4: "status-lost", // 未中奖 - 灰色
   };
   return classMap[status] || "";
 }
@@ -158,7 +160,7 @@ function getStatusText(status) {
     1: "未接单",
     2: "待开奖",
     3: "已中奖",
-    4: "未中奖"
+    4: "未中奖",
   };
   return textMap[status] || "未知";
 }
@@ -176,7 +178,7 @@ function formatDate(timestamp) {
 
 // 查看订单详情
 function viewOrderDetail(order) {
-  router.push({ path: '/order_detail', query: { id: order.id } });
+  router.push({ path: "/order_detail", query: { id: order.id } });
 }
 
 // 页面加载时不自动加载，等待van-list触发

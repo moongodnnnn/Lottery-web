@@ -3,22 +3,21 @@
     <div class="mybg">
       <div class="user-info-bar">
         <div class="user-info-left">
-          <img src="/icons/davatar.png" alt="" class="user-avatar small" v-show="!islogin" />
-          <img src="/icons/avatar1.png" alt="" class="user-avatar small" v-show="islogin" />
+          <img :src="avatarUrl" alt="" class="user-avatar small" />
           <div class="user-meta">
             <div class="user-name">
               {{ username }}
               <img src="/icons/copy.png" alt="" class="copy-icon" @click="copy(username)" v-if="islogin" />
             </div>
             <div class="user-follow-row">
-              <div class="user-follow-item">
+              <div class="user-follow-item" @click="router.push('/follow?type=follow')">
                 <span class="user-follow-label">关注</span>
-                <span class="user-follow-num">1</span>
+                <span class="user-follow-num">{{ followCount }}</span>
               </div>
 
-              <div class="user-follow-item">
+              <div class="user-follow-item" @click="router.push('/follow?type=fans')">
                 <span class="user-follow-label">粉丝</span>
-                <span class="user-follow-num">12</span>
+                <span class="user-follow-num">{{ fansCount }}</span>
               </div>
             </div>
           </div>
@@ -37,17 +36,17 @@
       </div>
 
       <div class="balance-amount">
-        <div class="amount-text">100.00</div>
+        <div class="amount-text">{{ balance }}</div>
         <div class="balance-actions">
            <button class="action-btn withdraw-btn" @click="go('/withdraw')">提现</button>
           <button class="action-btn recharge-btn" @click="go('/recharge')">充值</button>
-         
+
         </div>
       </div>
 
       <div class="balance-footer">
         <div class="reserved-text">预留金额（提现未处理与拼单保底金额累计）</div>
-        <div class="reserved-amount">0元</div>
+        <div class="reserved-amount">{{ reservedAmount }}元</div>
       </div>
     </div>
     <div style="height: 8px"></div>
@@ -116,13 +115,13 @@
           </div>
           <div class="function-text">实名认证</div>
         </div>
-        <div class="function-item" @click="goToMyFollow">
+        <div class="function-item" @click="router.push('/card-center')">
           <div class="function-icon1">
             <img src="/icons/my44.png" alt="卡包中心" />
           </div>
           <div class="function-text">卡包中心</div>
         </div>
-        <div class="function-item" @click="goToMyGroup">
+        <div class="function-item" @click="router.push('/message-center')">
           <div class="function-icon1">
             <img src="/icons/my33.png" alt="帮助中心" />
           </div>
@@ -163,30 +162,100 @@
 import { ref, onMounted } from "vue";
 import { useRouter } from "vue-router";
 import { showToast } from "vant";
+import API from "../../request/api";
 
 const router = useRouter();
 const islogin = ref(false);
 const username = ref("请登录");
+const avatarUrl = ref("/icons/davatar.png");
+const balance = ref("0.00");
+const reservedAmount = ref("0");
+const followCount = ref(0);
+const fansCount = ref(0);
 
 function go(path) {
   router.push(path);
 }
 
-onMounted(() => {
-  const token = localStorage.getItem("token");
-  const userStr = localStorage.getItem("user");
-  if (userStr) {
-    try {
-      const user = JSON.parse(userStr);
+function viewDetail() {
+  router.push('/account_detail');
+}
+
+// 复制用户名
+function copy(text) {
+  navigator.clipboard.writeText(text).then(() => {
+    showToast('复制成功');
+  }).catch(() => {
+    showToast('复制失败');
+  });
+}
+
+// 获取用户信息
+const getUserInfo = async () => {
+  try {
+    const res = await API.getUserInfo();
+
+    if (res.code === 1 && res.data) {
+      const user = res.data;
+
+      // 更新用户基本信息
       username.value = user.nickname || user.username || "用户";
-    } catch {
-      username.value = "请登录";
+      avatarUrl.value = user.avatar || "/icons/avatar1.png";
+
+      // 更新关注和粉丝数量
+      followCount.value = user.follows || 0;
+      fansCount.value = user.fans || 0;
+
+      // 更新余额信息（从 store.user_amount 获取）
+      if (user.store?.user_amount) {
+        balance.value = user.store.user_amount.amount || "0.00";
+
+        // 预留金额 = git_money + withdraw
+        const gitMoney = parseFloat(user.store.user_amount.git_money || 0);
+        const withdraw = parseFloat(user.store.user_amount.withdraw || 0);
+        reservedAmount.value = (gitMoney + withdraw).toFixed(2);
+      }
+
+      // 更新本地存储
+      localStorage.setItem("user", JSON.stringify(user));
     }
-  } else {
-    username.value = "请登录";
+  } catch (error) {
+    console.error('获取用户信息失败:', error);
   }
+};
+
+onMounted(async () => {
+  const token = localStorage.getItem("token");
+
   if (token) {
     islogin.value = true;
+
+    // 先从本地存储读取基本信息
+    const userStr = localStorage.getItem("user");
+    if (userStr) {
+      try {
+        const user = JSON.parse(userStr);
+        username.value = user.nickname || user.username || "用户";
+        avatarUrl.value = user.avatar || "/icons/avatar1.png";
+
+        // 关注和粉丝数量从缓存读取
+        followCount.value = user.follows || 0;
+        fansCount.value = user.fans || 0;
+
+        // 余额信息也从缓存读取
+        if (user.store?.user_amount) {
+          balance.value = user.store.user_amount.amount || "0.00";
+          const gitMoney = parseFloat(user.store.user_amount.git_money || 0);
+          const withdraw = parseFloat(user.store.user_amount.withdraw || 0);
+          reservedAmount.value = (gitMoney + withdraw).toFixed(2);
+        }
+      } catch (e) {
+        console.error('解析本地用户信息失败:', e);
+      }
+    }
+
+    // 调用接口获取最新用户信息（主要是余额等动态数据）
+    await getUserInfo();
   } else {
     router.push("/login");
   }

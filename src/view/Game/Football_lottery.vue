@@ -56,7 +56,7 @@
             <div class="game-row-2">
               <!-- 左侧：联赛和时间 -->
               <div class="game-meta">
-                <div class="game-league">{{ game.match?.name || "未知联赛" }}</div>
+                <div class="game-league" :style="getLeagueStyle(game.match?.name)">{{ game.match?.name || "未知联赛" }}</div>
                 <div class="game-time">{{ formatGameTime(game.start_time) }}</div>
               </div>
 
@@ -65,7 +65,11 @@
                 <!-- 第一排：不让球胜平负 (rate_type = 1) -->
                 <div v-for="rate in game.rates.filter((r) => r.rate_type === '1')" :key="rate.id" class="rate-compact">
                   <div class="rate-label">
-                    <span class="handicap-small zero">0</span>
+                    <span class="handicap-small zero">
+                      0
+                      <span v-if="rate.is_signle === 1" class="single-tag">
+                        单</span>
+                    </span>
                   </div>
                   <div class="rate-buttons">
                     <div
@@ -93,6 +97,9 @@
                       }"
                     >
                       {{ rate.rangqiu > 0 ? "+" : "" }}{{ rate.rangqiu }}
+                      <span v-if="rate.is_signle === 1" class="single-tag"> 
+                        单 
+                      </span>
                     </span>
                   </div>
                   <div class="rate-buttons">
@@ -161,6 +168,7 @@
             <span class="mini-number">{{ currentGame.xuhao }}</span>
             <span class="mini-teams">{{ currentGame.home_team_name }} VS {{ currentGame.guest_team_name }}</span>
           </div>
+          <div class="single-tip">以下玩法可投单关</div>
         </div>
 
         <div class="more-play-body">
@@ -323,10 +331,37 @@ function confirmSelection() {
     return;
   }
 
+  const gameIds = new Set();
+  let hasSingleGame = false;
+
+  for (const detail of Object.values(selectedBetsDetails.value)) {
+    gameIds.add(detail.gameId);
+
+    if (detail.rateType === '3' || detail.rateType === '4' || detail.rateType === '5') {
+      hasSingleGame = true;
+      break;
+    }
+
+    for (const dayData of gamelist.value) {
+      const game = dayData.games.find(g => g.id === detail.gameId);
+      if (game && game.rates) {
+        const rate = game.rates.find(r => r.rate_type === detail.rateType);
+        if (rate && rate.is_signle === 1) {
+          hasSingleGame = true;
+          break;
+        }
+      }
+    }
+  }
+
+  if (gameIds.size === 1 && !hasSingleGame) {
+    showToast("选择非单关场次，需要再选择一场");
+    return;
+  }
+
   console.log("已选择的投注内容:", selectedBets.value);
   console.log("投注详细信息:", selectedBetsDetails.value);
 
-  // 将详细信息传递到确认页面
   router.push({
     path: '/Confirm_bet',
     query: {
@@ -498,6 +533,24 @@ onMounted(async () => {
 
 function onClickLeft() {
   router.back();
+}
+
+function getLeagueStyle(leagueName) {
+  if (!leagueName) return { background: '#650000' };
+
+  if (leagueName.includes('沙职')) {
+    return { background: '#000000' };
+  } else if (leagueName.includes('澳超')) {
+    return { background: '#ff8c00' };
+  } else if (leagueName.includes('德乙')) {
+    return { background: '#800080' };
+  } else if (leagueName.includes('法乙')) {
+    return { background: '#008000' };
+  }else if (leagueName.includes('荷乙')) {
+    return { background: '#d426dd' };
+  } else {
+    return { background: '#d426dd' };
+  }
 }
 </script>
 
@@ -930,10 +983,10 @@ function onClickLeft() {
 }
 
 .game-league {
-  font-size: 0.65rem;
+  font-size: 0.75rem;
   color: #fff;
   background: #650000;
-  padding: 8px;
+  padding: 6px;
   border-radius: 3px;
   min-width: 1.8rem;
   text-align: center;
@@ -978,6 +1031,24 @@ function onClickLeft() {
   border-radius: 4px;
   background-color: #fff;
   transition: all 0.2s;
+  position: relative;
+}
+
+.single-tag {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 20px;
+  height: 20px;
+  background: linear-gradient(to bottom right, #fc3c3c 0%, #fc3c3c 50%, transparent 50%);
+  font-size: 0.6rem;
+  color: #fff;
+  font-weight: 600;
+  line-height: 1;
+  display: flex;
+  align-items: flex-start;
+  justify-content: flex-start;
+  padding: 1px 0 0 2px;
 }
 
 /* 让球数为0 - 黑色 */
@@ -1075,6 +1146,14 @@ function onClickLeft() {
 .mini-teams {
   font-size: 0.9rem;
   color: #333;
+}
+
+.single-tip {
+  text-align: center;
+  font-size: 0.75rem;
+  color: #fc3c3c;
+  margin-top: 8px;
+  padding: 4px 0;
 }
 
 .more-play-body {

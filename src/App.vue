@@ -40,8 +40,9 @@ body {
   --van-dialog-confirm-button-text-color: #e33212;
   --van-nav-bar-icon-color: #333;
   --van-nav-bar-arrow-size: 22px;
-  --van-nav-bar-height: 48px;
+  --van-nav-bar-height: 52px;
   --van-loading-text-color: #a3a3a3;
+  --van-tabs-bottom-bar-color: #e33212;
 
   .van-cell {
     position: relative;

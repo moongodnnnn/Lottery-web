@@ -115,7 +115,7 @@ export const API = {
   },
 
   get_order_list(payload) {
-    return instance.get("/betting_order/get_order_list", payload);
+    return instance.get("/betting_order/get_order_list", { params: payload });
   },
 
   lottery_pailie(payload) {
@@ -133,6 +133,67 @@ export const API = {
   analysisData(payload) {
     return instance.get("/lottery/analysisData", { params: { id: payload } });
   },
+
+  gendan_list(payload) {
+    return instance.get("/gendan/getList", { params: payload });
+  },
+
+  getgendanInfo(payload) {
+    return instance.get(`gendan/getInfo/id/${payload}`);
+  },
+
+  // 获取跟单排行榜
+  getRank() {
+    return instance.get("/gendan/getRank");
+  },
+
+  gendanuserInfo() {
+    return instance.get("/gendan/userInfo");
+  },
+
+  gendanadd_order(id, payload) {
+    return instance.post(`/gendan/add_order/id/${id}`, payload);
+  },
+
+  // 用户关注/取关
+  addFollow(userId) {
+    return instance.get(`/user/addFollow/id/${userId}`);
+  },
+
+  // 获取用户粉丝/关注列表
+  getFollowList(userId, params) {
+    return instance.get(`/user/followList/id/${userId}`, { params });
+  },
+
+  // 获取登录用户个人信息
+  getUserInfo() {
+    return instance.get("/user/info");
+  },
+
+  // 修改用户名称/头像
+  modifyUserInfo(payload) {
+    return instance.post("/user/modify", payload);
+  },
+
+  // 上传文件
+  uploadFile(file) {
+    const formData = new FormData();
+    formData.append('file', file);
+    return instance.post("/common/upload", formData, {
+      headers: {
+        'Content-Type': 'multipart/form-data'
+      }
+    });
+  },
+
+  getAccountDetail(payload) {
+    return instance.get("/user/zblists", { params: payload });
+  },
+
+  toBalance(payload) {
+    return instance.get("/pay/toBalance", { params: payload });
+  },
+
 };
 
 export default API;

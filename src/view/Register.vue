@@ -111,7 +111,7 @@
 
 <script setup>
 import { ref, computed, onBeforeUnmount, onMounted } from "vue";
-import { useRouter } from "vue-router";
+import { useRouter, useRoute } from "vue-router";
 import { showToast } from "vant";
 import { useCascaderAreaData } from "@vant/area-data";
 import { API } from "../request/api";
@@ -124,6 +124,7 @@ const phone = ref("");
 const securityCode = ref("");
 const show = ref(false);
 const router = useRouter();
+const route = useRoute();
 const imgCode = ref("");
 const checked = ref(true);
 const pintext = ref("获取验证码");
@@ -142,6 +143,7 @@ const loginImgCode = ref("");
 
 const imgurl = ref("");
 const uniqid = ref("");
+const recom = ref("");
 
 const onFinish = ({ selectedOptions }) => {
   show.value = false;
@@ -243,7 +245,18 @@ function register() {
     return;
   }
 
-  API.register({ mobile: phoneTrim, username: username.value, password: password.value, code: securityCode.value })
+  const params = {
+    mobile: phoneTrim,
+    username: username.value,
+    password: password.value,
+    code: securityCode.value
+  };
+
+  if (recom.value) {
+    params.recom = recom.value;
+  }
+
+  API.register(params)
     .then((res) => {
       if (res && res.code === 1) {
         showToast(res.msg || "注册成功");
@@ -307,6 +320,17 @@ function onSubmit() {
 onMounted(() => {
   uniqid.value = getUniqId();
   imgurl.value = `https://lottery.hongxiu88.com/index/captcha/index/id/${uniqid.value}`;
+
+  const recomParam = route.query.recom;
+  if (recomParam) {
+    recom.value = recomParam;
+    localStorage.setItem("recom", recomParam);
+  } else {
+    const savedRecom = localStorage.getItem("recom");
+    if (savedRecom) {
+      recom.value = savedRecom;
+    }
+  }
 });
 
 onBeforeUnmount(() => {

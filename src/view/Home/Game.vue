@@ -41,7 +41,7 @@
 
     <div class="top-bar">
       <div class="tab-wrap">
-        <van-tabs v-model:active="active" @click-tab="onClickTab" animated>
+        <van-tabs v-model:active="active" @change="onTabChange" animated>
           <van-tab>
             <template #title>
               <span v-if="active !== 0">足球</span>
@@ -383,13 +383,70 @@ function onDateClick(idx) {
   footballMatchesOneday.value = footballMatches.value[key] || [];
 }
 
-const onClickTab = (tab) => {
-  // 如果切换到篮球tab且还没有数据，可以在这里加载篮球数据
-  if (tab.name === "1" && basketballMatches.value.length === 0) {
-    // 这里可以添加篮球数据的API调用
-    // loading.value = true;
-    // API.gameScore("basketball").then(...).finally(() => loading.value = false);
+const onTabChange = (index) => {
+  // 如果切换到篮球tab且还没有数据，加载篮球数据
+  if (index === 1 && basketballMatches.value.length === 0) {
+    loading.value = true;
+
+    API.gameScore("basketball")
+      .then((res) => {
+        if (res.code === 1) {
+          // 将篮球数据转换为数组格式
+          const allMatches = [];
+          Object.keys(res.data).forEach(date => {
+            if (res.data[date] && res.data[date].length > 0) {
+              res.data[date].forEach(match => {
+                allMatches.push({
+                  id: match.id,
+                  league: match.match?.name || '未知联赛',
+                  dateTime: formatMatchTime(match.start_time),
+                  homeTeam: match.home_team_name,
+                  awayTeam: match.guest_team_name,
+                  homeScore: match.basketball?.home_total ? parseInt(match.basketball.home_total) : null,
+                  awayScore: match.basketball?.guest_total ? parseInt(match.basketball.guest_total) : null,
+                  status: match.basketball?.current_jie_f || '未开始',
+                  quarters: match.basketball ? {
+                    home: [
+                      match.basketball.home_t1 || 0,
+                      match.basketball.home_t2 || 0,
+                      match.basketball.home_t3 || 0,
+                      match.basketball.home_t4 || 0
+                    ],
+                    away: [
+                      match.basketball.guest_t1 || 0,
+                      match.basketball.guest_t2 || 0,
+                      match.basketball.guest_t3 || 0,
+                      match.basketball.guest_t4 || 0
+                    ]
+                  } : null
+                });
+              });
+            }
+          });
+          basketballMatches.value = allMatches;
+        } else {
+          showToast(res.msg || "获取篮球数据失败");
+        }
+      })
+      .catch((err) => {
+        console.error('获取篮球数据失败:', err);
+        showToast(err.msg || "获取篮球数据失败");
+      })
+      .finally(() => {
+        loading.value = false;
+      });
   }
+};
+
+// 格式化比赛时间
+const formatMatchTime = (timestamp) => {
+  if (!timestamp) return '';
+  const date = new Date(timestamp * 1000);
+  const month = (date.getMonth() + 1).toString().padStart(2, '0');
+  const day = date.getDate().toString().padStart(2, '0');
+  const hours = date.getHours().toString().padStart(2, '0');
+  const minutes = date.getMinutes().toString().padStart(2, '0');
+  return `${month}-${day} ${hours}:${minutes}`;
 };
 
 onMounted(() => {

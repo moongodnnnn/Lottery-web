@@ -31,14 +31,12 @@
         </div>
       </div>
 
-
-
       <!-- 排行榜骨架屏 -->
       <div class="skeleton-card">
         <van-skeleton-title />
         <div class="skeleton-ranking-tabs">
-          <van-skeleton-title style="width: 48%; height: 36px;" />
-          <van-skeleton-title style="width: 48%; height: 36px;" />
+          <van-skeleton-title style="width: 48%; height: 36px" />
+          <van-skeleton-title style="width: 48%; height: 36px" />
         </div>
         <div class="skeleton-ranking-list">
           <div v-for="i in 5" :key="i" class="skeleton-ranking-item">
@@ -69,269 +67,260 @@
       </div>
 
       <main class="content">
-      <!-- 开奖结果区域 -->
-      <div class="result-card">
-        <div class="result-card-header">
-          <img src="/icons/Lotterydraw.png" alt="" class="header-left-icon" />
+        <!-- 开奖结果区域 -->
+        <div class="result-card">
+          <div class="result-card-header">
+            <img src="/icons/Lotterydraw.png" alt="" class="header-left-icon" />
 
-          <div
-            style="background-color: #ff4747; color: #fff; border-radius: 12px; padding: 2px 6px; font-size: 12px"
-            @click="go('/lottery_results')"
+            <div
+              style="background-color: #ff4747; color: #fff; border-radius: 12px; padding: 2px 6px; font-size: 12px"
+              @click="go('/lottery_results')"
+            >
+              开奖公告
+            </div>
+          </div>
+
+          <van-notice-bar
+            :scrollable="false"
+            color="#ff0404"
+            background="#fcf3ea"
+            style="height: 20px; font-size: 12px; padding: 6px 8px; margin: 4px 10px"
           >
-            开奖公告
-          </div>
-        </div>
+            <van-swipe vertical class="notice-swipe" :autoplay="3000" :touchable="false" :show-indicators="false">
+              <van-swipe-item v-for="value in winners">
+                {{ value }}
+              </van-swipe-item>
+            </van-swipe>
+          </van-notice-bar>
 
-        <van-notice-bar
-          :scrollable="false"
-          color="#ff0404"
-          background="#fcf3ea"
-          style="height: 20px; font-size: 12px; padding: 6px 8px; margin: 4px 10px"
-        >
-          <van-swipe vertical class="notice-swipe" :autoplay="3000" :touchable="false" :show-indicators="false">
-            <van-swipe-item v-for="value in winners">
-              {{ value }}
-            </van-swipe-item>
-          </van-swipe>
-        </van-notice-bar>
-
-        <div class="game-row">
-          <div class="games-grid">
-            <!-- 双色球 -->
-            <div class="game-card" :style="{ backgroundImage: `url('/icons/open1.png')` }">
-              <div class="game-card-content">
-                <div class="game-card-info">{{ results.loto.phase }}期&nbsp; {{ results.loto.date }}</div>
-                <div class="game-number-list">
-                  <div v-for="(value, index) in results.loto.draw_numbers" :key="index" class="number-ball" :class="{ yellow: index >= 5 }">
-                    {{ value }}
+          <div class="game-row">
+            <div class="games-grid">
+              <!-- 双色球 -->
+              <div class="game-card" :style="{ backgroundImage: `url('/icons/open1.png')` }">
+                <div class="game-card-content">
+                  <div class="game-card-info">{{ results.loto.phase }}期&nbsp; {{ results.loto.date }}</div>
+                  <div class="game-number-list">
+                    <div
+                      v-for="(value, index) in results.loto.draw_numbers"
+                      :key="index"
+                      class="number-ball"
+                      :class="{ yellow: index >= 5 }"
+                    >
+                      {{ value }}
+                    </div>
                   </div>
                 </div>
               </div>
-            </div>
 
-            <!-- 七星彩 -->
-            <div class="game-card" :style="{ backgroundImage: `url('/icons/open2.png')` }">
-              <div class="game-card-content">
-                <div class="game-card-info">{{ results.qxc.phase }}期&nbsp; {{ results.qxc.date }}</div>
-                <div class="game-number-list">
-                  <div v-for="(value, index) in results.qxc.draw_numbers" :key="index" class="number-ball7" :class="{ yellow: index >= 6 }">
-                    {{ value }}
+              <!-- 七星彩 -->
+              <div class="game-card" :style="{ backgroundImage: `url('/icons/open2.png')` }">
+                <div class="game-card-content">
+                  <div class="game-card-info">{{ results.qxc.phase }}期&nbsp; {{ results.qxc.date }}</div>
+                  <div class="game-number-list">
+                    <div
+                      v-for="(value, index) in results.qxc.draw_numbers"
+                      :key="index"
+                      class="number-ball7"
+                      :class="{ yellow: index >= 6 }"
+                    >
+                      {{ value }}
+                    </div>
                   </div>
                 </div>
               </div>
-            </div>
 
-            <!-- 排列5 -->
-            <div class="game-card" :style="{ backgroundImage: `url('/icons/open3.png')` }">
-              <div class="game-card-content">
-                <div class="game-card-info">{{ results.pl5.phase }}期&nbsp; {{ results.pl5.date }}</div>
-                <div class="game-number-list">
-                  <div v-for="(value, index) in results.pl5.draw_numbers" :key="index" class="number-ball3" :class="{ yellow: index >= 5 }">
-                    {{ value }}
+              <!-- 排列5 -->
+              <div class="game-card" :style="{ backgroundImage: `url('/icons/open3.png')` }">
+                <div class="game-card-content">
+                  <div class="game-card-info">{{ results.pl5.phase }}期&nbsp; {{ results.pl5.date }}</div>
+                  <div class="game-number-list">
+                    <div
+                      v-for="(value, index) in results.pl5.draw_numbers"
+                      :key="index"
+                      class="number-ball3"
+                      :class="{ yellow: index >= 5 }"
+                    >
+                      {{ value }}
+                    </div>
                   </div>
                 </div>
               </div>
-            </div>
 
-            <!-- 排列3 -->
-            <div class="game-card" :style="{ backgroundImage: `url('/icons/open4.png')` }">
-              <div class="game-card-content">
-                <div class="game-card-info">{{ results.pl3.phase }}期&nbsp; {{ results.pl3.date }}</div>
-                <div class="game-number-list">
-                  <div v-for="(value, index) in results.pl3.draw_numbers" :key="index" class="number-ball3" :class="{ yellow: index >= 5 }">
-                    {{ value }}
+              <!-- 排列3 -->
+              <div class="game-card" :style="{ backgroundImage: `url('/icons/open4.png')` }">
+                <div class="game-card-content">
+                  <div class="game-card-info">{{ results.pl3.phase }}期&nbsp; {{ results.pl3.date }}</div>
+                  <div class="game-number-list">
+                    <div
+                      v-for="(value, index) in results.pl3.draw_numbers"
+                      :key="index"
+                      class="number-ball3"
+                      :class="{ yellow: index >= 5 }"
+                    >
+                      {{ value }}
+                    </div>
                   </div>
-                </div>
-              </div>
-            </div>
-          </div>
-        </div>
-      </div>
-
-      <!-- 游戏入口区域 -->
-      <div class="game-entry-card">
-        <div class="result-card-header">
-          <img src="/icons/game.png" alt="" class="header-left-icon game-header-icon" />
-          <img src="/icons/More.png" alt="" class="header-right-icon" />
-        </div>
-
-        <div class="game-entry-grid">
-          <div class="game-entry-item" v-for="value in gamelist" :key="value.id">
-            <img :src="value.cimage" alt="" class="entry-item-img" @click="go(value.code)" />
-            <span class="entry-item-text">{{ value.name }}</span>
-          </div>
-        </div>
-      </div>
-
-
-
-      <!-- 排行榜模块 -->
-      <div class="game-entry-card ranking-card">
-        <!-- 排行榜列表 -->
-        <div class="ranking-list">
-          <!-- 红单榜 -->
-          <div v-if="activeRankingTab === 'redList'" class="ranking-content">
-            <!-- 领奖台（前3名） -->
-            <div class="podium-container">
-              <!-- Tab切换 -->
-              <div class="ranking-tabs">
-                <div
-                  :class="['ranking-tab', { active: activeRankingTab === 'redList' }]"
-                  @click="activeRankingTab = 'redList'"
-                >
-                  红单榜
-                </div>
-                <div
-                  :class="['ranking-tab', { active: activeRankingTab === 'hitList' }]"
-                  @click="activeRankingTab = 'hitList'"
-                >
-                  命中榜
-                </div>
-              </div>
-
-              <!-- 领奖台 -->
-              <!-- 第2名 -->
-              <div class="podium-item rank-2">
-                <div class="podium-base rank-2-base">
-                  <div class="avatar-wrapper">
-                    <img class="podium-avatar" :src="redListRanking[1].avatar" alt="" />
-                    <img src="/icons/top2.png" alt="" class="crown-icon">
-                  </div>
-                  <div class="podium-name">{{ redListRanking[1].name }}</div>
-                  <div class="podium-value">¥{{ redListRanking[1].amount.toLocaleString() }}</div>
-
-                </div>
-              </div>
-
-              <!-- 第1名 -->
-              <div class="podium-item rank-1">
-                <div class="podium-base rank-1-base">
-                  <div class="avatar-wrapper">
-                    <img class="podium-avatar" :src="redListRanking[0].avatar" alt="" />
-                    <img src="/icons/top1.png" alt="" class="crown-icon">
-                  </div>
-                  <div class="podium-name">{{ redListRanking[0].name }}</div>
-                  <div class="podium-value">¥{{ redListRanking[0].amount.toLocaleString() }}</div>
-
-                </div>
-              </div>
-
-              <!-- 第3名 -->
-              <div class="podium-item rank-3">
-                <div class="podium-base rank-3-base">
-                  <div class="avatar-wrapper">
-                    <img class="podium-avatar" :src="redListRanking[2].avatar" alt="" />
-                    <img src="/icons/top3.png" alt="" class="crown-icon">
-                  </div>
-                  <div class="podium-name">{{ redListRanking[2].name }}</div>
-                  <div class="podium-value">¥{{ redListRanking[2].amount.toLocaleString() }}</div>
-
-                </div>
-              </div>
-            </div>
-
-            <!-- 4-10名列表 -->
-            <div class="ranking-normal-list">
-              <div
-                v-for="(user, index) in redListRanking.slice(3)"
-                :key="user.id"
-                class="ranking-item"
-              >
-                <div class="ranking-number">{{ index + 4 }}</div>
-                <img class="ranking-avatar" :src="user.avatar" alt="" />
-                <div class="ranking-info">
-                  <div class="ranking-name">{{ user.name }}</div>
-                  <div class="ranking-desc">中奖金额</div>
-                </div>
-                <div class="ranking-value">
-                  <span class="amount">¥{{ user.amount.toLocaleString() }}</span>
-                </div>
-              </div>
-            </div>
-          </div>
-
-          <!-- 命中榜 -->
-          <div v-if="activeRankingTab === 'hitList'" class="ranking-content">
-            <!-- 领奖台（前3名） -->
-            <div class="podium-container">
-              <!-- Tab切换 -->
-              <div class="ranking-tabs">
-                <div
-                  :class="['ranking-tab', { active: activeRankingTab === 'redList' }]"
-                  @click="activeRankingTab = 'redList'"
-                >
-                  红单榜
-                </div>
-                <div
-                  :class="['ranking-tab', { active: activeRankingTab === 'hitList' }]"
-                  @click="activeRankingTab = 'hitList'"
-                >
-                  命中榜
-                </div>
-              </div>
-
-              <!-- 领奖台 -->
-              <!-- 第2名 -->
-              <div class="podium-item rank-2">
-                <div class="podium-base rank-2-base">
-                  <div class="avatar-wrapper">
-                    <img class="podium-avatar" :src="hitListRanking[1].avatar" alt="" />
-                    <img src="/icons/top2.png" alt="" class="crown-icon">
-                  </div>
-                  <div class="podium-name">{{ hitListRanking[1].name }}</div>
-                  <div class="podium-value">{{ hitListRanking[1].count }}次</div>
-
-                </div>
-              </div>
-
-              <!-- 第1名 -->
-              <div class="podium-item rank-1">
-                <div class="podium-base rank-1-base">
-                  <div class="avatar-wrapper">
-                    <img class="podium-avatar" :src="hitListRanking[0].avatar" alt="" />
-                    <img src="/icons/top1.png" alt="" class="crown-icon">
-                  </div>
-                  <div class="podium-name">{{ hitListRanking[0].name }}</div>
-                  <div class="podium-value">{{ hitListRanking[0].count }}次</div>
-
-                </div>
-              </div>
-
-              <!-- 第3名 -->
-              <div class="podium-item rank-3">
-                <div class="podium-base rank-3-base">
-                  <div class="avatar-wrapper">
-                    <img class="podium-avatar" :src="hitListRanking[2].avatar" alt="" />
-                    <img src="/icons/top3.png" alt="" class="crown-icon">
-                  </div>
-                  <div class="podium-name">{{ hitListRanking[2].name }}</div>
-                  <div class="podium-value">{{ hitListRanking[2].count }}次</div>
-
-                </div>
-              </div>
-            </div>
-
-            <!-- 4-10名列表 -->
-            <div class="ranking-normal-list">
-              <div
-                v-for="(user, index) in hitListRanking.slice(3)"
-                :key="user.id"
-                class="ranking-item"
-              >
-                <div class="ranking-number">{{ index + 4 }}</div>
-                <img class="ranking-avatar" :src="user.avatar" alt="" />
-                <div class="ranking-info">
-                  <div class="ranking-name">{{ user.name }}</div>
-                  <div class="ranking-desc">中奖次数</div>
-                </div>
-                <div class="ranking-value">
-                  <span class="count">{{ user.count }}次</span>
                 </div>
               </div>
             </div>
           </div>
         </div>
-      </div>
+
+        <!-- 游戏入口区域 -->
+        <div class="game-entry-card">
+          <div class="result-card-header">
+            <img src="/icons/game.png" alt="" class="header-left-icon game-header-icon" />
+          </div>
+
+          <div class="game-entry-grid">
+            <div class="game-entry-item" v-for="value in gamelist" :key="value.id">
+              <img :src="value.cimage" alt="" class="entry-item-img" @click="go(value.code)" />
+              <span class="entry-item-text">{{ value.name }}</span>
+            </div>
+          </div>
+        </div>
+
+        <!-- 排行榜模块 -->
+        <div class="game-entry-card ranking-card">
+          <!-- 排行榜列表 -->
+          <div class="ranking-list">
+            <!-- 红单榜 -->
+            <div v-if="activeRankingTab === 'redList'" class="ranking-content">
+              <!-- 领奖台（前3名） -->
+              <div class="podium-container">
+                <!-- Tab切换 -->
+                <div class="ranking-tabs">
+                  <div :class="['ranking-tab', { active: activeRankingTab === 'redList' }]" @click="activeRankingTab = 'redList'">
+                    红单榜
+                  </div>
+                  <div :class="['ranking-tab', { active: activeRankingTab === 'hitList' }]" @click="activeRankingTab = 'hitList'">
+                    命中榜
+                  </div>
+                </div>
+
+                <!-- 领奖台 -->
+                <!-- 第2名 -->
+                <div class="podium-item rank-2">
+                  <div class="podium-base rank-2-base">
+                    <div class="avatar-wrapper">
+                      <img class="podium-avatar" :src="redListRanking[1].avatar" alt="" />
+                      <img src="/icons/top2.png" alt="" class="crown-icon" />
+                    </div>
+                    <div class="podium-name">{{ redListRanking[1].name }}</div>
+                    <div class="podium-value">¥{{ redListRanking[1].amount.toLocaleString() }}</div>
+                  </div>
+                </div>
+
+                <!-- 第1名 -->
+                <div class="podium-item rank-1">
+                  <div class="podium-base rank-1-base">
+                    <div class="avatar-wrapper">
+                      <img class="podium-avatar" :src="redListRanking[0].avatar" alt="" />
+                      <img src="/icons/top1.png" alt="" class="crown-icon" />
+                    </div>
+                    <div class="podium-name">{{ redListRanking[0].name }}</div>
+                    <div class="podium-value">¥{{ redListRanking[0].amount.toLocaleString() }}</div>
+                  </div>
+                </div>
+
+                <!-- 第3名 -->
+                <div class="podium-item rank-3">
+                  <div class="podium-base rank-3-base">
+                    <div class="avatar-wrapper">
+                      <img class="podium-avatar" :src="redListRanking[2].avatar" alt="" />
+                      <img src="/icons/top3.png" alt="" class="crown-icon" />
+                    </div>
+                    <div class="podium-name">{{ redListRanking[2].name }}</div>
+                    <div class="podium-value">¥{{ redListRanking[2].amount.toLocaleString() }}</div>
+                  </div>
+                </div>
+              </div>
+
+              <!-- 4-10名列表 -->
+              <div class="ranking-normal-list">
+                <div v-for="(user, index) in redListRanking.slice(3)" :key="user.id" class="ranking-item">
+                  <div class="ranking-number">{{ index + 4 }}</div>
+                  <img class="ranking-avatar" :src="user.avatar" alt="" />
+                  <div class="ranking-info">
+                    <div class="ranking-name">{{ user.name }}</div>
+                    <div class="ranking-desc">中奖金额</div>
+                  </div>
+                  <div class="ranking-value">
+                    <span class="amount">¥{{ user.amount.toLocaleString() }}</span>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <!-- 命中榜 -->
+            <div v-if="activeRankingTab === 'hitList'" class="ranking-content">
+              <!-- 领奖台（前3名） -->
+              <div class="podium-container">
+                <!-- Tab切换 -->
+                <div class="ranking-tabs">
+                  <div :class="['ranking-tab', { active: activeRankingTab === 'redList' }]" @click="activeRankingTab = 'redList'">
+                    红单榜
+                  </div>
+                  <div :class="['ranking-tab', { active: activeRankingTab === 'hitList' }]" @click="activeRankingTab = 'hitList'">
+                    命中榜
+                  </div>
+                </div>
+
+                <!-- 领奖台 -->
+                <!-- 第2名 -->
+                <div class="podium-item rank-2">
+                  <div class="podium-base rank-2-base">
+                    <div class="avatar-wrapper">
+                      <img class="podium-avatar" :src="hitListRanking[1].avatar" alt="" />
+                      <img src="/icons/top2.png" alt="" class="crown-icon" />
+                    </div>
+                    <div class="podium-name">{{ hitListRanking[1].name }}</div>
+                    <div class="podium-value">{{ hitListRanking[1].count }}次</div>
+                  </div>
+                </div>
+
+                <!-- 第1名 -->
+                <div class="podium-item rank-1">
+                  <div class="podium-base rank-1-base">
+                    <div class="avatar-wrapper">
+                      <img class="podium-avatar" :src="hitListRanking[0].avatar" alt="" />
+                      <img src="/icons/top1.png" alt="" class="crown-icon" />
+                    </div>
+                    <div class="podium-name">{{ hitListRanking[0].name }}</div>
+                    <div class="podium-value">{{ hitListRanking[0].count }}次</div>
+                  </div>
+                </div>
+
+                <!-- 第3名 -->
+                <div class="podium-item rank-3">
+                  <div class="podium-base rank-3-base">
+                    <div class="avatar-wrapper">
+                      <img class="podium-avatar" :src="hitListRanking[2].avatar" alt="" />
+                      <img src="/icons/top3.png" alt="" class="crown-icon" />
+                    </div>
+                    <div class="podium-name">{{ hitListRanking[2].name }}</div>
+                    <div class="podium-value">{{ hitListRanking[2].count }}次</div>
+                  </div>
+                </div>
+              </div>
+
+              <!-- 4-10名列表 -->
+              <div class="ranking-normal-list">
+                <div v-for="(user, index) in hitListRanking.slice(3)" :key="user.id" class="ranking-item">
+                  <div class="ranking-number">{{ index + 4 }}</div>
+                  <img class="ranking-avatar" :src="user.avatar" alt="" />
+                  <div class="ranking-info">
+                    <div class="ranking-name">{{ user.name }}</div>
+                    <div class="ranking-desc">中奖次数</div>
+                  </div>
+                  <div class="ranking-value">
+                    <span class="count">{{ user.count }}次</span>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
       </main>
     </div>
 
@@ -370,25 +359,25 @@ const go = (code) => {
   }
 
   if (code == "lq") {
-    showToast("篮球游戏");
+    router.push("/Basketball_lottery");
     return;
   }
   if (code == "loto") {
-    router.push('/daletou')
+    router.push("/daletou");
     return;
   }
   if (code == "pl3") {
-    router.push('/pl3')
+    router.push("/pl3");
     return;
   }
 
   if (code == "pl5") {
-    router.push('/pl5')
+    router.push("/pl5");
     return;
   }
 
   if (code == "qxc") {
-    router.push('/qxc')
+    router.push("/qxc");
     return;
   }
 
@@ -411,6 +400,20 @@ function handleError(error, fallbackMsg) {
 
 onMounted(async () => {
   loading.value = true;
+
+  try {
+    const lotRes = await API.lotteryloto("all");
+    if (lotRes.code === 1) {
+      results.value = lotRes.data;
+    }
+
+    if (lotRes.code !== 1) {
+      handleError(lotRes, "获取彩种信息失败");
+    }
+  } catch (e) {
+    handleError(e, "获取彩种信息失败");
+  }
+
   // 缓存key
   const CACHE_KEY = "home_data_cache";
   const CACHE_TIME_KEY = "home_data_cache_time";
@@ -483,19 +486,6 @@ onMounted(async () => {
         handleError(cateRes, "获取游戏列表失败");
       }
 
-      try {
-        const lotRes = await API.lotteryloto("all");
-        if (lotRes.code === 1) {
-          results.value = lotRes.data;
-        }
-
-        if (lotRes.code !== 1) {
-          handleError(lotRes, "获取彩种信息失败");
-        }
-      } catch (e) {
-        handleError(e, "获取彩种信息失败");
-      }
-
       // 缓存数据
       localStorage.setItem(
         CACHE_KEY,
@@ -559,44 +549,54 @@ const banner = ref([]);
 
 const winners = ref([]);
 
-const results = ref({
-  loto: { title: "双色球", draw_numbers: [0, 0, 0, 0, 0, 0, 0], date: "2025-09-20", phase: "2025090" },
-  qxc: { title: "七星彩", draw_numbers: [0, 0, 0, 0, 0, 0, 0], date: "2025-09-20", phase: "2025090" },
-  pl5: { title: "排列5", draw_numbers: [0, 0, 0, 0, 0], date: "2025-09-20", phase: "2025090" },
-  pl3: { title: "排列3", draw_numbers: [0, 0, 0], date: "2025-09-20", phase: "2025090" },
-});
+const results = ref(
+  (() => {
+    const cached = localStorage.getItem("lottery_results");
+    if (cached) {
+      try {
+        return JSON.parse(cached);
+      } catch (e) {}
+    }
+    return {
+      loto: { title: "双色球", draw_numbers: [0, 0, 0, 0, 0, 0, 0], date: "2025-09-20", phase: "2025090" },
+      qxc: { title: "七星彩", draw_numbers: [0, 0, 0, 0, 0, 0, 0], date: "2025-09-20", phase: "2025090" },
+      pl5: { title: "排列5", draw_numbers: [0, 0, 0, 0, 0], date: "2025-09-20", phase: "2025090" },
+      pl3: { title: "排列3", draw_numbers: [0, 0, 0], date: "2025-09-20", phase: "2025090" },
+    };
+  })()
+);
 
 const news = ref([]);
 
 // 排行榜相关
-const activeRankingTab = ref('redList'); // 当前激活的排行榜tab
+const activeRankingTab = ref("redList"); // 当前激活的排行榜tab
 
 // 红单榜数据（按中奖金额排序）
 const redListRanking = ref([
-  { id: 1, name: '幸运星', avatar: 'https://img01.yzcdn.cn/vant/cat.jpeg', amount: 158800 },
-  { id: 2, name: '财神到', avatar: 'https://img01.yzcdn.cn/vant/cat.jpeg', amount: 128600 },
-  { id: 3, name: '中奖王', avatar: 'https://img01.yzcdn.cn/vant/cat.jpeg', amount: 98500 },
-  { id: 4, name: '好运来', avatar: 'https://img01.yzcdn.cn/vant/cat.jpeg', amount: 78300 },
-  { id: 5, name: '大富翁', avatar: 'https://img01.yzcdn.cn/vant/cat.jpeg', amount: 68200 },
-  { id: 6, name: '福星高照', avatar: 'https://img01.yzcdn.cn/vant/cat.jpeg', amount: 58100 },
-  { id: 7, name: '鸿运当头', avatar: 'https://img01.yzcdn.cn/vant/cat.jpeg', amount: 48900 },
-  { id: 8, name: '财运亨通', avatar: 'https://img01.yzcdn.cn/vant/cat.jpeg', amount: 38700 },
-  { id: 9, name: '喜从天降', avatar: 'https://img01.yzcdn.cn/vant/cat.jpeg', amount: 28500 },
-  { id: 10, name: '锦鲤本鲤', avatar: 'https://img01.yzcdn.cn/vant/cat.jpeg', amount: 18300 },
+  { id: 1, name: "幸运星", avatar: "https://img01.yzcdn.cn/vant/cat.jpeg", amount: 158800 },
+  { id: 2, name: "财神到", avatar: "https://img01.yzcdn.cn/vant/cat.jpeg", amount: 128600 },
+  { id: 3, name: "中奖王", avatar: "https://img01.yzcdn.cn/vant/cat.jpeg", amount: 98500 },
+  { id: 4, name: "好运来", avatar: "https://img01.yzcdn.cn/vant/cat.jpeg", amount: 78300 },
+  { id: 5, name: "大富翁", avatar: "https://img01.yzcdn.cn/vant/cat.jpeg", amount: 68200 },
+  { id: 6, name: "福星高照", avatar: "https://img01.yzcdn.cn/vant/cat.jpeg", amount: 58100 },
+  { id: 7, name: "鸿运当头", avatar: "https://img01.yzcdn.cn/vant/cat.jpeg", amount: 48900 },
+  { id: 8, name: "财运亨通", avatar: "https://img01.yzcdn.cn/vant/cat.jpeg", amount: 38700 },
+  { id: 9, name: "喜从天降", avatar: "https://img01.yzcdn.cn/vant/cat.jpeg", amount: 28500 },
+  { id: 10, name: "锦鲤本鲤", avatar: "https://img01.yzcdn.cn/vant/cat.jpeg", amount: 18300 },
 ]);
 
 // 命中榜数据（按中奖次数排序）
 const hitListRanking = ref([
-  { id: 1, name: '常胜将军', avatar: 'https://img01.yzcdn.cn/vant/cat.jpeg', count: 156 },
-  { id: 2, name: '神算子', avatar: 'https://img01.yzcdn.cn/vant/cat.jpeg', count: 142 },
-  { id: 3, name: '预言家', avatar: 'https://img01.yzcdn.cn/vant/cat.jpeg', count: 128 },
-  { id: 4, name: '分析师', avatar: 'https://img01.yzcdn.cn/vant/cat.jpeg', count: 115 },
-  { id: 5, name: '专家', avatar: 'https://img01.yzcdn.cn/vant/cat.jpeg', count: 98 },
-  { id: 6, name: '高手', avatar: 'https://img01.yzcdn.cn/vant/cat.jpeg', count: 87 },
-  { id: 7, name: '达人', avatar: 'https://img01.yzcdn.cn/vant/cat.jpeg', count: 76 },
-  { id: 8, name: '老手', avatar: 'https://img01.yzcdn.cn/vant/cat.jpeg', count: 65 },
-  { id: 9, name: '新星', avatar: 'https://img01.yzcdn.cn/vant/cat.jpeg', count: 54 },
-  { id: 10, name: '潜力股', avatar: 'https://img01.yzcdn.cn/vant/cat.jpeg', count: 43 },
+  { id: 1, name: "常胜将军", avatar: "https://img01.yzcdn.cn/vant/cat.jpeg", count: 156 },
+  { id: 2, name: "神算子", avatar: "https://img01.yzcdn.cn/vant/cat.jpeg", count: 142 },
+  { id: 3, name: "预言家", avatar: "https://img01.yzcdn.cn/vant/cat.jpeg", count: 128 },
+  { id: 4, name: "分析师", avatar: "https://img01.yzcdn.cn/vant/cat.jpeg", count: 115 },
+  { id: 5, name: "专家", avatar: "https://img01.yzcdn.cn/vant/cat.jpeg", count: 98 },
+  { id: 6, name: "高手", avatar: "https://img01.yzcdn.cn/vant/cat.jpeg", count: 87 },
+  { id: 7, name: "达人", avatar: "https://img01.yzcdn.cn/vant/cat.jpeg", count: 76 },
+  { id: 8, name: "老手", avatar: "https://img01.yzcdn.cn/vant/cat.jpeg", count: 65 },
+  { id: 9, name: "新星", avatar: "https://img01.yzcdn.cn/vant/cat.jpeg", count: 54 },
+  { id: 10, name: "潜力股", avatar: "https://img01.yzcdn.cn/vant/cat.jpeg", count: 43 },
 ]);
 </script>
 
@@ -682,8 +682,6 @@ const hitListRanking = ref([
   margin-top: 8px;
 }
 
-
-
 .game-entry-card {
   margin-top: 12px;
 }
@@ -731,7 +729,7 @@ const hitListRanking = ref([
   background-size: contain;
 }
 
-.top{
+.top {
   width: 38px;
   height: 26px;
 }
@@ -945,7 +943,7 @@ const hitListRanking = ref([
 }
 
 .ranking-tab.active::after {
-  content: '';
+  content: "";
   position: absolute;
   bottom: 0;
   left: 50%;
@@ -1087,8 +1085,6 @@ const hitListRanking = ref([
   color: #333;
   margin-bottom: 6px;
 }
-
-
 
 .podium-medal {
   font-size: 1.4rem;
@@ -1235,8 +1231,6 @@ const hitListRanking = ref([
   margin-bottom: 12px;
   box-sizing: border-box;
 }
-
-
 
 .skeleton-ranking-tabs {
   display: flex;

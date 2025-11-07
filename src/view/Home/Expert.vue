@@ -106,7 +106,16 @@
     
     <!-- 专家列表卡片 -->
     <div class="expert-list">
-      <div class="expert-list-card" v-for="(expert, index) in filteredExperts" :key="expert.id">
+      <!-- Loading 状态 -->
+      <div v-if="loading" class="loading-container">
+        <van-loading type="spinner" size="24px" vertical>加载中...</van-loading>
+      </div>
+
+      <!-- 空状态 -->
+      <van-empty v-else-if="!loading && filteredExperts.length === 0" description="暂无跟单数据" />
+
+      <!-- 列表内容 -->
+      <div v-else class="expert-list-card" v-for="(expert, index) in filteredExperts" :key="expert.id">
         <div class="expert-card-header">
           <!-- 盈利率展示 -->
    
@@ -120,17 +129,17 @@
             
             </div>
           </div>
-                 <div class="profit-rate-container">
-        
-            <div class="profit-rate-big">{{ expert.profitRate }}  <div>
+          <div class="profit-rate-container">
+            <div class="profit-rate-big">
+              {{ expert.yl_7 }}
               <span style="font-size: 12px;">%</span>
-            </div></div>
-                <div class="profit-rate-label">盈利率</div>
+            </div>
+            <div class="profit-rate-label">盈利率</div>
           </div>
         </div> 
         
         <div class="expert-card-desc">
-         <span style="color: #1bb0d3;"> 【足球竞彩】 </span> {{ expert.description }}
+         <span style="color: #1bb0d3;"> 【{{ tabs[activeTab] }}】 </span> {{ expert.description }}
         </div>
       
         <!-- 详细信息区域 -->
@@ -140,9 +149,10 @@
               <div class="detail-item">
                 <div class="detail-value">
                   <div style="display: flex;align-items: center;">
+                     <!-- 根据跟单人数显示火花：<10人=1个，>=10人=2个，>=20人=3个 -->
                      <van-icon name="fire" size="16" color="#fc3c3c"/>
-                     <van-icon name="fire" size="16" color="#fc3c3c"/>
-                     <van-icon name="fire" size="16" color="#fc3c3c"/>
+                     <van-icon v-if="expert.followCount >= 10" name="fire" size="16" color="#fc3c3c"/>
+                     <van-icon v-if="expert.followCount >= 20" name="fire" size="16" color="#fc3c3c"/>
                   </div>
                 </div>
                  <div class="detail-label">跟单热度</div>
@@ -150,7 +160,7 @@
               <div class="detail-item">
               
                 <div class="detail-value">{{ expert.orderAmount }}元</div>
-                  <div class="detail-label">订单金额</div>
+                  <div class="detail-label">自购金额</div>
               </div>
               <div class="detail-item">
                 <div class="detail-value highlight-value">{{ expert.expectedReturn }}</div>
@@ -169,9 +179,10 @@
 </template>
 
 <script setup>
-import { ref, computed } from "vue";
+import { ref, computed, onMounted, watch } from "vue";
 import { useRouter } from "vue-router";
 import { showToast, showDialog, Field as VanField, Icon as VanIcon } from "vant";
+import API from "../../request/api";
 
 const searchValue = ref("");
 
@@ -265,94 +276,119 @@ const activeTab = ref(0); // 默认选中足球竞彩
 const sortOptions = ref(['金额', '人气', '盈利率', '我关注的']);
 const activeSortOption = ref(0); // 默认按金额排序
 
-// 专家列表数据
-const expertList = ref([
-  {
-    id: 101,
-    name: "足球大师",
-    avatar: "/icons/avatar.png",
-      profitRate: "32.1",
-    publishTime: "09-29 14:30",
-    description: "英超：曼联 vs 利物浦，主队近期状态良好，建议关注主胜或平局。",
-    orderAmount: "15000",
-    expectedReturn: "1.5",
-  },
-  {
-    id: 102,
-    name: "冠军预测",
-    avatar: "/icons/davatar.png",
-     profitRate: "32.1",
-     publishTime: "09-29 14:30",
-    description: "欧冠：拜仁慕尼黑 vs 皇家马德里，两队都有主力缺阵，推荐进球数小于2.5。",
-    orderAmount: "7000",
-    expectedReturn: "3.6",
-  },
-  {
-    id: 103,
-    name: "足彩分析师",
-    avatar: "/icons/avatar1.png",
-    profitRate: "32.1",
-      publishTime: "09-29 14:30",
-    description: "意甲：尤文图斯 vs AC米兰，客队近5场保持不败，看好客队不败。",
- orderAmount: "7000",
-    expectedReturn: "3.6",
-  },
-  {
-    id: 104,
-    name: "体坛解析",
-    avatar: "/icons/avatar.png",
-     profitRate: "32.1",
-      publishTime: "09-29 14:30",
-    description: "西甲：巴塞罗那 vs 皇家社会，主队攻击力强劲，推荐主队净胜1-2球。",
-  orderAmount: "7000",
-    expectedReturn: "3.6",
-  },
-  {
-    id: 105,
-    name: "赔率大师",
-    avatar: "/icons/davatar.png",
-     profitRate: "32",
-     publishTime: "09-29 14:30",
-    description: "法甲：巴黎圣日耳曼 vs 里昂，主队近期表现出色，推荐让球主胜。",
-   orderAmount: "7000",
-    expectedReturn: "3.6",
-  },
-]);
+// 获取当前选中游戏的 cate_id
+const getCurrentCateId = () => {
+  // 0=足球竞彩 cate_id:1, 1=排列三 cate_id:6
+  return activeTab.value === 0 ? 1 : 6;
+};
 
-// 根据当前选中的tab和排序选项过滤专家列表
+// 获取当前排序类型
+const getCurrentSortType = () => {
+  // 0=金额, 1=人气, 2=盈利率, 3=我关注的
+  const typeMap = ['amount', 'mood', 'yl', 'follow'];
+  return typeMap[activeSortOption.value];
+};
+
+// 专家列表数据（从接口获取，初始为空）
+const expertList = ref([]);
+
+// Loading 状态
+const loading = ref(false);
+
+// 直接使用接口返回的数据（接口已经按照 tab 和排序选项过滤和排序了）
 const filteredExperts = computed(() => {
-  let result = [...expertList.value];
-  
-  // 根据分类筛选
-  if (activeTab.value === 0) {
-    // 足球竞彩 - 所有数据都保留
-  } else if (activeTab.value === 4) {
-    // 我关注的 - 这里可以根据实际需求筛选关注的专家
-    result = result.filter(expert => expert.id % 2 === 0); // 示例：偶数ID为已关注
-  } else {
-    // 其他彩种 - 这里可以根据实际数据过滤
-    result = result.filter(expert => expert.id % (activeTab.value + 1) === 0); // 示例用
-  }
-  
-  // 根据排序选项排序
-  if (activeSortOption.value === 0) {
-    // 按金额排序
-    result.sort((a, b) => parseInt(b.orderAmount) - parseInt(a.orderAmount));
-  } else if (activeSortOption.value === 1) {
-    // 按人气排序 - 示例：使用ID作为人气指标
-    result.sort((a, b) => b.id - a.id);
-  } else if (activeSortOption.value === 2) {
-    // 按盈利率排序
-    result.sort((a, b) => parseFloat(b.profitRate) - parseFloat(a.profitRate));
-  }
-  
-  return result;
+  return expertList.value;
 });
 
-// 跟单方法
+// 跟单方法 - 跳转到跟单详情页
+const router = useRouter();
 const followExpert = (expertId) => {
-  showToast(`已跟单专家ID: ${expertId}，订单生成中...`);
+  router.push({
+    path: '/gendan_detail',
+    query: { id: expertId }
+  });
 };
+
+// 加载跟单列表数据
+const get_gendan = async () => {
+  try {
+    loading.value = true; // 开始加载
+    const cateId = getCurrentCateId();
+    const sortType = getCurrentSortType();
+
+    console.log(`=== 加载跟单列表 ===`);
+    console.log(`游戏类型: ${activeTab.value === 0 ? '足球竞彩' : '排列三'} (cate_id: ${cateId})`);
+    console.log(`排序方式: ${sortOptions.value[activeSortOption.value]} (type: ${sortType})`);
+
+    const res = await API.gendan_list({ type: sortType, cate_id: cateId });
+    console.log("跟单列表数据:", res);
+
+    if (res.code === 1 && res.data && res.data.data) {
+      // 更新专家列表数据（注意：数据在 res.data.data 中）
+      expertList.value = res.data.data.map(item => {
+        // 格式化截止时间（时间戳转为 MM-DD HH:mm 格式）
+        let formattedTime = '';
+        if (item.deal_time) {
+          const date = new Date(item.deal_time * 1000);
+          const month = String(date.getMonth() + 1).padStart(2, '0');
+          const day = String(date.getDate()).padStart(2, '0');
+          const hours = String(date.getHours()).padStart(2, '0');
+          const minutes = String(date.getMinutes()).padStart(2, '0');
+          formattedTime = `${month}-${day} ${hours}:${minutes}`;
+        }
+
+        return {
+          id: item.id,
+          name: item.nickname || '未知用户',
+          avatar: item.avatar || '/icons/avatar.png',
+          yl_7: item.yl_7 || '0',  // 7日盈利率
+          profitRate: item.yl_7 || '0',
+          publishTime: formattedTime,
+          description: item.content || '暂无说明',
+          orderAmount: item.amount || '0',
+          expectedReturn: item.multi || '0', // 使用 multi 作为预估回报率
+          followCount: item.mood || 0, // 跟单人数
+        };
+      });
+      console.log("专家列表已更新，共", expertList.value.length, "条数据");
+    } else {
+      expertList.value = [];
+      console.log("没有数据");
+    }
+
+    console.log("=== 数据加载完成 ===");
+  } catch (error) {
+    console.error("接口调用失败:", error);
+    showToast("加载数据失败，请稍后重试");
+  } finally {
+    loading.value = false; // 加载完成
+  }
+}
+
+
+// 监听 tab 切换
+watch(activeTab, () => {
+  console.log("切换游戏类型:", activeTab.value === 0 ? '足球竞彩' : '排列三');
+  get_gendan();
+});
+
+// 监听排序选项切换
+watch(activeSortOption, () => {
+  console.log("切换排序方式:", sortOptions.value[activeSortOption.value]);
+  get_gendan();
+});
+
+onMounted(() => {
+  console.log("Expert 页面已挂载");
+  get_gendan();
+
+
+  API.getRank().then(res => {
+    console.log(res);
+  })
+
+})
+
 </script>
 
 <style scoped>
@@ -621,6 +657,17 @@ const followExpert = (expertId) => {
 /* 专家列表卡片样式 */
 .expert-list {
   padding: 8px 12px;
+  min-height: 300px;
+  position: relative;
+}
+
+/* Loading 容器 */
+.loading-container {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  min-height: 300px;
+  width: 100%;
 }
 
 .expert-list-card {

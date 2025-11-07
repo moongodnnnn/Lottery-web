@@ -189,7 +189,15 @@
             <span class="prize-text">{{ estimatedPrize }}</span>
           </div>
         </div>
-        <van-button type="primary" class="submit-btn" :disabled="!canConfirm" @click="confirmSelection"> 确认下单 </van-button>
+
+        <!-- 排列三显示两个按钮 -->
+        <template v-if="isPl3Game">
+          <button class="custom-btn publish-btn" :disabled="!canConfirm" @click="showPublishDialog">发单</button>
+          <button class="custom-btn order-btn" :disabled="!canConfirm" @click="confirmSelection">自购</button>
+        </template>
+
+        <!-- 其他游戏显示一个按钮 -->
+        <button v-else class="custom-btn single-btn" :disabled="!canConfirm" @click="confirmSelection">下单</button>
       </div>
     </div>
 
@@ -226,6 +234,11 @@ const betMultiple = ref(1); // 投注倍数，默认1倍
 const selectedBetType = ref("single"); // 选中的投注方式，默认单关
 const showRule = ref(false);
 const showBannerPopup = ref(false); // Banner详情弹窗
+
+// 判断是否为排列三游戏
+const isPl3Game = computed(() => {
+  return isDigitalLottery.value && digitalLotteryData.value && digitalLotteryData.value.type === 'pl3';
+});
 
 // 投注方式选项
 const betTypeOptions = computed(() => {
@@ -404,6 +417,60 @@ function showBannerDetails() {
   showBannerPopup.value = true;
 }
 
+// 显示发单确认弹窗
+function showPublishDialog() {
+  if (!canConfirm.value) {
+    showToast("请先选择投注选项");
+    return;
+  }
+
+  // 检查方案金额是否满足发单要求
+  if (totalAmount.value < 20) {
+    showToast("方案金额必须大于等于20元才能发单");
+    return;
+  }
+
+  showDialog({
+    title: '发单确认',
+    message: `<div style="text-align: center;">
+      <div style="font-size: 18px; font-weight: 600; color: #333; margin-bottom: 12px;">方案金额：${totalAmount.value}元</div>
+      <div style="font-size: 14px; color: #666;">您确认进入发单设置吗？</div>
+    </div>`,
+    allowHtml: true,
+    showCancelButton: true,
+    confirmButtonText: '确认',
+    cancelButtonText: '取消',
+  })
+    .then(() => {
+      // 用户点击确认，跳转到发单设置页面
+      console.log("用户确认发单，跳转到发单设置页面");
+
+      // 准备订单数据
+      const orderData = {
+        type: digitalLotteryData.value.type,
+        selections: digitalLotteryData.value.selections,
+        totalBets: totalBets.value,
+        multiple: betMultiple.value,
+        totalAmount: totalAmount.value,
+        betData: digitalLotteryData.value.betData,
+        period: digitalLotteryData.value.period,
+        gameName: digitalLotteryData.value.gameName
+      };
+
+      // 跳转到发单页面
+      router.push({
+        path: '/publish_order',
+        query: {
+          orderData: JSON.stringify(orderData)
+        }
+      });
+    })
+    .catch(() => {
+      // 用户点击取消
+      console.log("用户取消发单");
+    });
+}
+
 // 确认下单
 async function confirmSelection() {
   if (!canConfirm.value) {
@@ -456,23 +523,39 @@ function prepareOrderParams() {
   // 数字彩票
   if (isDigitalLottery.value) {
     const lotteryTypeMap = {
-      'pl3': 4,       // 排列3
-      'pl5': 5,       // 排列5
-      'seven_stars': 6, // 七星彩
-      'daletou': 7    // 大乐透
+      'pl3': 6,       // 排列3
+      'pl5': 7,       // 排列5
+      'seven_stars': 8, // 七星彩
+      'daletou': 5    // 大乐透
     };
 
-    return {
+    // 处理 odds 参数格式
+    let oddsData = digitalLotteryData.value.betData;
+
+    // 排列五需要特殊处理 odds 格式：直接使用 betData.zx 数组
+    if (digitalLotteryData.value.type === 'pl5') {
+      oddsData = digitalLotteryData.value.betData.zx || [];
+    }
+
+    const params = {
       amount: parseFloat(totalAmount.value),
       bill_nums: betMultiple.value,
+      phase: digitalLotteryData.value.period, // 期号
       cate_id: lotteryTypeMap[digitalLotteryData.value.type] || 4,
       multi: betMultiple.value,
       nums: totalBets.value,
-      odds: digitalLotteryData.value.betData,
+      odds: oddsData,
       upload_bill: 1,
-      rules:'',
+      rules: '',
       rate_type: ''
     };
+
+    // 大乐透需要额外添加 zj 参数
+    if (digitalLotteryData.value.type === 'daletou') {
+      params.zj = 0;
+    }
+
+    return params;
   }
 
   // 足球彩票
@@ -1012,8 +1095,7 @@ onMounted(() => {
   max-width: 430px;
   background: white;
   z-index: 100;
-  padding: 8px 10px;
-  box-shadow: 0 -2px 8px rgba(0, 0, 0, 0.08);
+  padding: 12px 10px 0px 10px;
   border-top: 1px solid #f0f0f0;
 }
 
@@ -1046,8 +1128,8 @@ onMounted(() => {
   display: flex;
   align-items: center;
   justify-content: space-between;
-  gap: 10px;
-  padding: 12px 20px 12px 12px;
+  gap: 0px;
+  padding: 0px 0px 0px 12px;
 }
 
 .bet-info {
@@ -1091,27 +1173,41 @@ onMounted(() => {
   color: #c8381d;
 }
 
-/* 确认下单按钮 */
-.submit-btn {
-  height: 40px;
-  padding: 0 20px;
-  background: #c8381d;
+/* 自定义按钮 */
+.custom-btn {
+  height: 4.2rem;
+  max-width: 80px;
+  flex: 1;
   border: none;
-  font-size: 0.9rem;
+  font-size: 1rem;
   font-weight: 600;
-  border-radius: 20px;
-  white-space: nowrap;
-  flex-shrink: 0;
+  color: white;
+  cursor: pointer;
+  outline: none;
+  transition: all 0.2s;
+  -webkit-tap-highlight-color: transparent;
 }
 
-.submit-btn:active {
-  transform: scale(0.98);
+.custom-btn:active {
+  opacity: 0.8;
 }
 
-.submit-btn:disabled {
-  background: #ccc;
+.custom-btn:disabled {
+  background: #ccc !important;
   opacity: 0.6;
-  box-shadow: none;
+  cursor: not-allowed;
+}
+
+.publish-btn {
+  background: #ff9500;
+}
+
+.order-btn {
+  background: #fc3c3c;
+}
+
+.single-btn {
+  background: #fc3c3c;
 }
 
 /* Banner详情弹窗 */

@@ -1,0 +1,1107 @@
+<template>
+  <div class="page" role="main">
+    <div class="nav-bar-center-wrap">
+      <van-nav-bar title="竞彩篮球" left-arrow @click-left="onClickLeft" class="nav-bar">
+        <template #right>
+          <div class="rule-btn" @click="showRule = true"><van-icon name="question-o" size="22" /></div>
+        </template>
+      </van-nav-bar>
+    </div>
+    <div style="height: 1px; background-color: #f5f5f5"></div>
+
+    <div style="padding: 10px; background-color: #f4ebec; color: #c63804; font-size: 0.8rem">页面数据取自官方，或有延时请以票面为准。</div>
+
+    <!-- 渲染可参与下注比赛区域 -->
+    <div class="games-container">
+      <!-- Loading状态 -->
+      <div v-if="loading" style="padding: 40px 20px; text-align: center">
+        <van-loading size="24px" vertical>加载中...</van-loading>
+      </div>
+
+      <!-- 空状态提示 -->
+      <div v-if="!loading && (!gamelist || gamelist.length === 0)" style="padding: 40px 20px; text-align: center">
+        <van-empty description="暂无比赛数据" />
+      </div>
+
+      <!-- 比赛列表 -->
+      <div v-for="(dayData, dayIndex) in gamelist" :key="dayData.date" class="day-card">
+        <!-- 日期卡片头部 -->
+        <div class="day-header" @click="toggleDay(dayIndex)">
+          <div class="day-info">
+            <div class="day-date">{{ dayData.date }} 期</div>
+          </div>
+
+          <div style="display: flex; align-items: center">
+            <div class="day-meta">{{ dayData.week_name }} {{ dayData.nums }}场比赛</div>
+            <div class="expand-icon" :class="{ expanded: expandedDays.includes(dayIndex) }">
+              <span style="padding-right: 10px; padding-left: 12px"> <van-icon name="arrow-down" size="19" color="#c8381e" /> </span>
+            </div>
+          </div>
+        </div>
+
+        <!-- 比赛列表 -->
+        <div v-show="expandedDays.includes(dayIndex)" class="games-list">
+          <div v-for="game in dayData.games" :key="game.id" class="game-item">
+            <!-- 第一排：序号+时间 + 球队名 + 联赛 -->
+            <div class="game-row-1">
+              <div class="game-number">
+                <div class="number-text">{{ game.xuhao }}</div>
+                <div class="time-text">{{ formatGameTime(game.start_time) }}</div>
+              </div>
+              <div class="teams-inline">
+                <span class="team-name">{{ game.home_team_name }}</span>
+                <span class="vs-text">VS</span>
+                <span class="team-name">{{ game.guest_team_name }}</span>
+              </div>
+              <div class="game-meta">
+                <span class="game-league">{{ game.match?.name || "未知联赛" }}</span>
+              </div>
+            </div>
+
+            <!-- 第二排：投注选项区域 - 表格布局 + 更多玩法 -->
+            <div class="betting-container">
+              <div class="betting-table">
+                <!-- 胜负玩法 (rate_type = 6) - 从 rates 数组中查找 -->
+                <template v-if="game.rates?.find((r) => r.rate_type === '6')">
+                  <div v-for="rate in game.rates.filter((r) => r.rate_type === '6')" :key="'sf-' + rate.id" class="table-row">
+                    <div class="row-label">胜负</div>
+                    <div
+                      class="table-cell"
+                      :class="{ selected: isOptionSelected(game.id + '-6-0') }"
+                      @click="selectOption(game.id, rate.rate_type, game.id + '-6-0', rate.rates[game.id + '-6-0'])"
+                    >
+                      <span class="cell-text">主胜 {{ rate.rates[game.id + '-6-0']?.value }}</span>
+                    </div>
+                    <div
+                      class="table-cell"
+                      :class="{ selected: isOptionSelected(game.id + '-6-1') }"
+                      @click="selectOption(game.id, rate.rate_type, game.id + '-6-1', rate.rates[game.id + '-6-1'])"
+                    >
+                      <span class="cell-text">客胜 {{ rate.rates[game.id + '-6-1']?.value }}</span>
+                    </div>
+                  </div>
+                </template>
+
+                <!-- 让分胜负玩法 (rate_type = 7) -->
+                <div v-for="rate in game.rates?.filter((r) => r.rate_type === '7')" :key="'rf-' + rate.id" class="table-row">
+                  <div class="row-label">
+                    <div class="label-text">让分</div>
+                    <div class="label-value">{{ rate.rates[game.id + '-7-2']?.value }}</div>
+                  </div>
+                  <div
+                    class="table-cell"
+                    :class="{ selected: isOptionSelected(game.id + '-7-0') }"
+                    @click="selectOption(game.id, rate.rate_type, game.id + '-7-0', rate.rates[game.id + '-7-0'])"
+                  >
+                    <span class="cell-text">主胜 {{ rate.rates[game.id + '-7-0']?.value }}</span>
+                  </div>
+                  <div
+                    class="table-cell"
+                    :class="{ selected: isOptionSelected(game.id + '-7-1') }"
+                    @click="selectOption(game.id, rate.rate_type, game.id + '-7-1', rate.rates[game.id + '-7-1'])"
+                  >
+                    <span class="cell-text">客胜 {{ rate.rates[game.id + '-7-1']?.value }}</span>
+                  </div>
+                </div>
+
+                <!-- 大小分玩法 (rate_type = 9) -->
+                <div v-for="rate in game.rates?.filter((r) => r.rate_type === '9')" :key="'dx-' + rate.id" class="table-row">
+                  <div class="row-label">
+                    <div class="label-text">总分</div>
+                    <div class="label-value">{{ rate.rates[game.id + '-9-2']?.value }}</div>
+                  </div>
+                  <div
+                    class="table-cell"
+                    :class="{ selected: isOptionSelected(game.id + '-9-0') }"
+                    @click="selectOption(game.id, rate.rate_type, game.id + '-9-0', rate.rates[game.id + '-9-0'])"
+                  >
+                    <span class="cell-text">大于 {{ rate.rates[game.id + '-9-0']?.value }}</span>
+                  </div>
+                  <div
+                    class="table-cell"
+                    :class="{ selected: isOptionSelected(game.id + '-9-1') }"
+                    @click="selectOption(game.id, rate.rate_type, game.id + '-9-1', rate.rates[game.id + '-9-1'])"
+                  >
+                    <span class="cell-text">小于 {{ rate.rates[game.id + '-9-1']?.value }}</span>
+                  </div>
+                </div>
+              </div>
+
+              <!-- 更多玩法按钮 -->
+              <div class="more-play-btn-side" @click="showMorePlay(game)">
+                <template v-if="getGameSelectedCount(game.id) > 0">
+                  <div class="more-btn-text selected">已选</div>
+                  <div class="more-btn-count">{{ getGameSelectedCount(game.id) }}</div>
+                </template>
+                <template v-else>
+                  <div class="more-btn-text">更多</div>
+                  <div class="more-btn-text">玩法</div>
+                </template>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- 操作按钮区域 -->
+    <div class="action-section">
+      <div class="action-buttons">
+        <div @click="clearAll" style="padding: 22px">
+          <van-icon name="delete-o" size="24" />
+        </div>
+
+        <div style="text-align: center">
+          <div>已选 <span style="color: #ff1744">{{ selectedGamesCount }}</span> 场</div>
+
+          <div style="font-size: 0.7rem; color: #999">
+            <span>共 {{ selectedBets.length }} 个选项</span>
+          </div>
+        </div>
+
+        <van-button type="primary" class="confirm-btn" :disabled="!canConfirm" @click="confirmSelection"> 确认 </van-button>
+      </div>
+    </div>
+
+    <!-- 更多玩法弹窗 -->
+    <van-popup
+      v-model:show="showMorePlayPopup"
+      position="bottom"
+      :style="{ height: '60%', maxWidth: '430px', left: '50%', transform: 'translateX(-50%)' }"
+      round
+      closeable
+      @close="closeMorePlay"
+    >
+      <div class="more-play-content">
+        <div class="more-play-header">
+          <div v-if="currentGame" class="game-info-mini">
+            <span class="mini-number">{{ currentGame.xuhao }}</span>
+            <span class="mini-teams">{{ currentGame.home_team_name }} VS {{ currentGame.guest_team_name }}</span>
+          </div>
+        </div>
+
+        <div class="more-play-body">
+          <!-- Loading状态 -->
+          <div v-if="loadingMorePlay" class="loading-container">
+            <van-loading size="24px" vertical>加载中...</van-loading>
+          </div>
+
+          <!-- 更多玩法列表 -->
+          <div v-else-if="morePlayRates.length > 0" class="more-rates-list">
+            <div style="height: 10px; background-color: #fff"></div>
+            <div v-for="rate in morePlayRates" :key="rate.id" class="more-rate-group">
+              <div class="more-rate-title">
+                {{ rate.type_name || getRateTypeName(rate.rate_type) }}
+              </div>
+
+              <!-- 胜分差玩法 (rate_type = 8) -->
+              <div v-if="rate.rate_type === '8'" class="more-rate-options">
+                <div
+                  v-for="(option, key) in rate.rates"
+                  :key="key"
+                  class="more-rate-option"
+                  :class="{ selected: isOptionSelected(key) }"
+                  @click="selectOption(currentGame.id, rate.rate_type, key, option)"
+                >
+                  <span class="more-option-name">{{ option.name }}</span>
+                  <span class="more-option-value">{{ option.value }}</span>
+                </div>
+              </div>
+
+              <!-- 其他玩法 -->
+              <div v-else class="more-rate-options">
+                <div
+                  v-for="(option, key) in rate.rates"
+                  :key="key"
+                  class="more-rate-option"
+                  :class="{ selected: isOptionSelected(key) }"
+                  @click="selectOption(currentGame.id, rate.rate_type, key, option)"
+                >
+                  <span class="more-option-name">{{ option.name }}</span>
+                  <span class="more-option-value">{{ option.value }}</span>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- 空状态 -->
+          <div v-else class="empty-container">
+            <van-empty description="暂无更多玩法" />
+          </div>
+        </div>
+      </div>
+    </van-popup>
+
+    <!-- 规则说明弹窗 -->
+    <van-popup v-model:show="showRule" position="bottom" :style="{ height: '70%', maxWidth: '430px', left: '50%', transform: 'translateX(-50%)' }" round closeable>
+      <div class="rule-content">
+        <div class="rule-title">竞彩篮球玩法说明</div>
+        <div class="rule-body">
+          <div class="rule-section">
+            <div class="rule-section-title">胜负玩法</div>
+            <div class="rule-text">竞猜主队和客队的胜负关系，主胜或客胜。</div>
+          </div>
+
+          <div class="rule-section">
+            <div class="rule-section-title">让分胜负玩法</div>
+            <div class="rule-text">竞猜让分后主队和客队的胜负关系。让分数由官方指定，主队得分减去让分数后与客队得分比较，得分高者为胜。</div>
+          </div>
+
+          <div class="rule-section">
+            <div class="rule-section-title">大小分玩法</div>
+            <div class="rule-text">竞猜双方总得分是否超过官方指定的预设总分。总得分大于预设总分为"大分"，小于预设总分为"小分"。</div>
+          </div>
+
+          <div class="rule-section">
+            <div class="rule-section-title">胜分差玩法</div>
+            <div class="rule-text">竞猜主队获胜的分差范围或客队获胜的分差范围。分差范围包括：1-5分、6-10分、11-15分、16-20分、21-25分、26分及以上。</div>
+          </div>
+
+          <div class="rule-section">
+            <div class="rule-section-title">串关说明</div>
+            <div class="rule-text">可以选择多场比赛进行串关投注，最少2场，最多8场。串关方式包括2串1、3串1、4串1等多种组合。</div>
+          </div>
+        </div>
+      </div>
+    </van-popup>
+  </div>
+</template>
+
+<script setup>
+import { ref, computed, onMounted } from "vue";
+import { useRouter } from "vue-router";
+import { showToast } from "vant";
+import API from "../../request/api.js";
+
+const router = useRouter();
+const loading = ref(false);
+const gamelist = ref([]);
+const expandedDays = ref([]);
+const selectedBets = ref([]);
+const showMorePlayPopup = ref(false);
+const currentGame = ref(null);
+const loadingMorePlay = ref(false);
+const morePlayRates = ref([]);
+const showRule = ref(false);
+
+// 格式化比赛时间 - 只显示时分
+const formatGameTime = (timestamp) => {
+  if (!timestamp) return "";
+  const date = new Date(timestamp * 1000);
+  const hours = date.getHours().toString().padStart(2, "0");
+  const minutes = date.getMinutes().toString().padStart(2, "0");
+  return `${hours}:${minutes}`;
+};
+
+// 切换日期展开/收起
+const toggleDay = (dayIndex) => {
+  const index = expandedDays.value.indexOf(dayIndex);
+  if (index > -1) {
+    expandedDays.value.splice(index, 1);
+  } else {
+    expandedDays.value.push(dayIndex);
+  }
+};
+
+// 判断选项是否被选中
+const isOptionSelected = (optionKey) => {
+  if (!optionKey) return false;
+  return selectedBets.value.some((bet) => bet.optionKey === optionKey);
+};
+
+// 选择投注选项
+const selectOption = (gameId, rateType, optionKey, option) => {
+  const existingIndex = selectedBets.value.findIndex((bet) => bet.optionKey === optionKey);
+
+  if (existingIndex > -1) {
+    // 如果已选中，则取消选择
+    selectedBets.value.splice(existingIndex, 1);
+  } else {
+    // 检查是否已选择同一场比赛的同一玩法类型
+    const sameTypeIndex = selectedBets.value.findIndex((bet) => bet.gameId === gameId && bet.rateType === rateType);
+
+    if (sameTypeIndex > -1) {
+      // 如果是胜负或让分胜负，替换选择
+      if (rateType === "1" || rateType === "2") {
+        selectedBets.value.splice(sameTypeIndex, 1);
+      }
+    }
+
+    // 添加新选择
+    selectedBets.value.push({
+      gameId,
+      rateType,
+      optionKey,
+      option,
+    });
+  }
+};
+
+// 获取单场比赛已选择的选项数量
+const getGameSelectedCount = (gameId) => {
+  return selectedBets.value.filter((bet) => bet.gameId === gameId).length;
+};
+
+// 计算已选择的比赛场数
+const selectedGamesCount = computed(() => {
+  const gameIds = new Set(selectedBets.value.map((bet) => bet.gameId));
+  return gameIds.size;
+});
+
+// 是否可以确认
+const canConfirm = computed(() => {
+  return selectedGamesCount.value >= 1 && selectedBets.value.length >= 1;
+});
+
+// 清空所有选择
+const clearAll = () => {
+  selectedBets.value = [];
+};
+
+// 显示更多玩法
+const showMorePlay = (game) => {
+  currentGame.value = game;
+  showMorePlayPopup.value = true;
+  loadMorePlayRates(game.id);
+};
+
+// 关闭更多玩法弹窗
+const closeMorePlay = () => {
+  showMorePlayPopup.value = false;
+  currentGame.value = null;
+  morePlayRates.value = [];
+};
+
+// 加载更多玩法
+const loadMorePlayRates = async (gameId) => {
+  loadingMorePlay.value = true;
+  try {
+    const res = await API.gamesRate(gameId);
+    if (res.code === 1 && res.data) {
+      // 将对象转换为数组，并过滤掉已在主界面显示的玩法（胜负6、让分胜负7、大小分9）
+      const ratesArray = Object.values(res.data).filter(
+        (rate) => rate.rate_type !== "6" && rate.rate_type !== "7" && rate.rate_type !== "9"
+      );
+      morePlayRates.value = ratesArray;
+    } else {
+      morePlayRates.value = [];
+    }
+  } catch (error) {
+    console.error("加载更多玩法失败:", error);
+    showToast("加载失败，请稍后重试");
+    morePlayRates.value = [];
+  } finally {
+    loadingMorePlay.value = false;
+  }
+};
+
+// 获取玩法类型名称
+const getRateTypeName = (rateType) => {
+  const typeMap = {
+    "6": "胜负",
+    "7": "让分胜负",
+    "8": "胜分差",
+    "9": "大小分",
+  };
+  return typeMap[rateType] || "未知玩法";
+};
+
+// 确认选择
+const confirmSelection = () => {
+  if (!canConfirm.value) {
+    showToast("请至少选择1场比赛");
+    return;
+  }
+
+  // 准备传递给确认页面的数据
+  const betsWithGameInfo = selectedBets.value.map((bet) => {
+    // 找到对应的比赛信息
+    let gameInfo = null;
+    for (const dayData of gamelist.value) {
+      const game = dayData.games.find((g) => g.id === bet.gameId);
+      if (game) {
+        gameInfo = {
+          xuhao: game.xuhao,
+          home_team_name: game.home_team_name,
+          guest_team_name: game.guest_team_name,
+          start_time: game.start_time,
+          league_name: game.match?.name || "未知联赛",
+        };
+        break;
+      }
+    }
+
+    return {
+      gameId: bet.gameId,
+      rateType: bet.rateType,
+      optionKey: bet.optionKey,
+      optionName: bet.option?.name || "",
+      optionValue: bet.option?.value || "",
+      gameInfo,
+    };
+  });
+
+  console.log("传递的投注数据:", betsWithGameInfo);
+
+  // 跳转到篮球确认投注页面
+  router.push({
+    path: "/Basketball_confirm_bet",
+    query: {
+      selectedBets: JSON.stringify(betsWithGameInfo),
+    },
+  });
+};
+
+// 返回
+const onClickLeft = () => {
+  router.back();
+};
+
+// 加载比赛列表
+const loadGameList = async () => {
+  loading.value = true;
+  try {
+    const res = await API.Games(1); // type=1 表示篮球
+    if (res.code === 1 && res.data) {
+      const games = res.data.games || [];
+      const odds = res.data.odds || {};
+
+      // 处理每个日期的比赛数据
+      gamelist.value = games.map((dayData) => {
+        return {
+          ...dayData,
+          games: dayData.games.map((game) => {
+            // 检查是否有胜负玩法（rate_type = 6）
+            const hasSfRate = game.rates?.some((r) => r.rate_type === "6");
+
+            // 如果没有胜负玩法，但 odds 中有数据，则添加
+            if (!hasSfRate && odds[`${game.id}-6-0`]) {
+              const sfRate = {
+                id: `sf-${game.id}`,
+                lotter_games_id: game.id,
+                rate_type: "6",
+                rates: {
+                  [`${game.id}-6-0`]: odds[`${game.id}-6-0`],
+                  [`${game.id}-6-1`]: odds[`${game.id}-6-1`],
+                },
+                rangqiu: 0,
+                is_signle: 0,
+                draw_rates: null,
+                is_fail: 0,
+              };
+              game.rates = game.rates ? [sfRate, ...game.rates] : [sfRate];
+            }
+
+            return game;
+          }),
+        };
+      });
+
+      // 默认展开第一个日期
+      if (gamelist.value.length > 0) {
+        expandedDays.value = [0];
+      }
+    } else {
+      showToast(res.msg || "获取比赛列表失败");
+      gamelist.value = [];
+    }
+  } catch (error) {
+    console.error("加载比赛列表失败:", error);
+    showToast("加载失败，请稍后重试");
+    gamelist.value = [];
+  } finally {
+    loading.value = false;
+  }
+};
+
+onMounted(() => {
+  loadGameList();
+});
+</script>
+
+<style scoped>
+.page {
+  display: flex;
+  flex-direction: column;
+  background-color: #f5f5f5;
+  color: #0f172a;
+  min-height: 100vh;
+  box-sizing: border-box;
+  overflow: hidden;
+  max-width: 430px;
+  margin: 0 auto;
+}
+
+.nav-bar-center-wrap {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  background: #fff;
+}
+
+.nav-bar {
+  background: #ffffff;
+  color: #333;
+  width: 100vw;
+  max-width: 430px;
+  min-width: 320px;
+  box-sizing: border-box;
+  margin: 0 auto;
+}
+
+.rule-btn {
+  cursor: pointer;
+  padding: 4px;
+}
+
+.games-container {
+  flex: 1;
+  overflow-y: auto;
+  padding-bottom: 80px;
+}
+
+.day-card {
+  background: white;
+  margin-bottom: 10px;
+}
+
+.day-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 12px 16px;
+  background: white;
+  cursor: pointer;
+  border-bottom: 1px solid #f0f0f0;
+}
+
+.day-info {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.day-date {
+  font-size: 0.95rem;
+  font-weight: 600;
+  color: #333;
+}
+
+.day-meta {
+  font-size: 0.85rem;
+  color: #666;
+}
+
+.expand-icon {
+  transition: transform 0.3s;
+}
+
+.expand-icon.expanded {
+  transform: rotate(180deg);
+}
+
+.games-list {
+  background: #f8f8f8;
+}
+
+.game-item {
+  background: white;
+  margin: 8px;
+  padding: 12px;
+  border-radius: 8px;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05);
+}
+
+.game-row-1 {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-bottom: 10px;
+}
+
+.game-number {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  background: #fc3c3c;
+  color: white;
+  padding: 4px 2px;
+  border-radius: 4px;
+  min-width: 40px;
+  flex-shrink: 0;
+  gap: 2px;
+}
+
+.number-text {
+  font-size: 0.6rem;
+  font-weight: 600;
+}
+
+.time-text {
+  font-size: 0.65rem;
+  font-weight: 500;
+  opacity: 0.95;
+}
+
+.teams-inline {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  flex: 1;
+  justify-content: center;
+}
+
+.team-name {
+  font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+  font-size: 0.85rem;
+  font-weight: 700;
+  color: #333;
+}
+
+.vs-text {
+  font-size: 0.75rem;
+  color: #999;
+  padding: 0 4px;
+  font-weight: 500;
+}
+
+.game-meta {
+  display: flex;
+  align-items: center;
+  flex-shrink: 0;
+}
+
+.game-league {
+  font-size: 0.7rem;
+  color: #666;
+}
+
+.betting-container {
+  display: flex;
+  gap: 2px;
+  align-items: stretch;
+}
+
+.betting-table {
+  display: flex;
+  flex-direction: column;
+  border: 1px solid #e5e5e5;
+  border-radius: 6px;
+  overflow: hidden;
+  flex: 1;
+}
+
+.table-row {
+  display: grid;
+  grid-template-columns: 50px 1fr 1fr;
+  border-bottom: 1px solid #e5e5e5;
+}
+
+.table-row:last-of-type {
+  border-bottom: none;
+}
+
+.row-label {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 2px 6px;
+  font-size: 0.75rem;
+  color: #666;
+  font-weight: 600;
+  background: #fafafa;
+  border-right: 1px solid #e5e5e5;
+  gap: 2px;
+}
+
+.label-text {
+  font-size: 0.7rem;
+  color: #666;
+  font-weight: 600;
+}
+
+.label-value {
+  font-size: 0.7rem;
+  color: #333;
+  font-weight: 700;
+}
+
+.table-cell {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 2px 4px;
+  cursor: pointer;
+  transition: all 0.2s;
+  background: #fff;
+  border-right: 1px solid #e5e5e5;
+  min-height: 36px;
+}
+
+.table-cell:last-child {
+  border-right: none;
+}
+
+.table-cell:active {
+  transform: scale(0.98);
+}
+
+.table-cell.selected {
+  background: #fc3c3c;
+}
+
+.cell-text {
+  font-size: 0.75rem;
+  color: #333;
+  font-weight: 500;
+  white-space: nowrap;
+}
+
+.table-cell.selected .cell-text {
+  color: white;
+  font-weight: 600;
+}
+
+.more-play-btn-side {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 8px 10px;
+  background: #f8f9fa;
+  border: 1px solid #e5e5e5;
+  border-radius: 6px;
+  cursor: pointer;
+  min-width: 30px;
+  gap: 4px;
+}
+
+.more-play-btn-side:active {
+  background: #f0f0f0;
+}
+
+.more-btn-text {
+  font-size: 0.7rem;
+  color: #666;
+  font-weight: 500;
+  line-height: 1.2;
+}
+
+.more-btn-text.selected {
+  color: #fc3c3c;
+  font-weight: 600;
+}
+
+.more-btn-count {
+  font-size: 0.85rem;
+  color: #fc3c3c;
+  font-weight: 700;
+}
+
+.betting-compact {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.rate-compact {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+}
+
+.rate-label {
+  min-width: 40px;
+  text-align: center;
+}
+
+.handicap-small {
+  display: inline-block;
+  padding: 2px 6px;
+  border-radius: 3px;
+  font-size: 0.7rem;
+  font-weight: 600;
+  background: #f0f0f0;
+  color: #666;
+}
+
+.handicap-small.zero {
+  background: #e8f5e9;
+  color: #4caf50;
+}
+
+.handicap-small.positive {
+  background: #fff3e0;
+  color: #ff9800;
+}
+
+.handicap-small.negative {
+  background: #e3f2fd;
+  color: #2196f3;
+}
+
+.rate-buttons {
+  display: flex;
+  gap: 2px;
+  flex: 1;
+}
+
+.rate-btn {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+  padding: 6px 4px;
+  background: #f4f5f9;
+  border-radius: 4px;
+  cursor: pointer;
+  transition: all 0.2s;
+  min-width: 40px;
+}
+
+.rate-btn:active {
+  transform: scale(0.95);
+}
+
+.rate-btn.selected {
+  background: #fc3c3c;
+}
+
+.btn-name {
+  font-size: 0.7rem;
+  color: #3c3c3c;
+  margin-bottom: 2px;
+}
+
+.rate-btn.selected .btn-name {
+  color: white;
+}
+
+.btn-value {
+  font-size: 0.75rem;
+  color: #393939;
+  font-weight: 600;
+}
+
+.rate-btn.selected .btn-value {
+  color: white;
+}
+
+.more-play-btn {
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+  padding: 8px 12px;
+  background: #f8f8f8;
+  border-radius: 4px;
+  cursor: pointer;
+  min-width: 50px;
+  font-size: 0.7rem;
+}
+
+.more-play-btn:active {
+  background: #f0f0f0;
+}
+
+.action-section {
+  position: fixed;
+  bottom: 0;
+  left: 50%;
+  transform: translateX(-50%);
+  width: 100%;
+  max-width: 430px;
+  background: white;
+  padding: 0px;
+  height: 4rem;
+}
+
+.action-buttons {
+  display: flex;
+  gap: 12px;
+  align-items: center;
+  justify-content: space-between;
+  height: 4rem;
+}
+
+.confirm-btn {
+  flex: 2;
+  background: #fc3c3c;
+  border: none;
+  font-size: 1rem;
+  font-weight: 600;
+  max-width: 80px;
+  height: 4rem;
+  border-radius: 0px;
+}
+
+.confirm-btn:disabled {
+  background: #ccc;
+  opacity: 0.6;
+}
+
+.more-play-content {
+  height: 100%;
+  display: flex;
+  flex-direction: column;
+  background: #f5f5f5;
+}
+
+.more-play-header {
+  background: white;
+  padding: 16px;
+  border-bottom: 1px solid #f0f0f0;
+}
+
+.game-info-mini {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.mini-number {
+  background: #fc3c3c;
+  color: white;
+  padding: 2px 8px;
+  border-radius: 4px;
+  font-size: 0.75rem;
+  font-weight: 600;
+}
+
+.mini-teams {
+  font-size: 0.9rem;
+  font-weight: 600;
+  color: #333;
+}
+
+.more-play-body {
+  flex: 1;
+  overflow-y: auto;
+  padding: 8px;
+}
+
+.loading-container,
+.empty-container {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  padding: 40px 20px;
+}
+
+.more-rates-list {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.more-rate-group {
+  background: white;
+  border-radius: 8px;
+  padding: 12px;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05);
+}
+
+.more-rate-title {
+  color: #333;
+  padding: 8px 0;
+  font-size: 0.9rem;
+  font-weight: 600;
+  text-align: center;
+  border-bottom: 1px solid #f0f0f0;
+  margin-bottom: 8px;
+}
+
+.more-rate-options {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 8px;
+}
+
+.more-rate-option {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 12px 8px;
+  background: #f4f5f7;
+  border-radius: 6px;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.more-rate-option:active {
+  transform: scale(0.98);
+}
+
+.more-rate-option.selected {
+  background: #fc3c3c;
+}
+
+.more-option-name {
+  font-size: 0.7rem;
+  color: #666;
+  margin-bottom: 4px;
+  font-weight: 600;
+}
+
+.more-rate-option.selected .more-option-name {
+  color: white;
+}
+
+.more-option-value {
+  font-size: 0.95rem;
+  color: #fc3c3c;
+  font-weight: 600;
+}
+
+.more-rate-option.selected .more-option-value {
+  color: white;
+}
+
+
+
+.rule-content {
+  padding: 20px;
+  height: 100%;
+  overflow-y: auto;
+}
+
+.rule-title {
+  font-size: 1.2rem;
+  font-weight: 600;
+  color: #333;
+  text-align: center;
+  margin-bottom: 20px;
+}
+
+.rule-body {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.rule-section {
+  background: #f8f8f8;
+  padding: 12px;
+  border-radius: 8px;
+}
+
+.rule-section-title {
+  font-size: 0.95rem;
+  font-weight: 600;
+  color: #fc3c3c;
+  margin-bottom: 8px;
+}
+
+.rule-text {
+  font-size: 0.85rem;
+  color: #666;
+  line-height: 1.6;
+}
+</style>
+
+

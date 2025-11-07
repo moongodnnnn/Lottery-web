@@ -15,7 +15,7 @@
 
       <!-- 成功文字 -->
       <div class="success-text">
-        <h2>下单成功</h2>
+        <h2>付款成功 下单成功</h2>
         <p>已安排店铺接单，请注意查看订单状态</p>
       </div>
 
@@ -46,15 +46,12 @@ import { useRouter, useRoute } from "vue-router";
 const router = useRouter();
 const route = useRoute();
 
-// 订单ID（从路由参数获取）
 const orderId = route.query.orderId || "";
 
-// 返回首页
 function goHome() {
   router.replace("/home");
 }
 
-// 查看订单详情
 function goOrderDetail() {
   router.replace("/My_order");
 }
