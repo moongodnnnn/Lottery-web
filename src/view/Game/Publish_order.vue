@@ -310,17 +310,37 @@ function preparePublishParams() {
     const rateTypes = [...new Set(orderData.value.betDetails.map((bet) => bet.rateType))];
     const rate_type = rateTypes.join(",");
 
-    // 转换过关方式
-    const [m, n] = orderData.value.selectedBetType.split('x');
-    const rules = `${m}#${n}`;
+    // 转换过关方式 - 处理单选或多选
+    let rules = '';
+    let selectedBetTypes = [];
 
-    // 计算最高奖金
+    if (Array.isArray(orderData.value.selectedBetType)) {
+      selectedBetTypes = orderData.value.selectedBetType;
+    } else if (orderData.value.selectedBetType) {
+      selectedBetTypes = [orderData.value.selectedBetType];
+    } else if (orderData.value.selectedBetTypes && Array.isArray(orderData.value.selectedBetTypes)) {
+      selectedBetTypes = orderData.value.selectedBetTypes;
+    } else {
+      // 默认值
+      const gameCount = games.length;
+      selectedBetTypes = [`${gameCount}x1`];
+    }
+
+    rules = selectedBetTypes.map(bt => {
+      const [m, n] = bt.split('x');
+      return `${m}#${n}`;
+    }).join(',');
+
+    // 计算最高奖金 - 使用第一个串关方式
     const gamesMaxOdds = Object.values(orderData.value.groupedBets).map(game => {
       const gameOdds = game.bets.map(bet => parseFloat(bet.optionValue));
       return Math.max(...gameOdds);
     });
 
     let maxPrize = 0;
+    const firstBetType = selectedBetTypes[0];
+    const [m, n] = firstBetType.split('x');
+
     if (m === '1' && n === '1') {
       const maxOdds = Math.max(...gamesMaxOdds);
       maxPrize = parseFloat((maxOdds * 2 * orderData.value.betMultiple).toFixed(2));

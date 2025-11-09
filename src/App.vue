@@ -115,9 +115,9 @@ body {
     color: var(--van-text-color);
     flex: 1;
     max-height: var(--van-dialog-message-max-height);
-    padding: 32px;
+    padding: 22px 18px;
     overflow-y: auto;
-    font-size: 1.1rem;
+    font-size: 1rem;
     line-height: 1;
     white-space: pre-wrap;
     text-align: center;

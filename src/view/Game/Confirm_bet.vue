@@ -34,17 +34,66 @@
       </div>
     </div>
 
+    <!-- 串关方式选择弹窗 -->
+    <van-popup v-model:show="showBetTypePopup" position="bottom" round :style="{ padding: '20px' }">
+      <div class="bet-type-popup">
+        <div class="popup-header">
+          <span class="popup-title">串关方式选择</span>
+        </div>
+
+        <div class="bet-type-section" v-if="singleBetTypes.length > 0">
+          <div class="section-title">单一串关（可多选）</div>
+          <div class="bet-type-list">
+            <div
+              v-for="type in singleBetTypes"
+              :key="type.value"
+              class="bet-type-item"
+              :class="{
+                active: selectedBetTypes.includes(type.value),
+                disabled: type.disabled
+              }"
+              @click="toggleBetType(type)"
+            >
+              <span>{{ type.label }}</span>
+             
+            </div>
+          </div>
+        </div>
+
+        <div class="bet-type-section" v-if="combinedBetTypes.length > 0">
+          <div class="section-title">组合串关（单选）</div>
+          <div class="bet-type-list">
+            <div
+              v-for="type in combinedBetTypes"
+              :key="type.value"
+              class="bet-type-item"
+              :class="{
+                active: selectedBetTypes.includes(type.value),
+                disabled: type.disabled
+              }"
+              @click="toggleBetType(type)"
+            >
+              <span>{{ type.label }}</span>
+            </div>
+          </div>
+        </div>
+        <div class="popup-actions">
+          <van-button class="action-btn cancel-btn" @click="cancelBetTypeSelection">取消</van-button>
+          <van-button class="action-btn confirm-btn" type="primary" @click="confirmBetTypeSelection">确认</van-button>
+        </div>
+      </div>
+    </van-popup>
+
     <!-- 底部操作区域 - 紧凑版 -->
     <div class="bottom-action-bar">
       <!-- 投注设置行 -->
       <div class="settings-row">
-        <div class="setting-group">
-          <span class="setting-label">投注方式</span>
-          <select v-model="selectedBetType" class="bet-type-select" @change="onBetTypeChange">
-            <option v-for="type in betTypeOptions" :key="type.value" :value="type.value" :disabled="type.disabled">
-              {{ type.label }}
-            </option>
-          </select>
+        <div class="setting-group" @click="showBetTypePopup = true">
+          <span class="setting-label">串关方式</span>
+          <div class="bet-type-display">
+            <span class="bet-type-text">{{ selectedBetTypesText }}</span>
+            <van-icon name="arrow-down" size="14" color="#999" />
+          </div>
         </div>
         <div class="setting-group">
           <span class="setting-label">倍数</span>
@@ -102,113 +151,119 @@ const route = useRoute();
 
 // 接收传递的投注数据
 const betDetails = ref([]);
-const betAmount = ref(2); // 每注金额，默认2元
-const betMultiple = ref(10); // 投注倍数，默认10倍
-const selectedBetType = ref("single"); // 选中的投注方式，默认单关
+const betAmount = ref(2);
+const betMultiple = ref(10);
+const selectedBetTypes = ref([]);
 const showRule = ref(false);
-const showBannerPopup = ref(false); // Banner详情弹窗
+const showBannerPopup = ref(false);
+const showBetTypePopup = ref(false);
 
-// 检测是否包含半全场或比分玩法
 const hasScoreOrHalfPlay = computed(() => {
   return betDetails.value.some(bet => bet.rateType === "3" || bet.rateType === "5");
 });
 
-// 投注方式选项（串关方式）
+const hasTotalGoals = computed(() => {
+  return betDetails.value.some(bet => bet.rateType === "4");
+});
+
+const hasOnlyWinDrawLoss = computed(() => {
+  const rateTypes = new Set(betDetails.value.map(bet => bet.rateType));
+  return rateTypes.size === 1 && (rateTypes.has("1") || rateTypes.has("2")) ||
+         rateTypes.size === 2 && rateTypes.has("1") && rateTypes.has("2");
+});
+
 const betTypeOptions = computed(() => {
-  const gameCount = Object.keys(groupedBets.value).length; // 比赛场次数
+  const gameCount = Object.keys(groupedBets.value).length;
   const options = [];
-  const hasRestriction = hasScoreOrHalfPlay.value; // 是否有半全场或比分限制
+  const hasScoreHalf = hasScoreOrHalfPlay.value;
+  const hasGoals = hasTotalGoals.value;
+  const onlyWinDrawLoss = hasOnlyWinDrawLoss.value;
+
+  let maxGuan = 8;
+  if (hasScoreHalf) {
+    maxGuan = 4;
+  } else if (hasGoals && !hasScoreHalf) {
+    maxGuan = 6;
+  } else if (onlyWinDrawLoss) {
+    maxGuan = 8;
+  }
 
   if (gameCount === 1) {
-    // 1场比赛：只能单关
-    options.push({ label: "单关", value: "1x1", disabled: false });
+    if (onlyWinDrawLoss) {
+      const hasSingleGame = betDetails.value.some(bet => {
+        return bet.isSingle === 1;
+      });
+      if (hasSingleGame) {
+        options.push({ label: "单关", value: "1x1", disabled: false });
+      }
+    } else {
+      options.push({ label: "单关", value: "1x1", disabled: false });
+    }
   } else if (gameCount === 2) {
-    // 2场比赛：只能2串1
     options.push({ label: "2串1", value: "2x1", disabled: false });
   } else if (gameCount === 3) {
-    // 3场比赛：2串1、3串1、3串3、3串4
     options.push(
       { label: "2串1", value: "2x1", disabled: false },
-      { label: "3串1", value: "3x1", disabled: false },
-      { label: "3串3", value: "3x3", disabled: false },
-      { label: "3串4", value: "3x4", disabled: false }
+      { label: "3串1", value: "3x1", disabled: maxGuan < 3 },
+      { label: "3串3", value: "3x3", disabled: maxGuan < 3 },
+      { label: "3串4", value: "3x4", disabled: maxGuan < 3 }
     );
   } else if (gameCount === 4) {
-    // 4场比赛：2串1、3串1、4串1、4串4、4串5、4串6、4串11
     options.push(
       { label: "2串1", value: "2x1", disabled: false },
-      { label: "3串1", value: "3x1", disabled: false },
-      { label: "4串1", value: "4x1", disabled: false },
-      { label: "4串4", value: "4x4", disabled: hasRestriction },
-      { label: "4串5", value: "4x5", disabled: hasRestriction },
-      { label: "4串6", value: "4x6", disabled: hasRestriction },
-      { label: "4串11", value: "4x11", disabled: hasRestriction }
+      { label: "3串1", value: "3x1", disabled: maxGuan < 3 },
+      { label: "4串1", value: "4x1", disabled: maxGuan < 4 },
+      { label: "3串3", value: "3x3", disabled: maxGuan < 3 },
+      { label: "3串4", value: "3x4", disabled: maxGuan < 3 },
+      { label: "4串4", value: "4x4", disabled: maxGuan < 4 },
+      { label: "4串5", value: "4x5", disabled: maxGuan < 4 },
+      { label: "4串6", value: "4x6", disabled: maxGuan < 4 },
+      { label: "4串11", value: "4x11", disabled: maxGuan < 4 }
     );
-  } else if (gameCount === 5) {
-    // 5场比赛：如果有半全场或比分，最多4串1
-    if (hasRestriction) {
-      options.push(
-        { label: "2串1", value: "2x1", disabled: false },
-        { label: "3串1", value: "3x1", disabled: false },
-        { label: "4串1", value: "4x1", disabled: false }
-      );
-    } else {
-      options.push(
-        { label: "2串1", value: "2x1", disabled: false },
-        { label: "3串1", value: "3x1", disabled: false },
-        { label: "4串1", value: "4x1", disabled: false },
-        { label: "5串1", value: "5x1", disabled: false },
-        { label: "5串5", value: "5x5", disabled: false },
-        { label: "5串6", value: "5x6", disabled: false },
-        { label: "5串10", value: "5x10", disabled: false },
-        { label: "5串16", value: "5x16", disabled: false },
-        { label: "5串20", value: "5x20", disabled: false },
-        { label: "5串26", value: "5x26", disabled: false }
-      );
+  } else if (gameCount >= 5) {
+    options.push({ label: "2串1", value: "2x1", disabled: false });
+    options.push({ label: "3串1", value: "3x1", disabled: maxGuan < 3 });
+    options.push({ label: "4串1", value: "4x1", disabled: maxGuan < 4 });
+
+    if (maxGuan >= 5) {
+      options.push({ label: "5串1", value: "5x1", disabled: false });
     }
-  } else if (gameCount === 6) {
-    // 6场比赛：如果有半全场或比分，最多4串1
-    if (hasRestriction) {
-      options.push(
-        { label: "2串1", value: "2x1", disabled: false },
-        { label: "3串1", value: "3x1", disabled: false },
-        { label: "4串1", value: "4x1", disabled: false }
-      );
-    } else {
-      options.push(
-        { label: "2串1", value: "2x1", disabled: false },
-        { label: "3串1", value: "3x1", disabled: false },
-        { label: "4串1", value: "4x1", disabled: false },
-        { label: "5串1", value: "5x1", disabled: false },
-        { label: "6串1", value: "6x1", disabled: false },
-        { label: "6串6", value: "6x6", disabled: false },
-        { label: "6串7", value: "6x7", disabled: false },
-        { label: "6串15", value: "6x15", disabled: false },
-        { label: "6串20", value: "6x20", disabled: false },
-        { label: "6串22", value: "6x22", disabled: false },
-        { label: "6串35", value: "6x35", disabled: false },
-        { label: "6串42", value: "6x42", disabled: false },
-        { label: "6串50", value: "6x50", disabled: false },
-        { label: "6串57", value: "6x57", disabled: false }
-      );
+    if (maxGuan >= 6 && gameCount >= 6) {
+      options.push({ label: "6串1", value: "6x1", disabled: false });
     }
-  } else if (gameCount >= 7) {
-    // 7场及以上：如果有半全场或比分，最多4串1
-    if (hasRestriction) {
-      options.push(
-        { label: "2串1", value: "2x1", disabled: false },
-        { label: "3串1", value: "3x1", disabled: false },
-        { label: "4串1", value: "4x1", disabled: false }
-      );
-    } else {
-      options.push(
-        { label: "2串1", value: "2x1", disabled: false },
-        { label: "3串1", value: "3x1", disabled: false },
-        { label: "4串1", value: "4x1", disabled: false },
-        { label: "5串1", value: "5x1", disabled: false },
-        { label: "6串1", value: "6x1", disabled: false },
-        { label: "7串1", value: "7x1", disabled: false }
-      );
+    if (maxGuan >= 7 && gameCount >= 7) {
+      options.push({ label: "7串1", value: "7x1", disabled: false });
+    }
+    if (maxGuan >= 8 && gameCount >= 8) {
+      options.push({ label: "8串1", value: "8x1", disabled: false });
+    }
+
+    options.push({ label: "3串3", value: "3x3", disabled: maxGuan < 3 });
+    options.push({ label: "3串4", value: "3x4", disabled: maxGuan < 3 });
+    options.push({ label: "4串4", value: "4x4", disabled: maxGuan < 4 });
+    options.push({ label: "4串5", value: "4x5", disabled: maxGuan < 4 });
+    options.push({ label: "4串6", value: "4x6", disabled: maxGuan < 4 });
+    options.push({ label: "4串11", value: "4x11", disabled: maxGuan < 4 });
+
+    if (maxGuan >= 5 && gameCount >= 5) {
+      options.push({ label: "5串5", value: "5x5", disabled: false });
+      options.push({ label: "5串6", value: "5x6", disabled: false });
+      options.push({ label: "5串10", value: "5x10", disabled: false });
+      options.push({ label: "5串16", value: "5x16", disabled: false });
+      options.push({ label: "5串20", value: "5x20", disabled: false });
+      options.push({ label: "5串26", value: "5x26", disabled: false });
+    }
+
+    if (maxGuan >= 6 && gameCount >= 6) {
+      options.push({ label: "6串6", value: "6x6", disabled: false });
+      options.push({ label: "6串7", value: "6x7", disabled: false });
+      options.push({ label: "6串15", value: "6x15", disabled: false });
+      options.push({ label: "6串20", value: "6x20", disabled: false });
+      options.push({ label: "6串22", value: "6x22", disabled: false });
+      options.push({ label: "6串35", value: "6x35", disabled: false });
+      options.push({ label: "6串42", value: "6x42", disabled: false });
+      options.push({ label: "6串50", value: "6x50", disabled: false });
+      options.push({ label: "6串57", value: "6x57", disabled: false });
     }
   }
 
@@ -231,44 +286,90 @@ const groupedBets = computed(() => {
   return groups;
 });
 
-// 计算总注数（根据串关方式）
-const totalBets = computed(() => {
-  const gameCount = Object.keys(groupedBets.value).length;
-  const betType = selectedBetType.value;
-
-  if (!betType) return 0;
-
-  // 解析串关方式，例如 "3x4" -> m=3, n=4
-  const [m, n] = betType.split('x').map(Number);
-
-  if (m === 1 && n === 1) {
-    // 单关：每场比赛的投注选项数相乘
-    let total = 1;
-    Object.values(groupedBets.value).forEach(game => {
-      total *= game.bets.length;
-    });
-    return total;
-  }
-
-  // 串关注数计算
-  return calculatePassBets(gameCount, m, n);
+const singleBetTypes = computed(() => {
+  return betTypeOptions.value.filter(opt => {
+    const [, n] = opt.value.split('x').map(Number);
+    return n === 1;
+  });
 });
 
-// 计算总金额
+const combinedBetTypes = computed(() => {
+  return betTypeOptions.value.filter(opt => {
+    const [, n] = opt.value.split('x').map(Number);
+    return n > 1;
+  });
+});
+
+const selectedBetTypesText = computed(() => {
+  if (selectedBetTypes.value.length === 0) return '请选择';
+  return selectedBetTypes.value.map(v => {
+    const option = betTypeOptions.value.find(opt => opt.value === v);
+    return option ? option.label : v;
+  }).join('、');
+});
+
+const totalBets = computed(() => {
+  const gameCount = Object.keys(groupedBets.value).length;
+  if (selectedBetTypes.value.length === 0) return 0;
+
+  let total = 0;
+  selectedBetTypes.value.forEach(betType => {
+    const [m, n] = betType.split('x').map(Number);
+
+    if (m === 1 && n === 1) {
+      let singleTotal = 1;
+      Object.values(groupedBets.value).forEach(game => {
+        singleTotal *= game.bets.length;
+      });
+      total += singleTotal;
+    } else {
+      const betsPerGame = Object.values(groupedBets.value).map(game => game.bets.length);
+      const combinations = getCombinations(gameCount, m);
+      let betTypeTotal = 0;
+      combinations.forEach(combo => {
+        let comboTotal = 1;
+        combo.forEach(idx => {
+          comboTotal *= betsPerGame[idx];
+        });
+        betTypeTotal += comboTotal;
+      });
+      total += betTypeTotal * n;
+    }
+  });
+
+  return total;
+});
+
+function getCombinations(n, r) {
+  const result = [];
+  const combo = [];
+
+  function backtrack(start) {
+    if (combo.length === r) {
+      result.push([...combo]);
+      return;
+    }
+    for (let i = start; i < n; i++) {
+      combo.push(i);
+      backtrack(i + 1);
+      combo.pop();
+    }
+  }
+
+  backtrack(0);
+  return result;
+}
+
 const totalAmount = computed(() => {
   return (totalBets.value * betAmount.value * betMultiple.value).toFixed(2);
 });
 
-// 计算预计中奖金额范围（最低~最高）
 const estimatedPrize = computed(() => {
-  if (betDetails.value.length === 0) return "0.00~0.00元";
+  if (betDetails.value.length === 0 || selectedBetTypes.value.length === 0) return "0.00~0.00元";
 
-  const betType = selectedBetType.value;
-  if (!betType) return "0.00~0.00元";
+  let minPrize = Infinity;
+  let maxPrize = 0;
 
-  const [m, n] = betType.split('x').map(Number);
-
-  // 获取每场比赛的赔率（取每场的最小和最大赔率）
   const gamesOdds = Object.values(groupedBets.value).map(game => {
     const gameOdds = game.bets.map(bet => parseFloat(bet.optionValue));
     return {
@@ -277,21 +378,26 @@ const estimatedPrize = computed(() => {
     };
   });
 
-  if (m === 1 && n === 1) {
-    // 单关：每场比赛独立计算
-    const minPrize = Math.min(...gamesOdds.map(g => g.min)) * betAmount.value * betMultiple.value;
-    const maxPrize = Math.max(...gamesOdds.map(g => g.max)) * betAmount.value * betMultiple.value;
-    return `${minPrize.toFixed(2)}~${maxPrize.toFixed(2)}元`;
-  } else {
-    // 串关：取m场的最小和最大赔率组合
-    const minOdds = gamesOdds.map(g => g.min).sort((a, b) => a - b).slice(0, m).reduce((acc, odd) => acc * odd, 1);
-    const maxOdds = gamesOdds.map(g => g.max).sort((a, b) => b - a).slice(0, m).reduce((acc, odd) => acc * odd, 1);
+  selectedBetTypes.value.forEach(betType => {
+    const [m] = betType.split('x').map(Number);
 
-    const minPrize = minOdds * betAmount.value * betMultiple.value;
-    const maxPrize = maxOdds * betAmount.value * betMultiple.value;
+    if (m === 1) {
+      const currentMin = Math.min(...gamesOdds.map(g => g.min)) * betAmount.value * betMultiple.value;
+      const currentMax = Math.max(...gamesOdds.map(g => g.max)) * betAmount.value * betMultiple.value;
+      minPrize = Math.min(minPrize, currentMin);
+      maxPrize = Math.max(maxPrize, currentMax);
+    } else {
+      const minOdds = gamesOdds.map(g => g.min).sort((a, b) => a - b).slice(0, m).reduce((acc, odd) => acc * odd, 1);
+      const maxOdds = gamesOdds.map(g => g.max).sort((a, b) => b - a).slice(0, m).reduce((acc, odd) => acc * odd, 1);
 
-    return `${minPrize.toFixed(2)}~${maxPrize.toFixed(2)}元`;
-  }
+      const currentMin = minOdds * betAmount.value * betMultiple.value;
+      const currentMax = maxOdds * betAmount.value * betMultiple.value;
+      minPrize = Math.min(minPrize, currentMin);
+      maxPrize = Math.max(maxPrize, currentMax);
+    }
+  });
+
+  return `${minPrize.toFixed(2)}~${maxPrize.toFixed(2)}元`;
 });
 
 // 是否可以确认
@@ -437,20 +543,46 @@ function getDisplayOptionName(bet) {
   return bet.optionName;
 }
 
-// 投注方式改变时的处理
-function onBetTypeChange() {
-  // 可以在这里添加额外的逻辑
-  console.log("投注方式已改变为:", selectedBetType.value);
+function isMultiSelectable(value) {
+  const [, n] = value.split('x').map(Number);
+  return n === 1;
 }
 
-// 增加倍数
+function toggleBetType(type) {
+  if (type.disabled) return;
+
+  const index = selectedBetTypes.value.indexOf(type.value);
+
+  if (isMultiSelectable(type.value)) {
+    if (index > -1) {
+      selectedBetTypes.value.splice(index, 1);
+    } else {
+      selectedBetTypes.value = selectedBetTypes.value.filter(v => isMultiSelectable(v));
+      selectedBetTypes.value.push(type.value);
+    }
+  } else {
+    selectedBetTypes.value = [type.value];
+  }
+}
+
+function cancelBetTypeSelection() {
+  showBetTypePopup.value = false;
+}
+
+function confirmBetTypeSelection() {
+  if (selectedBetTypes.value.length === 0) {
+    showToast('请至少选择一种串关方式');
+    return;
+  }
+  showBetTypePopup.value = false;
+}
+
 function increaseMultiple() {
   if (betMultiple.value < 99) {
     betMultiple.value++;
   }
 }
 
-// 减少倍数
 function decreaseMultiple() {
   if (betMultiple.value > 1) {
     betMultiple.value--;
@@ -487,10 +619,6 @@ function showPublishDialog() {
     cancelButtonText: '取消',
   })
     .then(() => {
-      // 用户点击确认，跳转到发单设置页面
-      console.log("用户确认发单，跳转到发单设置页面");
-
-      // 准备订单数据
       const orderData = {
         type: 'football', // 足球竞猜
         betDetails: betDetails.value,
@@ -498,7 +626,7 @@ function showPublishDialog() {
         totalBets: totalBets.value,
         betMultiple: betMultiple.value,
         totalAmount: totalAmount.value,
-        selectedBetType: selectedBetType.value,
+        selectedBetTypes: selectedBetTypes.value,
         estimatedPrize: estimatedPrize.value
       };
 
@@ -550,7 +678,23 @@ async function confirmSelection() {
                 query: { orderId }
               });
             } else {
-              showToast(payRes.msg || "支付失败");
+              if (payRes.msg === "资金不足") {
+                showDialog({
+                  message: "资金不足,去充值",
+                  messageAlign: "center",
+                  showCancelButton: true,
+                  confirmButtonText: "确认",
+                  cancelButtonText: "取消"
+                })
+                  .then(() => {
+                    router.push('/recharge');
+                  })
+                  .catch(() => {
+                    console.log("用户取消充值");
+                  });
+              } else {
+                showToast(payRes.msg || "支付失败");
+              }
             }
           } catch (error) {
             console.error("余额支付失败:", error);
@@ -581,10 +725,8 @@ function prepareOrderParams() {
   const rateTypes = [...new Set(betDetails.value.map((bet) => bet.rateType))];
   const rate_type = rateTypes.join(",");
 
-  // 4. 转换过关方式
-  const rules = convertBetTypeToRules(selectedBetType.value);
+  const rules = selectedBetTypes.value.map(bt => convertBetTypeToRules(bt)).join(',');
 
-  // 5. 计算最高奖金
   const maxPrize = calculateMaxPrize();
 
   // 6. 生成所有组合（bell_all）
@@ -613,72 +755,66 @@ function convertBetTypeToRules(betType) {
   return `${m}#${n}`;
 }
 
-// 计算最高奖金
 function calculateMaxPrize() {
-  if (betDetails.value.length === 0) return 0;
+  if (betDetails.value.length === 0 || selectedBetTypes.value.length === 0) return 0;
 
-  const betType = selectedBetType.value;
-  if (!betType) return 0;
-
-  const [m, n] = betType.split('x').map(Number);
-
-  // 获取每场比赛的最大赔率
   const gamesMaxOdds = Object.values(groupedBets.value).map(game => {
     const gameOdds = game.bets.map(bet => parseFloat(bet.optionValue));
     return Math.max(...gameOdds);
   });
 
-  if (m === 1 && n === 1) {
-    // 单关：取所有场次中的最大赔率
-    const maxOdds = Math.max(...gamesMaxOdds);
-    return parseFloat((maxOdds * betAmount.value * betMultiple.value).toFixed(2));
-  } else {
-    // 串关：取m场的最大赔率相乘
-    const sortedOdds = [...gamesMaxOdds].sort((a, b) => b - a);
-    const maxOdds = sortedOdds.slice(0, m).reduce((acc, odd) => acc * odd, 1);
-    return parseFloat((maxOdds * betAmount.value * betMultiple.value).toFixed(2));
-  }
+  let maxPrize = 0;
+  selectedBetTypes.value.forEach(betType => {
+    const [m] = betType.split('x').map(Number);
+
+    if (m === 1) {
+      const maxOdds = Math.max(...gamesMaxOdds);
+      const prize = parseFloat((maxOdds * betAmount.value * betMultiple.value).toFixed(2));
+      maxPrize = Math.max(maxPrize, prize);
+    } else {
+      const sortedOdds = [...gamesMaxOdds].sort((a, b) => b - a);
+      const maxOdds = sortedOdds.slice(0, m).reduce((acc, odd) => acc * odd, 1);
+      const prize = parseFloat((maxOdds * betAmount.value * betMultiple.value).toFixed(2));
+      maxPrize = Math.max(maxPrize, prize);
+    }
+  });
+
+  return maxPrize;
 }
 
-// 生成所有组合（bell_all）
 function generateBellAll() {
-  // 按比赛分组获取每场比赛的投注ID
   const gamesBets = Object.values(groupedBets.value).map(game =>
     game.bets.map(bet => bet.betId)
   );
 
-  const betType = selectedBetType.value;
-  if (!betType) return [];
+  if (selectedBetTypes.value.length === 0) return [];
 
-  const [m, n] = betType.split('x').map(Number);
+  const allCombinations = [];
+  selectedBetTypes.value.forEach(betType => {
+    const [m] = betType.split('x').map(Number);
 
-  if (m === 1 && n === 1) {
-    // 单关：每场比赛的每个选项单独一组
-    const result = [];
-    gamesBets.forEach(gameBets => {
-      gameBets.forEach(betId => {
-        result.push([[[betId]]]);
+    if (m === 1) {
+      gamesBets.forEach(gameBets => {
+        gameBets.forEach(betId => {
+          allCombinations.push([[[betId]]]);
+        });
       });
-    });
-    return result;
-  } else {
-    // 串关：生成所有m场比赛的组合，每个组合包含所有可能的投注组合
-    const gameIndices = Array.from({ length: gamesBets.length }, (_, i) => i);
-    const gameCombinations = generateCombinationsFromIndices(gameIndices, m);
+    } else {
+      const gameIndices = Array.from({ length: gamesBets.length }, (_, i) => i);
+      const gameCombinations = generateCombinationsFromIndices(gameIndices, m);
 
-    const result = [];
-    gameCombinations.forEach(gameCombo => {
-      // 对于每个比赛组合，生成所有投注选项的笛卡尔积
-      const selectedGamesBets = gameCombo.map(index => gamesBets[index]);
-      const cartesianProduct = getCartesianProduct(selectedGamesBets);
+      gameCombinations.forEach(gameCombo => {
+        const selectedGamesBets = gameCombo.map(index => gamesBets[index]);
+        const cartesianProduct = getCartesianProduct(selectedGamesBets);
 
-      cartesianProduct.forEach(combo => {
-        result.push([[combo]]);
+        cartesianProduct.forEach(combo => {
+          allCombinations.push([[combo]]);
+        });
       });
-    });
+    }
+  });
 
-    return result;
-  }
+  return allCombinations;
 }
 
 // 生成索引组合
@@ -732,25 +868,21 @@ onMounted(() => {
       console.log("接收到的投注详情:", betDetails.value);
 
       const gameCount = Object.keys(groupedBets.value).length;
-      const hasRestriction = hasScoreOrHalfPlay.value;
+      const hasScoreHalf = hasScoreOrHalfPlay.value;
 
       if (gameCount === 1) {
-        selectedBetType.value = "1x1";
+        selectedBetTypes.value = ["1x1"];
       } else if (gameCount === 2) {
-        selectedBetType.value = "2x1";
+        selectedBetTypes.value = ["2x1"];
       } else if (gameCount === 3) {
-        selectedBetType.value = "3x1";
+        selectedBetTypes.value = ["3x1"];
       } else if (gameCount === 4) {
-        selectedBetType.value = "4x1";
-      } else if (gameCount > 4) {
-        if (hasRestriction) {
-          selectedBetType.value = "4x1";
-        } else if (gameCount === 5) {
-          selectedBetType.value = "5x1";
-        } else if (gameCount === 6) {
-          selectedBetType.value = "6x1";
+        selectedBetTypes.value = ["4x1"];
+      } else if (gameCount >= 5) {
+        if (hasScoreHalf) {
+          selectedBetTypes.value = ["4x1"];
         } else {
-          selectedBetType.value = `${gameCount}x1`;
+          selectedBetTypes.value = [`${gameCount}x1`];
         }
       }
     } else {
@@ -997,6 +1129,109 @@ onMounted(() => {
   white-space: nowrap;
 }
 
+.bet-type-display {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  padding: 4px 8px;
+  background: #f5f5f5;
+  border-radius: 4px;
+  cursor: pointer;
+}
+
+.bet-type-text {
+  font-size: 0.75rem;
+  color: #333;
+  max-width: 120px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.bet-type-popup {
+  width: 100%;
+}
+
+.popup-header {
+  text-align: center;
+  margin-bottom: 16px;
+}
+
+.popup-title {
+  font-size: 1rem;
+  font-weight: 600;
+  color: #333;
+}
+
+.bet-type-section {
+  margin-bottom: 20px;
+}
+
+.section-title {
+  font-size: 0.85rem;
+  color: #666;
+  margin-bottom: 10px;
+  padding-left: 4px;
+  font-weight: 500;
+}
+
+.bet-type-list {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 8px;
+  max-height: 300px;
+  overflow-y: auto;
+}
+
+.bet-type-item {
+  padding: 10px;
+  border: 1px solid #e0e0e0;
+  border-radius: 6px;
+  text-align: center;
+  cursor: pointer;
+  transition: all 0.2s;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 4px;
+  font-size: 0.85rem;
+}
+
+.bet-type-item.active {
+  background: #fc3c3c;
+  color: #fff;
+  border-color: #fc3c3c;
+}
+
+.bet-type-item.disabled {
+  background: #f5f5f5;
+  color: #ccc;
+  cursor: not-allowed;
+}
+
+.popup-actions {
+  display: flex;
+  gap: 12px;
+}
+
+.action-btn {
+  flex: 1;
+  height: 44px;
+  border-radius: 8px;
+  font-size: 0.9rem;
+}
+
+.cancel-btn {
+  background: #f5f5f5;
+  color: #666;
+  border: none;
+}
+
+.confirm-btn {
+  background: #fc3c3c;
+  border: none;
+}
+
 /* 投注信息和按钮行 */
 .action-row {
   display: flex;
@@ -1078,6 +1313,10 @@ onMounted(() => {
 
 .order-btn {
   background: #fc3c3c;
+}
+
+:deep(.van-dialog__message) {
+  font-size: 0.85rem;
 }
 
 /* Banner详情弹窗 */

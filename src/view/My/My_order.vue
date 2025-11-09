@@ -41,7 +41,26 @@
                 <div class="order-amount">¥{{ order.amount }}</div>
               </div>
 
-              <!-- 第二行：中奖金额（仅中奖时显示） -->
+              <!-- 第二行：付款状态 -->
+              <div class="order-pay-status-row">
+                <div class="pay-status-left">
+                  <span class="pay-status-label">付款状态</span>
+                  <span class="pay-status-value" :class="{ 'unpaid': order.pay_status === 0 }">
+                    {{ order.pay_status === 0 ? '未支付' : '已支付' }}
+                  </span>
+                </div>
+                <van-button
+                  v-if="order.pay_status === 0"
+                  type="primary"
+                  size="small"
+                  class="pay-btn"
+                  @click.stop="goPay(order)"
+                >
+                  去支付
+                </van-button>
+              </div>
+
+              <!-- 第三行：中奖金额（仅中奖时显示） -->
               <div v-if="order.status === 3" class="order-prize-row">
                 <span class="prize-label">中奖金额</span>
                 <span class="prize-value">¥{{ order.reward_price }}</span>
@@ -62,7 +81,7 @@
 <script setup>
 import { ref, onMounted } from "vue";
 import { useRouter } from "vue-router";
-import { showToast } from "vant";
+import { showToast, showDialog } from "vant";
 import API from "../../request/api.js";
 
 const router = useRouter();
@@ -176,12 +195,44 @@ function formatDate(timestamp) {
   return `${month}-${day} ${hours}:${minutes}`;
 }
 
-// 查看订单详情
 function viewOrderDetail(order) {
   router.push({ path: "/order_detail", query: { id: order.id } });
 }
 
-// 页面加载时不自动加载，等待van-list触发
+async function goPay(order) {
+  try {
+    const payRes = await API.toBalance({ id: order.id });
+    if (payRes.code === 1) {
+      showToast("支付成功");
+      orders.value = [];
+      page.value = 1;
+      finished.value = false;
+      loadOrders();
+    } else {
+      if (payRes.msg === "资金不足") {
+        showDialog({
+          message: "资金不足,去充值",
+          messageAlign: "center",
+          showCancelButton: true,
+          confirmButtonText: "确认",
+          cancelButtonText: "取消"
+        })
+          .then(() => {
+            router.push('/recharge');
+          })
+          .catch(() => {
+            console.log("用户取消充值");
+          });
+      } else {
+        showToast(payRes.msg || "支付失败");
+      }
+    }
+  } catch (error) {
+    console.error("支付失败:", error);
+    showToast("支付失败");
+  }
+}
+
 onMounted(() => {
   // van-list会自动触发第一次加载
 });
@@ -347,5 +398,43 @@ onMounted(() => {
   font-weight: 700;
   color: #fc3c3c;
   letter-spacing: 0.5px;
+}
+
+.order-pay-status-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  border-radius: 6px;
+  margin-top: 8px;
+}
+
+.pay-status-left {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.pay-status-label {
+  font-size: 0.75rem;
+  color: #666;
+}
+
+.pay-status-value {
+  font-size: 0.8rem;
+  font-weight: 600;
+  color: #52c41a;
+}
+
+.pay-status-value.unpaid {
+  color: #ff4d4f;
+}
+
+.pay-btn {
+  background: #fc3c3c;
+  border: none;
+  border-radius: 4px;
+  padding: 2px 12px;
+  font-size: 0.7rem;
+  height: 24px;
 }
 </style>

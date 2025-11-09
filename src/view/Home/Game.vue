@@ -90,40 +90,44 @@
 
       <!-- 足球比赛内容 -->
       <div v-else-if="footballMatchesOneday && footballMatchesOneday.length">
-        <div v-for="match in footballMatchesOneday" :key="match.id" class="match-card" v-show="match.draw">
+        <div v-for="match in footballMatchesOneday" :key="match.id" class="match-card">
           <div class="match-header">
             <div class="match-left">
               <div class="match-round">
                 <span style="padding-right: 8px"
-                  >{{ match.draw?.xuhao || "未知序号" }} <span style="padding-left: 10px"> {{ formatTime(match.start_time) }}</span></span
+                  >{{ match.xuhao || match.draw?.xuhao || "未知序号" }} <span style="padding-left: 10px"> {{ formatTime(match.start_time) }}</span></span
                 >
               </div>
             </div>
             <div class="match-status">
-              <div v-if="match.draw?.status == 'done'" class="status-done">完</div>
-              <div v-else class="status-pending">{{ match.draw?.status || "未" }}</div>
+              <div v-if="match.status == 'done'" class="status-done">完</div>
+              <div v-else-if="match.status == 'ing'" class="status-live">{{ match.minutes || "进行中" }}</div>
+              <div v-else class="status-pending">未开始</div>
             </div>
-            <div class="match-rang1" v-if="match.draw?.match == '日联赛杯'">{{ match.draw.match }}</div>
-            <div class="match-rang2" v-else-if="match.draw?.match == '美职足'">{{ match.draw.match }}</div>
-            <div class="match-rang3" v-else-if="match.draw?.match == '世预赛'">{{ match.draw.match }}</div>
-            <div class="match-rang" v-else-if="match.draw?.match">{{ match.draw.match }}</div>
+            <div class="match-rang" v-if="match.match?.name" :style="getLeagueStyle(match.match.name)">{{ match.match.name }}</div>
           </div>
 
           <div class="match-teams">
             <div class="team home-team">
-              <span class="team-name">{{ match.draw?.home || "主队未知" }}</span>
-              <span class="team-score" v-if="match.draw?.all">{{ match.draw.all.split(":")[0] }}</span>
+              <span class="team-name">{{ match.home_team_name || match.draw?.home || "主队未知" }}</span>
+              <span class="team-score" v-if="match.score">{{ match.score.split(":")[0] }}</span>
             </div>
-            <div class="vs" v-if="match.draw?.status == 'done'">-</div>
+            <div class="vs" v-if="match.status == 'done'">-</div>
             <div class="vs" v-else>VS</div>
             <div class="team away-team">
-              <span class="team-score" v-if="match.draw?.all">{{ match.draw.all.split(":")[1] }}</span>
-              <span class="team-name">{{ match.draw?.guest || "客队未知" }}</span>
+              <span class="team-score" v-if="match.score">{{ match.score.split(":")[1] }}</span>
+              <span class="team-name">{{ match.guest_team_name || match.draw?.guest || "客队未知" }}</span>
             </div>
           </div>
 
-          <!-- 竞猜信息区域 -->
-          <div class="match-betting-info" v-if="match.draw">
+          <!-- 进行中的比赛显示半场比分 -->
+          <div class="match-halftime" v-if="match.status == 'ing' && match.banchang">
+            <span class="halftime-label">半场：</span>
+            <span class="halftime-score">{{ match.banchang }}</span>
+          </div>
+
+          <!-- 竞猜信息区域 - 只有已完成的比赛才显示 -->
+          <div class="match-betting-info" v-if="match.draw && match.status == 'done'">
             <div class="betting-item" v-if="match.draw.spf">
               <span class="betting-value">{{ match.draw.spf }}</span>
             </div>
@@ -270,6 +274,25 @@ function getDiffClass(homeScore, awayScore) {
   if (homeScore > awayScore) return "home-winning";
   if (homeScore < awayScore) return "away-winning";
   return "";
+}
+
+// 获取联赛背景色
+function getLeagueStyle(leagueName) {
+  if (!leagueName) return { background: '#d426dd' };
+
+  if (leagueName.includes('沙职')) {
+    return { background: '#000000' };
+  } else if (leagueName.includes('澳超')) {
+    return { background: '#ff8c00' };
+  } else if (leagueName.includes('德乙')) {
+    return { background: '#800080' };
+  } else if (leagueName.includes('法乙')) {
+    return { background: '#008000' };
+  } else if (leagueName.includes('荷乙')) {
+    return { background: '#d426dd' };
+  } else {
+    return { background: '#d426dd' };
+  }
 }
 
 // 时间戳转换为时分秒
@@ -837,6 +860,15 @@ onMounted(() => {
   font-weight: 600;
 }
 
+.status-live {
+  background: #fa3c3c;
+  color: #fff;
+  padding: 2px 8px;
+  border-radius: 4px;
+  font-size: 0.6rem;
+  font-weight: 600;
+}
+
 .match-status.live {
   background: rgba(252, 60, 60, 0.1);
   color: #fc3c3c;
@@ -846,41 +878,9 @@ onMounted(() => {
 .match-rang {
   font-size: 0.7rem;
   color: #ffffff;
-  text-align: right;
-  padding: 2px 4px;
-  background: #f55757;
-  border-radius: 4px;
   text-align: center;
-}
-
-.match-rang1 {
-  font-size: 0.7rem;
-  color: #ffffff;
-  text-align: right;
   padding: 2px 4px;
-  background: #f38630;
   border-radius: 4px;
-  text-align: center;
-}
-
-.match-rang2 {
-  font-size: 0.7rem;
-  color: #ffffff;
-  text-align: right;
-  padding: 2px 4px;
-  background: #2c7df7;
-  border-radius: 4px;
-  text-align: center;
-}
-
-.match-rang3 {
-  font-size: 0.7rem;
-  color: #ffffff;
-  text-align: right;
-  padding: 2px 4px;
-  background: #c70b0b;
-  border-radius: 4px;
-  text-align: center;
 }
 
 
@@ -983,5 +983,23 @@ onMounted(() => {
   border-radius: 4px;
   background: rgba(41, 98, 255, 0.08);
   cursor: pointer;
+}
+
+.match-halftime {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 2px 0;
+  margin-top: 2px;
+  font-size: 0.75rem;
+}
+
+.halftime-label {
+  color: #666;
+  margin-right: 4px;
+}
+
+.halftime-score {
+  color: #666;
 }
 </style>
