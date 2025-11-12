@@ -49,9 +49,9 @@
                 <div class="time-text">{{ formatGameTime(game.start_time) }}</div>
               </div>
               <div class="teams-inline">
-                <span class="team-name">{{ game.home_team_name }}</span>
-                <span class="vs-text">VS</span>
                 <span class="team-name">{{ game.guest_team_name }}</span>
+                <span class="vs-text">VS</span>
+                <span class="team-name">{{ game.home_team_name }}</span>
               </div>
               <div class="game-meta">
                 <span class="game-league">{{ game.match?.name || "未知联赛" }}</span>
@@ -67,17 +67,17 @@
                     <div class="row-label">胜负</div>
                     <div
                       class="table-cell"
-                      :class="{ selected: isOptionSelected(game.id + '-6-0') }"
-                      @click="selectOption(game.id, rate.rate_type, game.id + '-6-0', rate.rates[game.id + '-6-0'])"
-                    >
-                      <span class="cell-text">主胜 {{ rate.rates[game.id + '-6-0']?.value }}</span>
-                    </div>
-                    <div
-                      class="table-cell"
                       :class="{ selected: isOptionSelected(game.id + '-6-1') }"
                       @click="selectOption(game.id, rate.rate_type, game.id + '-6-1', rate.rates[game.id + '-6-1'])"
                     >
                       <span class="cell-text">客胜 {{ rate.rates[game.id + '-6-1']?.value }}</span>
+                    </div>
+                    <div
+                      class="table-cell"
+                      :class="{ selected: isOptionSelected(game.id + '-6-0') }"
+                      @click="selectOption(game.id, rate.rate_type, game.id + '-6-0', rate.rates[game.id + '-6-0'])"
+                    >
+                      <span class="cell-text">主胜 {{ rate.rates[game.id + '-6-0']?.value }}</span>
                     </div>
                   </div>
                 </template>
@@ -90,17 +90,17 @@
                   </div>
                   <div
                     class="table-cell"
-                    :class="{ selected: isOptionSelected(game.id + '-7-0') }"
-                    @click="selectOption(game.id, rate.rate_type, game.id + '-7-0', rate.rates[game.id + '-7-0'])"
-                  >
-                    <span class="cell-text">主胜 {{ rate.rates[game.id + '-7-0']?.value }}</span>
-                  </div>
-                  <div
-                    class="table-cell"
                     :class="{ selected: isOptionSelected(game.id + '-7-1') }"
                     @click="selectOption(game.id, rate.rate_type, game.id + '-7-1', rate.rates[game.id + '-7-1'])"
                   >
                     <span class="cell-text">客胜 {{ rate.rates[game.id + '-7-1']?.value }}</span>
+                  </div>
+                  <div
+                    class="table-cell"
+                    :class="{ selected: isOptionSelected(game.id + '-7-0') }"
+                    @click="selectOption(game.id, rate.rate_type, game.id + '-7-0', rate.rates[game.id + '-7-0'])"
+                  >
+                    <span class="cell-text">主胜 {{ rate.rates[game.id + '-7-0']?.value }}</span>
                   </div>
                 </div>
 
@@ -981,7 +981,6 @@ onMounted(() => {
 .more-play-body {
   flex: 1;
   overflow-y: auto;
-  padding: 8px;
 }
 
 .loading-container,
@@ -995,7 +994,6 @@ onMounted(() => {
 .more-rates-list {
   display: flex;
   flex-direction: column;
-  gap: 12px;
 }
 
 .more-rate-group {
@@ -1053,7 +1051,7 @@ onMounted(() => {
 }
 
 .more-option-value {
-  font-size: 0.95rem;
+  font-size: 0.9rem;
   color: #fc3c3c;
   font-weight: 600;
 }

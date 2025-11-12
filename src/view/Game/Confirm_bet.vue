@@ -303,6 +303,9 @@ const combinedBetTypes = computed(() => {
 const selectedBetTypesText = computed(() => {
   if (selectedBetTypes.value.length === 0) return '请选择';
   return selectedBetTypes.value.map(v => {
+    // 特殊处理：1x1 显示为"单关"
+    if (v === '1x1') return '单关';
+
     const option = betTypeOptions.value.find(opt => opt.value === v);
     return option ? option.label : v;
   }).join('、');

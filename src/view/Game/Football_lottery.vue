@@ -337,20 +337,30 @@ function confirmSelection() {
   for (const detail of Object.values(selectedBetsDetails.value)) {
     gameIds.add(detail.gameId);
 
+    // 检查是否是特殊玩法（比分、总进球、半全场）
     if (detail.rateType === '3' || detail.rateType === '4' || detail.rateType === '5') {
       hasSingleGame = true;
       break;
     }
 
+    // 检查这场比赛是否支持单关（检查该比赛的任意一个rate是否有is_signle === 1）
+    let foundSingleRate = false;
     for (const dayData of gamelist.value) {
       const game = dayData.games.find(g => g.id === detail.gameId);
       if (game && game.rates) {
-        const rate = game.rates.find(r => r.rate_type === detail.rateType);
-        if (rate && rate.is_signle === 1) {
+        // 检查这场比赛的任意一个rate是否标记为单关
+        const hasSingleRate = game.rates.some(r => r.is_signle === 1);
+        if (hasSingleRate) {
           hasSingleGame = true;
+          foundSingleRate = true;
           break;
         }
       }
+    }
+
+    // 如果找到了单关标记，跳出外层循环
+    if (foundSingleRate) {
+      break;
     }
   }
 
@@ -520,7 +530,7 @@ onMounted(async () => {
 
 
 
-  API.analysisData(411).then(res => {
+  API.analysisData(1211).then(res => {
     console.log(res);
   })
 

@@ -330,13 +330,13 @@ function isSelected(key) {
   return orderDetail.value.odds.includes(key);
 }
 
-// 过滤选项：比分和总进球只显示选中的，其他显示全部
+// 过滤选项：比分、总进球、半全场只显示选中的，其他显示全部
 function getFilteredOptions(rate) {
   const rateType = rate.rate_type;
   const rates = rate.rates;
 
-  // 比分(3)和总进球(4)只显示选中的选项
-  if (rateType === "3" || rateType === "4") {
+  // 比分(3)、总进球(4)、半全场(5)只显示选中的选项
+  if (rateType === "3" || rateType === "4" || rateType === "5") {
     const filtered = {};
     Object.keys(rates).forEach(key => {
       if (isSelected(key)) {
