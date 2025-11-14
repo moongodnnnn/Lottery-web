@@ -76,8 +76,8 @@
                       v-for="(option, key) in rate.rates"
                       :key="key"
                       class="rate-btn"
-                      :class="{ selected: isOptionSelected(key) }"
-                      @click="selectOption(game.id, rate.rate_type, key, option)"
+                      :class="{ selected: isOptionSelected(key), disabled: option.value === '--' }"
+                      @click="option.value !== '--' && selectOption(game.id, rate.rate_type, key, option)"
                     >
                       <span class="btn-name">{{ option.name }}</span>
                       <span class="btn-value">{{ option.value }}</span>
@@ -107,8 +107,8 @@
                       v-for="(option, key) in rate.rates"
                       :key="key"
                       class="rate-btn"
-                      :class="{ selected: isOptionSelected(key) }"
-                      @click="selectOption(game.id, rate.rate_type, key, option)"
+                      :class="{ selected: isOptionSelected(key), disabled: option.value === '--' }"
+                      @click="option.value !== '--' && selectOption(game.id, rate.rate_type, key, option)"
                     >
                       <span class="btn-name">让{{ option.name }}</span>
                       <span class="btn-value">{{ option.value }}</span>
@@ -194,8 +194,8 @@
                       v-for="(option, key) in rate.rates['1']"
                       :key="'win-' + key"
                       class="more-rate-option score-option"
-                      :class="{ selected: isOptionSelected(key) }"
-                      @click="selectOption(currentGame.id, rate.rate_type, key, option)"
+                      :class="{ selected: isOptionSelected(key), disabled: option.value === '--' }"
+                      @click="option.value !== '--' && selectOption(currentGame.id, rate.rate_type, key, option)"
                     >
                       <span class="more-option-name">{{ option.name }}</span>
                       <span class="more-option-value">{{ option.value }}</span>
@@ -205,8 +205,8 @@
                       v-for="(option, key) in rate.rates['2']"
                       :key="'draw-' + key"
                       class="more-rate-option score-option"
-                      :class="{ selected: isOptionSelected(key) }"
-                      @click="selectOption(currentGame.id, rate.rate_type, key, option)"
+                      :class="{ selected: isOptionSelected(key), disabled: option.value === '--' }"
+                      @click="option.value !== '--' && selectOption(currentGame.id, rate.rate_type, key, option)"
                     >
                       <span class="more-option-name">{{ option.name }}</span>
                       <span class="more-option-value">{{ option.value }}</span>
@@ -216,8 +216,8 @@
                       v-for="(option, key) in rate.rates['3']"
                       :key="'lose-' + key"
                       class="more-rate-option score-option"
-                      :class="{ selected: isOptionSelected(key) }"
-                      @click="selectOption(currentGame.id, rate.rate_type, key, option)"
+                      :class="{ selected: isOptionSelected(key), disabled: option.value === '--' }"
+                      @click="option.value !== '--' && selectOption(currentGame.id, rate.rate_type, key, option)"
                     >
                       <span class="more-option-name">{{ option.name }}</span>
                       <span class="more-option-value">{{ option.value }}</span>
@@ -232,8 +232,8 @@
                   v-for="(option, key) in rate.rates"
                   :key="key"
                   class="more-rate-option goals-option"
-                  :class="{ selected: isOptionSelected(key) }"
-                  @click="selectOption(currentGame.id, rate.rate_type, key, option)"
+                  :class="{ selected: isOptionSelected(key), disabled: option.value === '--' }"
+                  @click="option.value !== '--' && selectOption(currentGame.id, rate.rate_type, key, option)"
                 >
                   <span class="more-option-name">{{ option.name }}</span>
                   <span class="more-option-value">{{ option.value }}</span>
@@ -246,8 +246,8 @@
                   v-for="(option, key) in rate.rates"
                   :key="key"
                   class="more-rate-option half-option"
-                  :class="{ selected: isOptionSelected(key) }"
-                  @click="selectOption(currentGame.id, rate.rate_type, key, option)"
+                  :class="{ selected: isOptionSelected(key), disabled: option.value === '--' }"
+                  @click="option.value !== '--' && selectOption(currentGame.id, rate.rate_type, key, option)"
                 >
                   <span class="more-option-name">{{ option.name }}</span>
                   <span class="more-option-value">{{ option.value }}</span>
@@ -260,8 +260,8 @@
                   v-for="(option, key) in rate.rates"
                   :key="key"
                   class="more-rate-option"
-                  :class="{ selected: isOptionSelected(key) }"
-                  @click="selectOption(currentGame.id, rate.rate_type, key, option)"
+                  :class="{ selected: isOptionSelected(key), disabled: option.value === '--' }"
+                  @click="option.value !== '--' && selectOption(currentGame.id, rate.rate_type, key, option)"
                 >
                   <span class="more-option-name">{{ option.name }}</span>
                   <span class="more-option-value">{{ option.value }}</span>
@@ -283,10 +283,11 @@
 <script setup>
 import { ref, computed, onMounted, onUnmounted } from "vue";
 import { showToast } from "vant";
-import { useRouter } from "vue-router";
+import { useRouter, useRoute } from "vue-router";
 import API from "../../request/api.js";
 
 const router = useRouter();
+const route = useRoute();
 
 // 响应式数据
 const showRule = ref(false);
@@ -519,6 +520,39 @@ onMounted(async () => {
     const getGames = await API.Games(0);
     if (getGames.code === 1) {
       gamelist.value = getGames.data.games;
+
+      // 检查是否是调整方案模式
+      if (route.query.adjustMode === 'true' && route.query.betDetails) {
+        try {
+          const previousBets = JSON.parse(route.query.betDetails);
+          console.log('恢复之前的投注:', previousBets);
+
+          // 恢复选中状态
+          previousBets.forEach(bet => {
+            const betId = `${bet.gameId}-${bet.rateType}-${bet.betId}`;
+
+            // 添加到选中列表
+            if (!selectedBets.value.includes(betId)) {
+              selectedBets.value.push(betId);
+            }
+
+            // 添加到详细信息
+            selectedBetsDetails.value[betId] = {
+              gameId: bet.gameId,
+              rateType: bet.rateType,
+              optionKey: bet.betId,
+              optionName: bet.optionName,
+              optionValue: bet.optionValue,
+              gameInfo: bet.gameInfo
+            };
+          });
+
+          console.log('已恢复选中状态:', selectedBets.value);
+          console.log('已恢复详细信息:', selectedBetsDetails.value);
+        } catch (error) {
+          console.error('恢复投注失败:', error);
+        }
+      }
     } else {
       handleError(getGames, "获取游戏列表失败");
     }
@@ -1271,6 +1305,12 @@ function getLeagueStyle(leagueName) {
   background: #fc3c3c;
 }
 
+.more-rate-option.disabled {
+  opacity: 0.4;
+  cursor: not-allowed;
+  pointer-events: none;
+}
+
 .more-option-name {
   font-size: 0.8rem;
   color: #666;
@@ -1388,6 +1428,12 @@ function getLeagueStyle(leagueName) {
 
 .rate-btn:active {
   transform: scale(0.95);
+}
+
+.rate-btn.disabled {
+  opacity: 0.4;
+  cursor: not-allowed;
+  pointer-events: none;
 }
 
 .rate-btn.selected {

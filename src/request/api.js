@@ -178,11 +178,11 @@ export const API = {
   // 上传文件
   uploadFile(file) {
     const formData = new FormData();
-    formData.append('file', file);
+    formData.append("file", file);
     return instance.post("/common/upload", formData, {
       headers: {
-        'Content-Type': 'multipart/form-data'
-      }
+        "Content-Type": "multipart/form-data",
+      },
     });
   },
 
@@ -194,6 +194,33 @@ export const API = {
     return instance.get("/pay/toBalance", { params: payload });
   },
 
+  // 设置提现密码
+  setWPass(payload) {
+    return instance.post("/user/setWPass", payload);
+  },
+
+  // 添加账户
+  addAccount(payload) {
+    return instance.post("/user/addAccount", payload);
+  },
+
+  accountList() {
+    return instance.get("/user/accountList");
+  },
+
+  balanceof() {
+    return instance.get("/user/balanceof");
+  },
+
+  // 提现
+  withdraw(payload) {
+    return instance.post("/user/withdraw", payload);
+  },
+
+  // 实名认证
+  userAudit(payload) {
+    return instance.post("/user/userAudit", payload);
+  },
 };
 
 export default API;

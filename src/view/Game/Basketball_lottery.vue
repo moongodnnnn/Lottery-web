@@ -269,11 +269,12 @@
 
 <script setup>
 import { ref, computed, onMounted } from "vue";
-import { useRouter } from "vue-router";
+import { useRouter, useRoute } from "vue-router";
 import { showToast } from "vant";
 import API from "../../request/api.js";
 
 const router = useRouter();
+const route = useRoute();
 const loading = ref(false);
 const gamelist = ref([]);
 const expandedDays = ref([]);
@@ -514,8 +515,41 @@ const loadGameList = async () => {
   }
 };
 
-onMounted(() => {
-  loadGameList();
+onMounted(async () => {
+  await loadGameList();
+
+  // 检查是否是调整方案模式
+  if (route.query.adjustMode === 'true' && route.query.selectedBets) {
+    try {
+      const previousBets = JSON.parse(route.query.selectedBets);
+      console.log('恢复之前的投注:', previousBets);
+
+      // 恢复选中状态
+      previousBets.forEach(bet => {
+        const key = `${bet.gameId}_${bet.rateType}_${bet.betId}`;
+
+        // 添加到选中列表
+        if (!selectedBets.value.includes(key)) {
+          selectedBets.value.push(key);
+        }
+
+        // 添加到详细信息
+        selectedBetsMap.value[key] = {
+          gameId: bet.gameId,
+          betId: bet.betId,
+          rateType: bet.rateType,
+          optionName: bet.optionName,
+          optionValue: bet.optionValue,
+          gameInfo: bet.gameInfo
+        };
+      });
+
+      console.log('已恢复选中状态:', selectedBets.value);
+      console.log('已恢复详细信息:', selectedBetsMap.value);
+    } catch (error) {
+      console.error('恢复投注失败:', error);
+    }
+  }
 });
 </script>
 

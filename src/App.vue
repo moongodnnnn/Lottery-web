@@ -43,6 +43,7 @@ body {
   --van-nav-bar-height: 52px;
   --van-loading-text-color: #a3a3a3;
   --van-tabs-bottom-bar-color: #e33212;
+  --van-number-keyboard-z-index: 10000;
 
   .van-cell {
     position: relative;

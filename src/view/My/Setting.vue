@@ -37,7 +37,7 @@
           <van-icon name="arrow" color="#969799" size="16" />
         </div>
       </div>
-      <div class="profile-row" @click="gopassword">
+      <div class="profile-row" @click="go('/withdraw-password')">
         <span class="profile-label">提现密码</span>
         <div class="profile-right">
           <van-icon name="arrow" color="#969799" size="16" />
@@ -102,6 +102,10 @@ const fileInput = ref(null);
 
 function gopassword() {
   router.push("/forgetpassword");
+}
+
+function go(path) {
+  router.push(path);
 }
 
 // 格式化时间戳

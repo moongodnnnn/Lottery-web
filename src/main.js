@@ -33,6 +33,7 @@ import {
   List,
   Step,
   Steps,
+  Picker 
 } from "vant";
 
 import "vant/lib/index.css";
@@ -47,6 +48,7 @@ createApp(App)
   .use(Cascader)
   .use(Field)
   .use(CellGroup)
+  .use(Picker)
   .use(Popup)
   .use(Swipe)
   .use(SwipeItem)
@@ -62,6 +64,8 @@ createApp(App)
   .use(SkeletonAvatar)
   .use(SkeletonParagraph)
   .use(Button)
+  .use(PasswordInput)
+  .use(NumberKeyboard)
   .use(Tabbar)
   .use(Icon)
   .use(TabbarItem)

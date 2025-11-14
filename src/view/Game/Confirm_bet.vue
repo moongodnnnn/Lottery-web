@@ -13,6 +13,27 @@
       <img src="/img/gamebanner.png" alt="" style="width: 100%; cursor: pointer" @click="showBannerDetails" />
     </div>
 
+    <!-- 调整方案按钮 -->
+    <div style="padding: 10px 10px 0px 10px">
+      <van-button
+        type="default"
+        block
+        @click="adjustPlan"
+        style="
+          height: 40px;
+          border: 1px solid #fc3c3c;
+          color: #fc3c3c;
+          background: #fff;
+          font-size: 14px;
+          font-weight: 500;
+          border-radius: 8px;
+        "
+      >
+        <van-icon name="edit" style="margin-right: 4px" />
+        调整方案
+      </van-button>
+    </div>
+
     <!-- 投注内容列表 - 按比赛分组 -->
     <div class="bet-list">
       <div v-for="(game, gameId) in groupedBets" :key="gameId" class="bet-item">
@@ -50,12 +71,11 @@
               class="bet-type-item"
               :class="{
                 active: selectedBetTypes.includes(type.value),
-                disabled: type.disabled
+                disabled: type.disabled,
               }"
               @click="toggleBetType(type)"
             >
               <span>{{ type.label }}</span>
-             
             </div>
           </div>
         </div>
@@ -69,7 +89,7 @@
               class="bet-type-item"
               :class="{
                 active: selectedBetTypes.includes(type.value),
-                disabled: type.disabled
+                disabled: type.disabled,
               }"
               @click="toggleBetType(type)"
             >
@@ -89,7 +109,7 @@
       <!-- 投注设置行 -->
       <div class="settings-row">
         <div class="setting-group" @click="showBetTypePopup = true">
-          <span class="setting-label">串关方式</span>
+          <span class="setting-label">串关</span>
           <div class="bet-type-display">
             <span class="bet-type-text">{{ selectedBetTypesText }}</span>
             <van-icon name="arrow-down" size="14" color="#999" />
@@ -99,7 +119,15 @@
           <span class="setting-label">倍数</span>
           <div class="multiple-controls">
             <van-button class="control-btn" icon="minus" @click="decreaseMultiple" :disabled="betMultiple <= 1" />
-            <span class="multiple-value">{{ betMultiple }}</span>
+            <input
+              class="multiple-input"
+              v-model.number="betMultiple"
+              type="number"
+              min="1"
+              max="99"
+              @input="onMultipleInput"
+              @blur="validateMultiple"
+            />
             <van-button class="control-btn" icon="plus" @click="increaseMultiple" :disabled="betMultiple >= 99" />
           </div>
         </div>
@@ -157,19 +185,22 @@ const selectedBetTypes = ref([]);
 const showRule = ref(false);
 const showBannerPopup = ref(false);
 const showBetTypePopup = ref(false);
+const userBalance = ref(0); // 用户余额
 
 const hasScoreOrHalfPlay = computed(() => {
-  return betDetails.value.some(bet => bet.rateType === "3" || bet.rateType === "5");
+  return betDetails.value.some((bet) => bet.rateType === "3" || bet.rateType === "5");
 });
 
 const hasTotalGoals = computed(() => {
-  return betDetails.value.some(bet => bet.rateType === "4");
+  return betDetails.value.some((bet) => bet.rateType === "4");
 });
 
 const hasOnlyWinDrawLoss = computed(() => {
-  const rateTypes = new Set(betDetails.value.map(bet => bet.rateType));
-  return rateTypes.size === 1 && (rateTypes.has("1") || rateTypes.has("2")) ||
-         rateTypes.size === 2 && rateTypes.has("1") && rateTypes.has("2");
+  const rateTypes = new Set(betDetails.value.map((bet) => bet.rateType));
+  return (
+    (rateTypes.size === 1 && (rateTypes.has("1") || rateTypes.has("2"))) ||
+    (rateTypes.size === 2 && rateTypes.has("1") && rateTypes.has("2"))
+  );
 });
 
 const betTypeOptions = computed(() => {
@@ -190,7 +221,7 @@ const betTypeOptions = computed(() => {
 
   if (gameCount === 1) {
     if (onlyWinDrawLoss) {
-      const hasSingleGame = betDetails.value.some(bet => {
+      const hasSingleGame = betDetails.value.some((bet) => {
         return bet.isSingle === 1;
       });
       if (hasSingleGame) {
@@ -287,28 +318,30 @@ const groupedBets = computed(() => {
 });
 
 const singleBetTypes = computed(() => {
-  return betTypeOptions.value.filter(opt => {
-    const [, n] = opt.value.split('x').map(Number);
+  return betTypeOptions.value.filter((opt) => {
+    const [, n] = opt.value.split("x").map(Number);
     return n === 1;
   });
 });
 
 const combinedBetTypes = computed(() => {
-  return betTypeOptions.value.filter(opt => {
-    const [, n] = opt.value.split('x').map(Number);
+  return betTypeOptions.value.filter((opt) => {
+    const [, n] = opt.value.split("x").map(Number);
     return n > 1;
   });
 });
 
 const selectedBetTypesText = computed(() => {
-  if (selectedBetTypes.value.length === 0) return '请选择';
-  return selectedBetTypes.value.map(v => {
-    // 特殊处理：1x1 显示为"单关"
-    if (v === '1x1') return '单关';
+  if (selectedBetTypes.value.length === 0) return "请选择";
+  return selectedBetTypes.value
+    .map((v) => {
+      // 特殊处理：1x1 显示为"单关"
+      if (v === "1x1") return "单关";
 
-    const option = betTypeOptions.value.find(opt => opt.value === v);
-    return option ? option.label : v;
-  }).join('、');
+      const option = betTypeOptions.value.find((opt) => opt.value === v);
+      return option ? option.label : v;
+    })
+    .join("、");
 });
 
 const totalBets = computed(() => {
@@ -316,22 +349,22 @@ const totalBets = computed(() => {
   if (selectedBetTypes.value.length === 0) return 0;
 
   let total = 0;
-  selectedBetTypes.value.forEach(betType => {
-    const [m, n] = betType.split('x').map(Number);
+  selectedBetTypes.value.forEach((betType) => {
+    const [m, n] = betType.split("x").map(Number);
 
     if (m === 1 && n === 1) {
       let singleTotal = 1;
-      Object.values(groupedBets.value).forEach(game => {
+      Object.values(groupedBets.value).forEach((game) => {
         singleTotal *= game.bets.length;
       });
       total += singleTotal;
     } else {
-      const betsPerGame = Object.values(groupedBets.value).map(game => game.bets.length);
+      const betsPerGame = Object.values(groupedBets.value).map((game) => game.bets.length);
       const combinations = getCombinations(gameCount, m);
       let betTypeTotal = 0;
-      combinations.forEach(combo => {
+      combinations.forEach((combo) => {
         let comboTotal = 1;
-        combo.forEach(idx => {
+        combo.forEach((idx) => {
           comboTotal *= betsPerGame[idx];
         });
         betTypeTotal += comboTotal;
@@ -373,25 +406,33 @@ const estimatedPrize = computed(() => {
   let minPrize = Infinity;
   let maxPrize = 0;
 
-  const gamesOdds = Object.values(groupedBets.value).map(game => {
-    const gameOdds = game.bets.map(bet => parseFloat(bet.optionValue));
+  const gamesOdds = Object.values(groupedBets.value).map((game) => {
+    const gameOdds = game.bets.map((bet) => parseFloat(bet.optionValue));
     return {
       min: Math.min(...gameOdds),
-      max: Math.max(...gameOdds)
+      max: Math.max(...gameOdds),
     };
   });
 
-  selectedBetTypes.value.forEach(betType => {
-    const [m] = betType.split('x').map(Number);
+  selectedBetTypes.value.forEach((betType) => {
+    const [m] = betType.split("x").map(Number);
 
     if (m === 1) {
-      const currentMin = Math.min(...gamesOdds.map(g => g.min)) * betAmount.value * betMultiple.value;
-      const currentMax = Math.max(...gamesOdds.map(g => g.max)) * betAmount.value * betMultiple.value;
+      const currentMin = Math.min(...gamesOdds.map((g) => g.min)) * betAmount.value * betMultiple.value;
+      const currentMax = Math.max(...gamesOdds.map((g) => g.max)) * betAmount.value * betMultiple.value;
       minPrize = Math.min(minPrize, currentMin);
       maxPrize = Math.max(maxPrize, currentMax);
     } else {
-      const minOdds = gamesOdds.map(g => g.min).sort((a, b) => a - b).slice(0, m).reduce((acc, odd) => acc * odd, 1);
-      const maxOdds = gamesOdds.map(g => g.max).sort((a, b) => b - a).slice(0, m).reduce((acc, odd) => acc * odd, 1);
+      const minOdds = gamesOdds
+        .map((g) => g.min)
+        .sort((a, b) => a - b)
+        .slice(0, m)
+        .reduce((acc, odd) => acc * odd, 1);
+      const maxOdds = gamesOdds
+        .map((g) => g.max)
+        .sort((a, b) => b - a)
+        .slice(0, m)
+        .reduce((acc, odd) => acc * odd, 1);
 
       const currentMin = minOdds * betAmount.value * betMultiple.value;
       const currentMax = maxOdds * betAmount.value * betMultiple.value;
@@ -426,7 +467,7 @@ function combination(n, r) {
 // n: 串关的注数倍数（例如3串1中的1，3串4中的4）
 function calculatePassBets(gameCount, m, n) {
   // 获取每场比赛的投注选项数
-  const optionsPerGame = Object.values(groupedBets.value).map(game => game.bets.length);
+  const optionsPerGame = Object.values(groupedBets.value).map((game) => game.bets.length);
 
   if (n === 1) {
     // m串1：从gameCount场中选m场的组合数 × 每场选项数的乘积
@@ -436,9 +477,9 @@ function calculatePassBets(gameCount, m, n) {
     // 生成所有m场的组合
     const allCombinations = generateCombinations(gameCount, m);
 
-    allCombinations.forEach(combo => {
+    allCombinations.forEach((combo) => {
       let bets = 1;
-      combo.forEach(gameIndex => {
+      combo.forEach((gameIndex) => {
         bets *= optionsPerGame[gameIndex];
       });
       totalBets += bets;
@@ -478,27 +519,77 @@ function generateCombinations(n, m) {
 function calculateComplexPassBets(gameCount, m, n, optionsPerGame) {
   // 串关组合映射表
   const passTypeMap = {
-    '3x3': [{ m: 2, count: 3 }], // 3场2串1，共3注
-    '3x4': [{ m: 2, count: 3 }, { m: 3, count: 1 }], // 3场2串1(3注) + 3场3串1(1注)
-    '4x4': [{ m: 3, count: 4 }], // 4场3串1，共4注
-    '4x5': [{ m: 3, count: 4 }, { m: 4, count: 1 }], // 4场3串1(4注) + 4场4串1(1注)
-    '4x6': [{ m: 2, count: 6 }], // 4场2串1，共6注
-    '4x11': [{ m: 2, count: 6 }, { m: 3, count: 4 }, { m: 4, count: 1 }], // 2串1(6注) + 3串1(4注) + 4串1(1注)
-    '5x5': [{ m: 4, count: 5 }], // 5场4串1，共5注
-    '5x6': [{ m: 4, count: 5 }, { m: 5, count: 1 }], // 5场4串1(5注) + 5场5串1(1注)
-    '5x10': [{ m: 3, count: 10 }], // 5场3串1，共10注
-    '5x16': [{ m: 3, count: 10 }, { m: 4, count: 5 }, { m: 5, count: 1 }], // 3串1(10注) + 4串1(5注) + 5串1(1注)
-    '5x20': [{ m: 2, count: 10 }, { m: 3, count: 10 }], // 2串1(10注) + 3串1(10注)
-    '5x26': [{ m: 2, count: 10 }, { m: 3, count: 10 }, { m: 4, count: 5 }, { m: 5, count: 1 }], // 全包
-    '6x6': [{ m: 5, count: 6 }], // 6场5串1，共6注
-    '6x7': [{ m: 5, count: 6 }, { m: 6, count: 1 }], // 6场5串1(6注) + 6场6串1(1注)
-    '6x15': [{ m: 4, count: 15 }], // 6场4串1，共15注
-    '6x20': [{ m: 3, count: 20 }], // 6场3串1，共20注
-    '6x22': [{ m: 4, count: 15 }, { m: 5, count: 6 }, { m: 6, count: 1 }], // 4串1(15注) + 5串1(6注) + 6串1(1注)
-    '6x35': [{ m: 3, count: 20 }, { m: 4, count: 15 }], // 3串1(20注) + 4串1(15注)
-    '6x42': [{ m: 3, count: 20 }, { m: 4, count: 15 }, { m: 5, count: 6 }, { m: 6, count: 1 }], // 3串1 + 4串1 + 5串1 + 6串1
-    '6x50': [{ m: 2, count: 15 }, { m: 3, count: 20 }, { m: 4, count: 15 }], // 2串1(15注) + 3串1(20注) + 4串1(15注)
-    '6x57': [{ m: 2, count: 15 }, { m: 3, count: 20 }, { m: 4, count: 15 }, { m: 5, count: 6 }, { m: 6, count: 1 }], // 全包
+    "3x3": [{ m: 2, count: 3 }], // 3场2串1，共3注
+    "3x4": [
+      { m: 2, count: 3 },
+      { m: 3, count: 1 },
+    ], // 3场2串1(3注) + 3场3串1(1注)
+    "4x4": [{ m: 3, count: 4 }], // 4场3串1，共4注
+    "4x5": [
+      { m: 3, count: 4 },
+      { m: 4, count: 1 },
+    ], // 4场3串1(4注) + 4场4串1(1注)
+    "4x6": [{ m: 2, count: 6 }], // 4场2串1，共6注
+    "4x11": [
+      { m: 2, count: 6 },
+      { m: 3, count: 4 },
+      { m: 4, count: 1 },
+    ], // 2串1(6注) + 3串1(4注) + 4串1(1注)
+    "5x5": [{ m: 4, count: 5 }], // 5场4串1，共5注
+    "5x6": [
+      { m: 4, count: 5 },
+      { m: 5, count: 1 },
+    ], // 5场4串1(5注) + 5场5串1(1注)
+    "5x10": [{ m: 3, count: 10 }], // 5场3串1，共10注
+    "5x16": [
+      { m: 3, count: 10 },
+      { m: 4, count: 5 },
+      { m: 5, count: 1 },
+    ], // 3串1(10注) + 4串1(5注) + 5串1(1注)
+    "5x20": [
+      { m: 2, count: 10 },
+      { m: 3, count: 10 },
+    ], // 2串1(10注) + 3串1(10注)
+    "5x26": [
+      { m: 2, count: 10 },
+      { m: 3, count: 10 },
+      { m: 4, count: 5 },
+      { m: 5, count: 1 },
+    ], // 全包
+    "6x6": [{ m: 5, count: 6 }], // 6场5串1，共6注
+    "6x7": [
+      { m: 5, count: 6 },
+      { m: 6, count: 1 },
+    ], // 6场5串1(6注) + 6场6串1(1注)
+    "6x15": [{ m: 4, count: 15 }], // 6场4串1，共15注
+    "6x20": [{ m: 3, count: 20 }], // 6场3串1，共20注
+    "6x22": [
+      { m: 4, count: 15 },
+      { m: 5, count: 6 },
+      { m: 6, count: 1 },
+    ], // 4串1(15注) + 5串1(6注) + 6串1(1注)
+    "6x35": [
+      { m: 3, count: 20 },
+      { m: 4, count: 15 },
+    ], // 3串1(20注) + 4串1(15注)
+    "6x42": [
+      { m: 3, count: 20 },
+      { m: 4, count: 15 },
+      { m: 5, count: 6 },
+      { m: 6, count: 1 },
+    ], // 3串1 + 4串1 + 5串1 + 6串1
+    "6x50": [
+      { m: 2, count: 15 },
+      { m: 3, count: 20 },
+      { m: 4, count: 15 },
+    ], // 2串1(15注) + 3串1(20注) + 4串1(15注)
+    "6x57": [
+      { m: 2, count: 15 },
+      { m: 3, count: 20 },
+      { m: 4, count: 15 },
+      { m: 5, count: 6 },
+      { m: 6, count: 1 },
+    ], // 全包
   };
 
   const key = `${m}x${n}`;
@@ -515,9 +606,9 @@ function calculateComplexPassBets(gameCount, m, n, optionsPerGame) {
     // 生成所有passM场的组合
     const allCombinations = generateCombinations(gameCount, passM);
 
-    allCombinations.forEach(combo => {
+    allCombinations.forEach((combo) => {
       let bets = 1;
-      combo.forEach(gameIndex => {
+      combo.forEach((gameIndex) => {
         bets *= optionsPerGame[gameIndex];
       });
       totalBets += bets;
@@ -547,7 +638,7 @@ function getDisplayOptionName(bet) {
 }
 
 function isMultiSelectable(value) {
-  const [, n] = value.split('x').map(Number);
+  const [, n] = value.split("x").map(Number);
   return n === 1;
 }
 
@@ -560,7 +651,7 @@ function toggleBetType(type) {
     if (index > -1) {
       selectedBetTypes.value.splice(index, 1);
     } else {
-      selectedBetTypes.value = selectedBetTypes.value.filter(v => isMultiSelectable(v));
+      selectedBetTypes.value = selectedBetTypes.value.filter((v) => isMultiSelectable(v));
       selectedBetTypes.value.push(type.value);
     }
   } else {
@@ -574,7 +665,7 @@ function cancelBetTypeSelection() {
 
 function confirmBetTypeSelection() {
   if (selectedBetTypes.value.length === 0) {
-    showToast('请至少选择一种串关方式');
+    showToast("请至少选择一种串关方式");
     return;
   }
   showBetTypePopup.value = false;
@@ -589,6 +680,31 @@ function increaseMultiple() {
 function decreaseMultiple() {
   if (betMultiple.value > 1) {
     betMultiple.value--;
+  }
+}
+
+// 倍数输入验证
+function onMultipleInput(e) {
+  let value = e.target.value;
+  // 移除非数字字符
+  value = value.replace(/[^\d]/g, "");
+  // 限制范围
+  if (value === "") {
+    betMultiple.value = 1;
+  } else {
+    let num = parseInt(value);
+    if (num < 1) num = 1;
+    if (num > 99) num = 99;
+    betMultiple.value = num;
+  }
+}
+
+// 失去焦点时验证
+function validateMultiple() {
+  if (!betMultiple.value || betMultiple.value < 1) {
+    betMultiple.value = 1;
+  } else if (betMultiple.value > 99) {
+    betMultiple.value = 99;
   }
 }
 
@@ -611,34 +727,34 @@ function showPublishDialog() {
   }
 
   showDialog({
-    title: '发单确认',
+    title: "发单确认",
     message: `<div style="text-align: center;">
       <div style="font-size: 18px; font-weight: 600; color: #333; margin-bottom: 12px;">方案金额：${totalAmount.value}元</div>
       <div style="font-size: 14px; color: #666;">您确认进入发单设置吗？</div>
     </div>`,
     allowHtml: true,
     showCancelButton: true,
-    confirmButtonText: '确认',
-    cancelButtonText: '取消',
+    confirmButtonText: "确认",
+    cancelButtonText: "取消",
   })
     .then(() => {
       const orderData = {
-        type: 'football', // 足球竞猜
+        type: "football", // 足球竞猜
         betDetails: betDetails.value,
         groupedBets: groupedBets.value,
         totalBets: totalBets.value,
         betMultiple: betMultiple.value,
         totalAmount: totalAmount.value,
         selectedBetTypes: selectedBetTypes.value,
-        estimatedPrize: estimatedPrize.value
+        estimatedPrize: estimatedPrize.value,
       };
 
       // 跳转到发单页面
       router.push({
-        path: '/publish_order',
+        path: "/publish_order",
         query: {
-          orderData: JSON.stringify(orderData)
-        }
+          orderData: JSON.stringify(orderData),
+        },
       });
     })
     .catch(() => {
@@ -654,13 +770,37 @@ async function confirmSelection() {
     return;
   }
 
-  // 弹出确认对话框
+  // 先检查余额是否充足
+  if (userBalance.value < totalAmount.value) {
+    // 余额不足，直接提示
+    showDialog({
+      message: `资金不足,去充值<br/><div style="font-size: 14px; color: #999;padding-top: 20px;">当前余额：¥${userBalance.value.toFixed(
+        2
+      )}</div>`,
+      messageAlign: "center",
+      title: "温馨提示",
+      showCancelButton: true,
+      confirmButtonText: "去充值",
+      cancelButtonText: "取消",
+      allowHtml: true,
+    })
+      .then(() => {
+        router.push("/recharge");
+      })
+      .catch(() => {
+        console.log("用户取消充值");
+      });
+    return;
+  }
+
+  // 余额充足，弹出确认对话框
   showDialog({
     messageAlign: "center",
     showCancelButton: true,
+    title: "温馨提示",
     confirmButtonText: "确认",
     cancelButtonText: "取消",
-    message: `订单金额：¥${totalAmount.value}`,
+    message: `订单金额：¥${totalAmount.value} <br/> 确认提交此方案吗？`,
   })
     .then(async () => {
       const orderParams = prepareOrderParams();
@@ -671,26 +811,40 @@ async function confirmSelection() {
         console.log("接口响应:", response);
 
         if (response.code === 1) {
-          const orderId = response.data?.id || response.data?.order_id || '';
+          const orderId = response.data?.id || response.data?.order_id || "";
 
           try {
             const payRes = await API.toBalance({ id: orderId });
             if (payRes.code === 1) {
               router.replace({
-                path: '/bet_success',
-                query: { orderId }
+                path: "/bet_success",
+                query: { orderId },
               });
             } else {
               if (payRes.msg === "资金不足") {
+                // 获取最新余额
+                try {
+                  const balanceRes = await API.balanceof();
+                  if (balanceRes.code === 1 && balanceRes.data) {
+                    userBalance.value = parseFloat(balanceRes.data.amount);
+                  }
+                } catch (error) {
+                  console.error("获取余额失败:", error);
+                }
+
                 showDialog({
-                  message: "资金不足,去充值",
+                  message: `资金不足,去充值<br/><div style="font-size: 14px; color: #999;padding-top: 20px;">当前余额：¥${userBalance.value.toFixed(
+                    2
+                  )}</div>`,
                   messageAlign: "center",
+                  title: "温馨提示",
                   showCancelButton: true,
-                  confirmButtonText: "确认",
-                  cancelButtonText: "取消"
+                  confirmButtonText: "去充值",
+                  cancelButtonText: "取消",
+                  allowHtml: true,
                 })
                   .then(() => {
-                    router.push('/recharge');
+                    router.push("/recharge");
                   })
                   .catch(() => {
                     console.log("用户取消充值");
@@ -728,7 +882,7 @@ function prepareOrderParams() {
   const rateTypes = [...new Set(betDetails.value.map((bet) => bet.rateType))];
   const rate_type = rateTypes.join(",");
 
-  const rules = selectedBetTypes.value.map(bt => convertBetTypeToRules(bt)).join(',');
+  const rules = selectedBetTypes.value.map((bt) => convertBetTypeToRules(bt)).join(",");
 
   const maxPrize = calculateMaxPrize();
 
@@ -754,21 +908,21 @@ function prepareOrderParams() {
 // 转换串关方式为过关规则格式
 function convertBetTypeToRules(betType) {
   // 1x1 -> 1#1, 2x1 -> 2#1, 3x4 -> 3#4, etc.
-  const [m, n] = betType.split('x');
+  const [m, n] = betType.split("x");
   return `${m}#${n}`;
 }
 
 function calculateMaxPrize() {
   if (betDetails.value.length === 0 || selectedBetTypes.value.length === 0) return 0;
 
-  const gamesMaxOdds = Object.values(groupedBets.value).map(game => {
-    const gameOdds = game.bets.map(bet => parseFloat(bet.optionValue));
+  const gamesMaxOdds = Object.values(groupedBets.value).map((game) => {
+    const gameOdds = game.bets.map((bet) => parseFloat(bet.optionValue));
     return Math.max(...gameOdds);
   });
 
   let maxPrize = 0;
-  selectedBetTypes.value.forEach(betType => {
-    const [m] = betType.split('x').map(Number);
+  selectedBetTypes.value.forEach((betType) => {
+    const [m] = betType.split("x").map(Number);
 
     if (m === 1) {
       const maxOdds = Math.max(...gamesMaxOdds);
@@ -786,19 +940,17 @@ function calculateMaxPrize() {
 }
 
 function generateBellAll() {
-  const gamesBets = Object.values(groupedBets.value).map(game =>
-    game.bets.map(bet => bet.betId)
-  );
+  const gamesBets = Object.values(groupedBets.value).map((game) => game.bets.map((bet) => bet.betId));
 
   if (selectedBetTypes.value.length === 0) return [];
 
   const allCombinations = [];
-  selectedBetTypes.value.forEach(betType => {
-    const [m] = betType.split('x').map(Number);
+  selectedBetTypes.value.forEach((betType) => {
+    const [m] = betType.split("x").map(Number);
 
     if (m === 1) {
-      gamesBets.forEach(gameBets => {
-        gameBets.forEach(betId => {
+      gamesBets.forEach((gameBets) => {
+        gameBets.forEach((betId) => {
           allCombinations.push([[[betId]]]);
         });
       });
@@ -806,11 +958,11 @@ function generateBellAll() {
       const gameIndices = Array.from({ length: gamesBets.length }, (_, i) => i);
       const gameCombinations = generateCombinationsFromIndices(gameIndices, m);
 
-      gameCombinations.forEach(gameCombo => {
-        const selectedGamesBets = gameCombo.map(index => gamesBets[index]);
+      gameCombinations.forEach((gameCombo) => {
+        const selectedGamesBets = gameCombo.map((index) => gamesBets[index]);
         const cartesianProduct = getCartesianProduct(selectedGamesBets);
 
-        cartesianProduct.forEach(combo => {
+        cartesianProduct.forEach((combo) => {
           allCombinations.push([[combo]]);
         });
       });
@@ -845,14 +997,14 @@ function generateCombinationsFromIndices(indices, m) {
 // 获取笛卡尔积
 function getCartesianProduct(arrays) {
   if (arrays.length === 0) return [[]];
-  if (arrays.length === 1) return arrays[0].map(item => [item]);
+  if (arrays.length === 1) return arrays[0].map((item) => [item]);
 
   const result = [];
   const [first, ...rest] = arrays;
   const restProduct = getCartesianProduct(rest);
 
-  first.forEach(item => {
-    restProduct.forEach(combo => {
+  first.forEach((item) => {
+    restProduct.forEach((combo) => {
       result.push([item, ...combo]);
     });
   });
@@ -864,7 +1016,29 @@ function onClickLeft() {
   router.back();
 }
 
-onMounted(() => {
+// 调整方案 - 返回到 Football_lottery 页面
+function adjustPlan() {
+  // 将当前的投注详情传回去
+  router.push({
+    path: "/football_lottery",
+    query: {
+      adjustMode: "true",
+      betDetails: JSON.stringify(betDetails.value),
+    },
+  });
+}
+
+onMounted(async () => {
+  // 获取用户余额
+  try {
+    const balanceRes = await API.balanceof();
+    if (balanceRes.code === 1 && balanceRes.data) {
+      userBalance.value = parseFloat(balanceRes.data.amount);
+    }
+  } catch (error) {
+    console.error("获取余额失败:", error);
+  }
+
   try {
     if (route.query.details) {
       betDetails.value = JSON.parse(route.query.details);
@@ -1087,12 +1261,35 @@ onMounted(() => {
   border-color: #f0f0f0;
 }
 
-.multiple-value {
-  min-width: 40px;
+.multiple-input {
+  width: 50px;
+  height: 28px;
   text-align: center;
   font-size: 1rem;
   font-weight: 700;
   color: #fc3c3c;
+  border: 1px solid #e8e8e8;
+  border-radius: 6px;
+  background: #fff;
+  outline: none;
+  padding: 0;
+}
+
+.multiple-input:focus {
+  border-color: #fc3c3c;
+  background: #fff;
+}
+
+/* 隐藏数字输入框的上下箭头 */
+.multiple-input::-webkit-outer-spin-button,
+.multiple-input::-webkit-inner-spin-button {
+  -webkit-appearance: none;
+  margin: 0;
+}
+
+.multiple-input[type="number"] {
+  -moz-appearance: textfield;
+  appearance: textfield;
 }
 
 /* 底部操作区域 - 紧凑版 */

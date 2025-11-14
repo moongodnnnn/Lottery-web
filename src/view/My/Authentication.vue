@@ -89,6 +89,7 @@
 import { ref, onMounted } from "vue";
 import { showToast } from "vant";
 import { useRouter } from "vue-router";
+import API from "../../request/api.js";
 
 const router = useRouter();
 
@@ -135,25 +136,70 @@ const handleSubmit = async () => {
       duration: 0,
     });
 
-    // TODO: 调用实名认证接口
-    // const res = await API.submitAuthentication(formData.value);
+    // 调用实名认证接口
+    const response = await API.userAudit({
+      name: formData.value.realName.trim(),
+      idno: formData.value.idNumber.trim()
+    });
 
-    // 模拟接口调用
-    await new Promise(resolve => setTimeout(resolve, 1500));
+    console.log('实名认证响应:', response);
 
-    showToast('认证成功');
-    isAuthenticated.value = true;
+    if (response.code === 1) {
+      showToast({
+        type: 'success',
+        message: '认证成功'
+      });
+      isAuthenticated.value = true;
+
+      // 更新本地存储的用户信息
+      const userStr = localStorage.getItem('user');
+      if (userStr) {
+        try {
+          const user = JSON.parse(userStr);
+          user.is_auth = 1;
+          user.real_name = formData.value.realName.trim();
+          user.id_number = formData.value.idNumber.trim();
+          localStorage.setItem('user', JSON.stringify(user));
+        } catch (error) {
+          console.error('更新本地用户信息失败:', error);
+        }
+      }
+
+      // 延迟返回上一页
+      setTimeout(() => {
+        router.back();
+      }, 1500);
+    } else {
+      showToast(response.msg || '认证失败，请稍后重试');
+    }
   } catch (error) {
     console.error('认证失败:', error);
-    showToast('认证失败，请稍后重试');
+    showToast(error.message || '认证失败，请稍后重试');
   }
 };
 
 // 获取认证状态
 onMounted(() => {
-  // TODO: 从接口或本地存储获取认证状态
-  // const user = JSON.parse(localStorage.getItem('user') || '{}');
-  // isAuthenticated.value = user.is_auth === 1;
+  // 从本地存储获取认证状态
+  const userStr = localStorage.getItem('user');
+  if (userStr) {
+    try {
+      const user = JSON.parse(userStr);
+      // 检查是否已认证
+      if (user.is_auth === 1) {
+        isAuthenticated.value = true;
+        // 如果已认证，显示已认证的信息
+        if (user.real_name) {
+          formData.value.realName = user.real_name;
+        }
+        if (user.id_number) {
+          formData.value.idNumber = user.id_number;
+        }
+      }
+    } catch (error) {
+      console.error('解析用户信息失败:', error);
+    }
+  }
 });
 
 function onClickLeft() {

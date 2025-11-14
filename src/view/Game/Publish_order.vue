@@ -201,6 +201,7 @@ const route = useRoute();
 const orderData = ref({});
 const gameName = ref("");
 const totalAmount = ref(0);
+const userBalance = ref(0); // 用户余额
 
 // 佣金设置
 const commissionRates = [1, 2, 3, 4, 5, 6, 7, 8];
@@ -242,6 +243,28 @@ async function confirmPublish() {
     return;
   }
 
+  // 先检查余额是否充足
+  if (userBalance.value < totalAmount.value) {
+    // 余额不足，直接提示
+    showDialog({
+      message: `资金不足,去充值<br/><div style="font-size: 14px; color: #999;padding-top: 20px;">当前余额：¥${userBalance.value.toFixed(2)}</div>`,
+      messageAlign: "center",
+      title:'温馨提示',
+      showCancelButton: true,
+      confirmButtonText: "去充值",
+      cancelButtonText: "取消",
+      allowHtml: true
+    })
+      .then(() => {
+        router.push('/recharge');
+      })
+      .catch(() => {
+        console.log("用户取消充值");
+      });
+    return;
+  }
+
+  // 余额充足，弹出确认对话框
   showDialog({
     title: "确认发单",
     message: `<div style="text-align: center; padding: 0px;max-height: 180px;">
@@ -255,7 +278,7 @@ async function confirmPublish() {
           <div style="font-size: 0.9rem; font-weight: 700; color: #c8381d;">${selectedCommission.value}%</div>
         </div>
       </div>
-    
+
     </div>`,
     allowHtml: true,
     showCancelButton: true,
@@ -275,14 +298,54 @@ async function confirmPublish() {
         console.log("发单接口响应:", response);
 
         if (response.code === 1) {
-          showToast("发单成功");
-          // 跳转到下单成功页面
-          router.replace({
-            path: "/bet_success",
-            query: {
-              orderId: response.data?.id || response.data?.order_id || "",
-            },
-          });
+          const orderId = response.data?.id || response.data?.order_id || '';
+
+          // 调用余额支付接口
+          try {
+            const payRes = await API.toBalance({ id: orderId });
+            if (payRes.code === 1) {
+              showToast("发单成功");
+              // 跳转到下单成功页面
+              router.replace({
+                path: "/bet_success",
+                query: { orderId }
+              });
+            } else {
+              // 检查是否是资金不足
+              if (payRes.msg === "资金不足" || payRes.code === 2) {
+                // 获取最新余额
+                try {
+                  const balanceRes = await API.balanceof();
+                  if (balanceRes.code === 1 && balanceRes.data) {
+                    userBalance.value = parseFloat(balanceRes.data.amount);
+                  }
+                } catch (error) {
+                  console.error('获取余额失败:', error);
+                }
+
+                showDialog({
+                  message: `资金不足,去充值<br/><div style="font-size: 14px; color: #999;padding-top: 20px;">当前余额：¥${userBalance.value.toFixed(2)}</div>`,
+                  messageAlign: "center",
+                  title:'温馨提示',
+                  showCancelButton: true,
+                  confirmButtonText: "去充值",
+                  cancelButtonText: "取消",
+                  allowHtml: true
+                })
+                  .then(() => {
+                    router.push('/recharge');
+                  })
+                  .catch(() => {
+                    console.log("用户取消充值");
+                  });
+              } else {
+                showToast(payRes.msg || "支付失败");
+              }
+            }
+          } catch (error) {
+            console.error("余额支付失败:", error);
+            showToast("支付失败");
+          }
         } else {
           showToast(response.msg || "发单失败");
         }
@@ -403,7 +466,17 @@ function preparePublishParams() {
 }
 
 // 页面加载
-onMounted(() => {
+onMounted(async () => {
+  // 获取用户余额
+  try {
+    const balanceRes = await API.balanceof();
+    if (balanceRes.code === 1 && balanceRes.data) {
+      userBalance.value = parseFloat(balanceRes.data.amount);
+    }
+  } catch (error) {
+    console.error('获取余额失败:', error);
+  }
+
   // 从路由参数获取订单数据
   if (route.query.orderData) {
     try {

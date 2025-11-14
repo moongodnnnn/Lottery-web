@@ -1,354 +1,238 @@
-{
-  "code": 1,
-  "msg": "",
-  "time": "1762272046",
-  "data": {
-    "mntype": {
-      "3": "2",
-      "4": "3,3+4,2",
-      "5": "4,4+5,2,3+4+5,2+3",
-      "6": "5,5+6,2,3,4+5+6,2+3,3+4+5+6,2+3+4",
-      "7": "6,6+7,5,4",
-      "8": "7,7+8,6,5,4"
-    },
-    "games": [
+[
+  {
+    "id": 1174,
+    "lottery_match_id": 52,
+    "home_team": 323,
+    "guest_team": 498,
+    "game_date": "2025-11-08",
+    "start_time": 1762587000,
+    "end_time": 1762592400,
+    "score": "0:1",
+    "xuhao": "周六008",
+    "name": null,
+    "status": "ing",
+    "home_team_rank": 3,
+    "home_team_yellow": 0,
+    "home_team_red": 0,
+    "home_team_name": "金泉尚武",
+    "guest_team_rank": 6,
+    "guest_team_yellow": 1,
+    "guest_team_red": 0,
+    "guest_team_name": "江原FC",
+    "score_zs": "2.66/3.35/2.20",
+    "banchang": "0-1",
+    "sf_bonus": "",
+    "sf": "",
+    "home_fen": 0,
+    "guset_fen": 1,
+    "minutes": "下半场",
+    "count": 3,
+    "game_to_date": "2025-11-08",
+    "type": "football",
+    "phase": 0,
+    "xuhao_order": 6008,
+    "draw": null,
+    "sai_event": [
       {
-        "date": "2025-11-04",
-        "week_name": "星期二",
-        "week": "2",
-        "nums": 1,
-        "games": [
-          {
-            "id": 1043,
-            "lottery_match_id": 60,
-            "home_team": 541,
-            "guest_team": 481,
-            "game_date": "2025-11-05",
-            "start_time": 1762315200,
-            "end_time": 1762320900,
-            "score": "0:0",
-            "xuhao": "周二305",
-            "name": null,
-            "status": "no",
-            "home_team_rank": 9,
-            "home_team_yellow": 0,
-            "home_team_red": 0,
-            "home_team_name": "快船",
-            "guest_team_rank": 1,
-            "guest_team_yellow": 0,
-            "guest_team_red": 0,
-            "guest_team_name": "雷霆",
-            "score_zs": "",
-            "banchang": "",
-            "sf_bonus": "",
-            "sf": "",
-            "home_fen": 0,
-            "guset_fen": 0,
-            "minutes": "",
-            "count": 0,
-            "game_to_date": "2025-11-04",
-            "type": "basketball",
-            "phase": 0,
-            "xuhao_order": 2305,
-            "rates": [
-              {
-                "id": 3848,
-                "lotter_games_id": 1043,
-                "rate_type": "7",
-                "rates": {
-                  "1043-7-0": {
-                    "name": "主胜",
-                    "value": "1.75"
-                  },
-                  "1043-7-1": {
-                    "name": "客胜",
-                    "value": "1.65"
-                  },
-                  "1043-7-2": {
-                    "name": "让分",
-                    "value": "+6.5"
-                  }
-                },
-                "createtime": 1762225324,
-                "rangqiu": 0,
-                "is_signle": 0,
-                "draw_rates": null,
-                "is_fail": 0
-              },
-              {
-                "id": 3865,
-                "lotter_games_id": 1043,
-                "rate_type": "9",
-                "rates": {
-                  "1043-9-0": {
-                    "name": "大分",
-                    "value": "1.66"
-                  },
-                  "1043-9-1": {
-                    "name": "小分",
-                    "value": "1.74"
-                  },
-                  "1043-9-2": {
-                    "name": "总分",
-                    "value": "224.5"
-                  }
-                },
-                "createtime": 1762225383,
-                "rangqiu": 0,
-                "is_signle": 0,
-                "draw_rates": null,
-                "is_fail": 0
-              }
-            ],
-            "ana": {
-              "zcrate": {
-                "zhu": {
-                  "s": 12.83,
-                  "p": 20.12,
-                  "f": 67.06
-                },
-                "ke": {
-                  "s": 11.36,
-                  "p": 18.86,
-                  "f": 69.78
-                }
-              },
-              "history": {
-                "count": 10,
-                "memo": {
-                  "s": "2",
-                  "f": "8",
-                  "d": "6",
-                  "x": "4"
-                }
-              },
-              "zj": {
-                "zhu": [
-                  {
-                    "match": "NBA",
-                    "date": "2025-11-04",
-                    "zhu": "快船",
-                    "ke": "热火",
-                    "bifen": {
-                      "home": {
-                        "1": "30",
-                        "2": "41",
-                        "3": "24",
-                        "4": "24",
-                        "t": "119"
-                      },
-                      "guest": {
-                        "1": "32",
-                        "2": "34",
-                        "3": "37",
-                        "4": "17",
-                        "t": "120"
-                      }
-                    },
-                    "sf": "负",
-                    "size": "大"
-                  },
-                  {
-                    "match": "NBA",
-                    "date": "2025-11-01",
-                    "zhu": "快船",
-                    "ke": "鹈鹕",
-                    "bifen": {
-                      "home": {
-                        "1": "26",
-                        "2": "41",
-                        "3": "27",
-                        "4": "32",
-                        "t": "126"
-                      },
-                      "guest": {
-                        "1": "28",
-                        "2": "31",
-                        "3": "25",
-                        "4": "40",
-                        "t": "124"
-                      }
-                    },
-                    "sf": "胜",
-                    "size": "大"
-                  },
-                  {
-                    "match": "NBA",
-                    "date": "2025-10-29",
-                    "zhu": "勇士",
-                    "ke": "快船",
-                    "bifen": {
-                      "home": {
-                        "1": "33",
-                        "2": "13",
-                        "3": "32",
-                        "4": "20",
-                        "t": "98"
-                      },
-                      "guest": {
-                        "1": "25",
-                        "2": "24",
-                        "3": "14",
-                        "4": "16",
-                        "t": "79"
-                      }
-                    },
-                    "sf": "负",
-                    "size": "小"
-                  },
-                  {
-                    "match": "NBA",
-                    "date": "2025-10-27",
-                    "zhu": "快船",
-                    "ke": "开拓者",
-                    "bifen": {
-                      "home": {
-                        "1": "34",
-                        "2": "21",
-                        "3": "32",
-                        "4": "27",
-                        "t": "114"
-                      },
-                      "guest": {
-                        "1": "23",
-                        "2": "37",
-                        "3": "22",
-                        "4": "25",
-                        "t": "107"
-                      }
-                    },
-                    "sf": "胜",
-                    "size": "小"
-                  },
-                  {
-                    "match": "NBA",
-                    "date": "2025-10-25",
-                    "zhu": "快船",
-                    "ke": "太阳",
-                    "bifen": {
-                      "home": {
-                        "1": "34",
-                        "2": "38",
-                        "3": "34",
-                        "4": "23",
-                        "t": "129"
-                      },
-                      "guest": {
-                        "1": "33",
-                        "2": "23",
-                        "3": "21",
-                        "4": "25",
-                        "t": "102"
-                      }
-                    },
-                    "sf": "胜",
-                    "size": "大"
-                  }
-            
-                ]
-            
-              }
-            },
-            "match": {
-              "id": 60,
-              "name": "NBA",
-              "start_date": null,
-              "end_date": null,
-              "createtime": 1761015722,
-              "saiji": "",
-              "liansai_id": 56,
-              "type": "basketball"
-            },
-            "teams": [
-              "快船",
-              "雷霆"
-            ],
-            "deal_time": 1762315200
-          }
+        "timing_point": 74,
+        "eventtype": 8,
+        "is_team": 1,
+        "cdata": "(金仁均)换入(高在贤)换出",
+        "status": 127,
+        "cdata_en": "【Home team replacement】",
+        "teamid": 0,
+        "playerid": 357670,
+        "target_playerid": 300054,
+        "target_playername": "高在贤",
+        "eventid": "",
+        "current_score": "0:1",
+        "exchange_player": [
+          "金仁均",
+          "高在贤"
+        ],
+        "exchange_player_en": [
+          "【Home team replacement】",
+          "【Home team replacement】"
+        ]
+      },
+      {
+        "timing_point": 72,
+        "eventtype": 8,
+        "is_team": 0,
+        "cdata": "(姜俊赫)换入(金道现)换出",
+        "status": 127,
+        "cdata_en": "【Replacement of visiting team】",
+        "teamid": 0,
+        "playerid": 829692,
+        "target_playerid": 820232,
+        "target_playername": "金道现",
+        "eventid": "",
+        "current_score": "0:1",
+        "exchange_player": [
+          "姜俊赫",
+          "金道现"
+        ],
+        "exchange_player_en": [
+          "【Replacement of visiting team】",
+          "【Replacement of visiting team】"
         ]
       }
     ],
-    "odds": {
-      "1043-6-0": {
-        "name": "主胜",
-        "value": "2.95"
+    "tabFlag": 0,
+    "match": {
+      "id": 52,
+      "name": "韩职",
+      "start_date": null,
+      "end_date": null,
+      "createtime": 1760670185,
+      "saiji": "",
+      "liansai_id": 26,
+      "type": "football"
+    },
+    "football": {
+      "id": 10766,
+      "game_id": 1174,
+      "score": "0:1",
+      "home_fen": 0,
+      "guset_fen": 1,
+      "banchang": "0-1",
+      "minutes": "下半场",
+      "count": 3,
+      "home_team_yellow": 0,
+      "home_team_red": 0,
+      "guest_team_yellow": 1,
+      "guest_team_red": 0,
+      "score_zs": "2.66/3.35/2.20"
+    },
+    "teams": [
+      "金泉尚武",
+      "江原FC"
+    ],
+    "deal_time": 1762587000
+  },
+  {
+    "id": 1134,
+    "lottery_match_id": 43,
+    "home_team": 391,
+    "guest_team": 692,
+    "game_date": "2025-11-08",
+    "start_time": 1762536600,
+    "end_time": 1762542000,
+    "score": "1:0",
+    "xuhao": "周五007",
+    "name": null,
+    "status": "done",
+    "home_team_rank": 16,
+    "home_team_yellow": 1,
+    "home_team_red": 0,
+    "home_team_name": "菲尔特",
+    "guest_team_rank": 10,
+    "guest_team_yellow": 4,
+    "guest_team_red": 0,
+    "guest_team_name": "普鲁士明斯特",
+    "score_zs": "2.28/3.45/2.50",
+    "banchang": "0-0",
+    "sf_bonus": "",
+    "sf": "",
+    "home_fen": 1,
+    "guset_fen": 0,
+    "minutes": "完场",
+    "count": 12,
+    "game_to_date": "2025-11-07",
+    "type": "football",
+    "phase": 0,
+    "xuhao_order": 5007,
+    "draw": {
+      "id": 675,
+      "xuhao": "周五007",
+      "date": "2025-11-08",
+      "match": "德乙",
+      "is_single": 0,
+      "home": "菲尔特",
+      "guest": "明斯特",
+      "rang": 1,
+      "half": "0:0",
+      "all": "1:0",
+      "spf": "胜",
+      "rspf": "胜",
+      "bf": "1:0",
+      "jq": 1,
+      "bspf": "平胜",
+      "status": "done",
+      "createtime": 1762560843,
+      "endtime": 1762560902
+    },
+    "sai_event": [
+      {
+        "timing_point": 97,
+        "eventtype": 8,
+        "is_team": 1,
+        "cdata": "(丹尼斯·斯比尼)换入(菲利克斯·克劳斯)换出",
+        "status": 127,
+        "cdata_en": "【Home team replacement】",
+        "teamid": 0,
+        "playerid": 36420,
+        "target_playerid": 21162,
+        "target_playername": "菲利克斯·克劳斯",
+        "eventid": "",
+        "current_score": "1:0",
+        "exchange_player": [
+          "丹尼斯·斯比尼",
+          "菲利克斯·克劳斯"
+        ],
+        "exchange_player_en": [
+          "【Home team replacement】",
+          "【Home team replacement】"
+        ]
       },
-      "1043-6-1": {
-        "name": "客胜",
-        "value": "1.19"
-      },
-      "1043-7-0": {
-        "name": "主胜",
-        "value": "1.75"
-      },
-      "1043-7-1": {
-        "name": "客胜",
-        "value": "1.65"
-      },
-      "1043-7-2": {
-        "name": "让分",
-        "value": "+6.5"
-      },
-      "1043-8-0": {
-        "name": "主胜1-5",
-        "value": "5.85"
-      },
-      "1043-8-1": {
-        "name": "主胜6-10",
-        "value": "6.25"
-      },
-      "1043-8-2": {
-        "name": "主胜11-15",
-        "value": "12.00"
-      },
-      "1043-8-3": {
-        "name": "主胜16-20",
-        "value": "21.00"
-      },
-      "1043-8-4": {
-        "name": "主胜21-25",
-        "value": "24.00"
-      },
-      "1043-8-5": {
-        "name": "主胜26+",
-        "value": "25.00"
-      },
-      "1043-8-6": {
-        "name": "客胜1-5",
-        "value": "4.50"
-      },
-      "1043-8-7": {
-        "name": "客胜6-10",
-        "value": "4.20"
-      },
-      "1043-8-8": {
-        "name": "客胜11-15",
-        "value": "5.90"
-      },
-      "1043-8-9": {
-        "name": "客胜16-20",
-        "value": "8.30"
-      },
-      "1043-8-10": {
-        "name": "客胜21-25",
-        "value": "10.50"
-      },
-      "1043-8-11": {
-        "name": "客胜26+",
-        "value": "9.50"
-      },
-      "1043-9-0": {
-        "name": "大分",
-        "value": "1.66"
-      },
-      "1043-9-1": {
-        "name": "小分",
-        "value": "1.74"
-      },
-      "1043-9-2": {
-        "name": "总分",
-        "value": "224.5"
+      {
+        "timing_point": 96,
+        "eventtype": 4,
+        "is_team": 1,
+        "cdata": "佩莱·博文科",
+        "status": 127,
+        "cdata_en": "",
+        "teamid": 0,
+        "playerid": 221136,
+        "target_playerid": 0,
+        "target_playername": "",
+        "eventid": "",
+        "current_score": "1:0",
+        "exchange_player": [],
+        "exchange_player_en": []
       }
-    }
+    ],
+    "tabFlag": 0,
+    "match": {
+      "id": 43,
+      "name": "德乙",
+      "start_date": null,
+      "end_date": null,
+      "createtime": 1760444282,
+      "saiji": "",
+      "liansai_id": 40,
+      "type": "football"
+    },
+    "football": {
+      "id": 10726,
+      "game_id": 1134,
+      "score": "1:0",
+      "home_fen": 1,
+      "guset_fen": 0,
+      "banchang": "0-0",
+      "minutes": "完场",
+      "count": 12,
+      "home_team_yellow": 1,
+      "home_team_red": 0,
+      "guest_team_yellow": 4,
+      "guest_team_red": 0,
+      "score_zs": "2.28/3.45/2.50"
+    },
+    "teams": [
+      "菲尔特",
+      "明斯特"
+    ],
+    "deal_time": 1762524000
   }
-}
+]
+

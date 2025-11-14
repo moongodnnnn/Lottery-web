@@ -13,6 +13,27 @@
       <img src="/img/gamebanner.png" alt="" style="width: 100%; cursor: pointer" @click="showBannerDetails" />
     </div>
 
+    <!-- 调整方案按钮 -->
+    <div style="padding: 10px 10px 0px 10px">
+      <van-button
+        type="default"
+        block
+        @click="adjustPlan"
+        style="
+          height: 40px;
+          border: 1px solid #fc3c3c;
+          color: #fc3c3c;
+          background: #fff;
+          font-size: 14px;
+          font-weight: 500;
+          border-radius: 8px;
+        "
+      >
+        <van-icon name="edit" style="margin-right: 4px;" />
+        调整方案
+      </van-button>
+    </div>
+
     <!-- 投注内容列表 - 按比赛分组 -->
     <div class="bet-list">
       <div v-for="(game, gameId) in groupedBets" :key="gameId" class="bet-item">
@@ -49,7 +70,15 @@
           <span class="setting-label">倍数</span>
           <div class="multiple-controls">
             <van-button class="control-btn" icon="minus" @click="decreaseMultiple" :disabled="betMultiple <= 1" />
-            <span class="multiple-value">{{ betMultiple }}</span>
+            <input
+              class="multiple-input"
+              v-model.number="betMultiple"
+              type="number"
+              min="1"
+              max="99"
+              @input="onMultipleInput"
+              @blur="validateMultiple"
+            />
             <van-button class="control-btn" icon="plus" @click="increaseMultiple" :disabled="betMultiple >= 99" />
           </div>
         </div>
@@ -175,6 +204,7 @@ const selectedBetTypes = ref([]); // 选中的投注方式数组，支持多选
 const showRule = ref(false);
 const showBannerPopup = ref(false); // Banner详情弹窗
 const showBetTypePopup = ref(false); // 串关方式弹窗
+const userBalance = ref(0); // 用户余额
 
 // 投注方式选项（串关方式）
 const betTypeOptions = computed(() => {
@@ -462,6 +492,31 @@ function decreaseMultiple() {
   }
 }
 
+// 倍数输入验证
+function onMultipleInput(e) {
+  let value = e.target.value;
+  // 移除非数字字符
+  value = value.replace(/[^\d]/g, '');
+  // 限制范围
+  if (value === '') {
+    betMultiple.value = 1;
+  } else {
+    let num = parseInt(value);
+    if (num < 1) num = 1;
+    if (num > 99) num = 99;
+    betMultiple.value = num;
+  }
+}
+
+// 失去焦点时验证
+function validateMultiple() {
+  if (!betMultiple.value || betMultiple.value < 1) {
+    betMultiple.value = 1;
+  } else if (betMultiple.value > 99) {
+    betMultiple.value = 99;
+  }
+}
+
 // 显示Banner详情
 function showBannerDetails() {
   showBannerPopup.value = true;
@@ -528,13 +583,35 @@ async function confirmSelection() {
     return;
   }
 
-  // 弹出确认对话框
+  // 先检查余额是否充足
+  if (userBalance.value < totalAmount.value) {
+    // 余额不足，直接提示
+    showDialog({
+      message: `资金不足,去充值<br/><div style="font-size: 14px; color: #999;padding-top: 20px;">当前余额：¥${userBalance.value.toFixed(2)}</div>`,
+      messageAlign: "center",
+      title:'温馨提示',
+      showCancelButton: true,
+      confirmButtonText: "去充值",
+      cancelButtonText: "取消",
+      allowHtml: true
+    })
+      .then(() => {
+        router.push('/recharge');
+      })
+      .catch(() => {
+        console.log("用户取消充值");
+      });
+    return;
+  }
+
+  // 余额充足，弹出确认对话框
   showDialog({
     messageAlign: "center",
     showCancelButton: true,
+    title:'温馨提示',
     confirmButtonText: "确认",
     cancelButtonText: "取消",
-    message: `订单金额：¥${totalAmount.value}`,
+    message: `订单金额：¥${totalAmount.value} <br/> 确认提交此方案吗？`,
   })
     .then(async () => {
       // 用户点击确认，准备接口参数
@@ -547,13 +624,52 @@ async function confirmSelection() {
         console.log("接口响应:", response);
 
         if (response.code === 1) {
-          // 跳转到下单成功页面
-          router.replace({
-            path: '/bet_success',
-            query: {
-              orderId: response.data?.id || response.data?.order_id || ''
+          const orderId = response.data?.id || response.data?.order_id || '';
+
+          // 调用余额支付接口
+          try {
+            const payRes = await API.toBalance({ id: orderId });
+            if (payRes.code === 1) {
+              // 跳转到下单成功页面
+              router.replace({
+                path: '/bet_success',
+                query: { orderId }
+              });
+            } else {
+              if (payRes.msg === "资金不足") {
+                // 获取最新余额
+                try {
+                  const balanceRes = await API.balanceof();
+                  if (balanceRes.code === 1 && balanceRes.data) {
+                    userBalance.value = parseFloat(balanceRes.data.amount);
+                  }
+                } catch (error) {
+                  console.error('获取余额失败:', error);
+                }
+
+                showDialog({
+                  message: `资金不足,去充值<br/><div style="font-size: 14px; color: #999;padding-top: 20px;">当前余额：¥${userBalance.value.toFixed(2)}</div>`,
+                  messageAlign: "center",
+                  title:'温馨提示',
+                  showCancelButton: true,
+                  confirmButtonText: "去充值",
+                  cancelButtonText: "取消",
+                  allowHtml: true
+                })
+                  .then(() => {
+                    router.push('/recharge');
+                  })
+                  .catch(() => {
+                    console.log("用户取消充值");
+                  });
+              } else {
+                showToast(payRes.msg || "支付失败");
+              }
             }
-          });
+          } catch (error) {
+            console.error("余额支付失败:", error);
+            showToast("支付失败");
+          }
         } else {
           showToast(response.msg || "订单提交失败");
         }
@@ -680,8 +796,30 @@ function onClickLeft() {
   router.back();
 }
 
+// 调整方案 - 返回到 Basketball_lottery 页面
+function adjustPlan() {
+  // 将当前的投注详情传回去
+  router.push({
+    path: '/basketball_lottery',
+    query: {
+      adjustMode: 'true',
+      selectedBets: JSON.stringify(betDetails.value)
+    }
+  });
+}
+
 // 页面加载时解析传递的数据
-onMounted(() => {
+onMounted(async () => {
+  // 获取用户余额
+  try {
+    const balanceRes = await API.balanceof();
+    if (balanceRes.code === 1 && balanceRes.data) {
+      userBalance.value = parseFloat(balanceRes.data.amount);
+    }
+  } catch (error) {
+    console.error('获取余额失败:', error);
+  }
+
   try {
     const selectedBetsStr = route.query.selectedBets;
     console.log("接收到的原始数据:", selectedBetsStr);
@@ -915,12 +1053,35 @@ onMounted(() => {
   border-color: #f0f0f0;
 }
 
-.multiple-value {
-  min-width: 40px;
+.multiple-input {
+  width: 50px;
+  height: 28px;
   text-align: center;
   font-size: 1rem;
   font-weight: 700;
   color: #fc3c3c;
+  border: 1px solid #e8e8e8;
+  border-radius: 6px;
+  background: #fff;
+  outline: none;
+  padding: 0;
+}
+
+.multiple-input:focus {
+  border-color: #fc3c3c;
+  background: #fff;
+}
+
+/* 隐藏数字输入框的上下箭头 */
+.multiple-input::-webkit-outer-spin-button,
+.multiple-input::-webkit-inner-spin-button {
+  -webkit-appearance: none;
+  margin: 0;
+}
+
+.multiple-input[type="number"] {
+  -moz-appearance: textfield;
+  appearance: textfield;
 }
 
 /* 底部操作区域 - 紧凑版 */
