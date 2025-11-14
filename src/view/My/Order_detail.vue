@@ -292,9 +292,12 @@ function getStepActive(status) {
 // 获取出票状态文本
 function getBillStatusText(billStatus) {
   const textMap = {
-    "-3": "已取消",
-    "0": "待出票",
-    "1": "已出票"
+    "-3": "过点撤单",
+    "0": "未接单",
+    "1": "待出票",
+    "2": "出票成功",
+    "-1": "拒绝接单",
+     "-2": "出票失败",
   };
   return textMap[billStatus] || "未知";
 }

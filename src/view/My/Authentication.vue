@@ -203,7 +203,7 @@ onMounted(() => {
 });
 
 function onClickLeft() {
-  router.back();
+  router.push('/my');
 }
 </script>
 

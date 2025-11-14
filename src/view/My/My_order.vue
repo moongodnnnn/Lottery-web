@@ -27,7 +27,7 @@
             <div class="order-header">
               <span class="game-badge">{{ order.cate_name }}</span>
               <span class="order-status" :class="getStatusClass(order.status)">
-                {{ getStatusText(order.status) }}
+                {{ getStatusText(order.bill_status, order.status) }}
               </span>
             </div>
 
@@ -45,19 +45,13 @@
               <div class="order-pay-status-row">
                 <div class="pay-status-left">
                   <span class="pay-status-label">付款状态</span>
-                  <span class="pay-status-value" :class="{ 'unpaid': order.pay_status === 0 }">
-                    {{ order.pay_status === 0 ? '未支付' : '已支付' }}
-                  </span>
                 </div>
-                <van-button
-                  v-if="order.pay_status === 0"
-                  type="primary"
-                  size="small"
-                  class="pay-btn"
-                  @click.stop="goPay(order)"
-                >
+                <!-- 未支付：显示去支付按钮 -->
+                <van-button v-if="order.pay_status === 0" type="primary" size="small" class="pay-btn" @click.stop="goPay(order)">
                   去支付
                 </van-button>
+                <!-- 已支付：显示已支付文字 -->
+                <span v-else class="pay-status-value paid">已支付</span>
               </div>
 
               <!-- 第三行：中奖金额（仅中奖时显示） -->
@@ -172,16 +166,24 @@ function getStatusClass(status) {
 }
 
 // 获取状态文本
-function getStatusText(status) {
-  // status: 0=无效订单, 1=未接单, 2=已接单, 3=中奖, 4=未中奖
-  const textMap = {
-    0: "无效订单",
-    1: "未接单",
-    2: "待开奖",
-    3: "已中奖",
-    4: "未中奖",
-  };
-  return textMap[status] || "未知";
+function getStatusText(bill_status, status) {
+  if (bill_status === 0) {
+    return "待店铺接单";
+  } else if (bill_status === 1) {
+    return "待出票";
+  } else if (status === 3) {
+    return "已中奖";
+  } else if (status === 4) {
+    return "未中奖";
+  } else if (bill_status === 2) {
+    return "已出票";
+  } else if (bill_status === -3) {
+    return "过点撤单";
+  } else if (bill_status === -1) {
+    return "拒绝接单";
+  } else if (bill_status === -2) {
+    return "出票失败";
+  }
 }
 
 // 格式化日期
@@ -215,10 +217,10 @@ async function goPay(order) {
           messageAlign: "center",
           showCancelButton: true,
           confirmButtonText: "确认",
-          cancelButtonText: "取消"
+          cancelButtonText: "取消",
         })
           .then(() => {
-            router.push('/recharge');
+            router.push("/recharge");
           })
           .catch(() => {
             console.log("用户取消充值");
@@ -422,11 +424,10 @@ onMounted(() => {
 .pay-status-value {
   font-size: 0.8rem;
   font-weight: 600;
-  color: #52c41a;
 }
 
-.pay-status-value.unpaid {
-  color: #ff4d4f;
+.pay-status-value.paid {
+  color: #52c41a;
 }
 
 .pay-btn {

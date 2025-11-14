@@ -32,35 +32,28 @@
       <van-empty v-if="!loading && accountList.length === 0" description="暂无账目记录" />
 
       <!-- 列表 -->
-      <van-list
-        v-else
-        v-model:loading="loading"
-        :finished="finished"
-        finished-text="没有更多了"
-        @load="loadAccountList"
-        :immediate-check="false"
-      >
-        <div class="account-list">
-          <div v-for="item in accountList" :key="item.id" class="account-card">
-            <div class="card-header">
-              <div class="card-time">{{ formatTime(item.createtime) }}</div>
-              <div class="card-type">{{ item.type === 'add' ? '添加' : '扣减' }}</div>
-              
-            </div>
-            <div class="card-content">
-              <div class="card-left">
-                <div class="card-memo">{{ item.memo || '-' }}</div>
-                <div class="card-balance">余额：{{ item.after_money }}</div>
-              </div>
-              <div class="card-right">
-                <div class="card-amount">
-                  {{ item.type === 'add' ? '+' : '-' }}{{ item.money }}
-                </div>
-              </div>
+      <div v-else class="account-list">
+        <div v-for="item in accountList" :key="item.id" class="account-card">
+          <!-- 第一排：用途和金额（加粗） -->
+          <div class="card-row-1">
+            <div class="card-memo">{{ item.memo || '-' }}</div>
+            <div class="card-amount" :class="{ 'amount-add': item.type === 'add', 'amount-reduce': item.type !== 'add' }">
+              {{ item.type === 'add' ? '+' : '-' }}{{ item.money }}
             </div>
           </div>
+
+          <!-- 第二排：类型和余额 -->
+          <div class="card-row-2">
+            <div class="card-type">{{ item.type === 'add' ? '添加' : '扣减' }}</div>
+            <div class="card-balance">余额：{{ item.after_money }}</div>
+          </div>
+
+          <!-- 第三排：时间 -->
+          <div class="card-row-3">
+            <div class="card-time">{{ formatTime(item.createtime) }}</div>
+          </div>
         </div>
-      </van-list>
+      </div>
     </div>
   </div>
 </template>
@@ -218,7 +211,7 @@ onMounted(() => {
   display: flex;
   flex-direction: column;
   height: 100vh;
-  background-color: #f5f5f5;
+  background-color: #fff;
   max-width: 430px;
   margin: 0 auto;
   box-sizing: border-box;
@@ -274,75 +267,76 @@ onMounted(() => {
   flex: 1;
   overflow-y: auto;
   padding: 12px;
+  background-color: #fff;
 }
 
 .account-list {
   display: flex;
   flex-direction: column;
-  gap: 10px;
+  gap: 12px;
 }
 
 /* 账目卡片 */
 .account-card {
   background: #fff;
-  border-radius: 8px;
-  overflow: hidden;
+  padding: 8px;
 }
 
-.card-header {
-  background: #e4e4e4;
-  padding: 10px 16px;
+/* 第一排：用途和金额（加粗） */
+.card-row-1 {
   display: flex;
   justify-content: space-between;
   align-items: center;
-}
-
-.card-type {
-  font-size: 15px;
-  color: #323233;
-  font-weight: 700;
-}
-
-.card-time {
-  font-size: 16px;
-  color: #323233;
-  font-weight: 700;
-  font-family: 'Arial', 'Helvetica', sans-serif;
-}
-
-.card-content {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  padding: 16px;
-}
-
-.card-left {
-  flex: 1;
-  display: flex;
-  flex-direction: column;
-  gap: 6px;
+  margin-bottom: 10px;
 }
 
 .card-memo {
+  font-size: 15px;
+  color: #323233;
+  font-weight: 700;
+  flex: 1;
+}
+
+.card-amount {
+  font-size: 18px;
+  font-weight: 700;
+}
+
+.card-amount.amount-add {
+  color: #52c41a;
+}
+
+.card-amount.amount-reduce {
+  color: #ff4d4f;
+}
+
+/* 第二排：类型和余额 */
+.card-row-2 {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 8px;
+}
+
+.card-type {
   font-size: 13px;
   color: #646566;
 }
 
 .card-balance {
-  font-size: 12px;
-  color: #969799;
+  font-size: 13px;
+  color: #646566;
 }
 
-.card-right {
+/* 第三排：时间 */
+.card-row-3 {
   display: flex;
   align-items: center;
 }
 
-.card-amount {
-  font-size: 20px;
-  font-weight: 600;
-  color: #323233;
+.card-time {
+  font-size: 12px;
+  color: #969799;
 }
 </style>
 

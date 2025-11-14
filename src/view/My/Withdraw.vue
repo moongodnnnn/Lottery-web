@@ -414,6 +414,18 @@ onMounted(async () => {
     try {
       const user = JSON.parse(userStr);
       // 获取手机号
+      if (user.is_wpass == 0) {
+        showToast("请先设置提现密码,才可以进行提款操作");
+        router.push("/withdraw-password");
+        return;
+      }
+
+      if (user.is_auth == 0) {
+        showToast("为了您的账户安全,请先进行实名认证");
+        router.push("/authentication");
+        return;
+      }
+
       if (user.mobile) {
         userMobile.value = user.mobile;
       }

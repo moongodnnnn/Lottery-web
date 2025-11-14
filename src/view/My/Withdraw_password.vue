@@ -112,7 +112,7 @@ watch(confirmPassword, (newVal) => {
 });
 
 function onClickLeft() {
-  router.back();
+  router.replace("/my");
 }
 
 const canSubmit = computed(() => {
