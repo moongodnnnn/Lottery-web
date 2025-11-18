@@ -37,85 +37,16 @@
 </template>
 
 <script setup>
-import { ref } from "vue";
+import { ref,onMounted } from "vue";
 import { showToast } from "vant";
 import { useRouter } from "vue-router";
+import API from "../../request/api";
+
 
 const router = useRouter();
 
 // 消息列表 - 静态数据
-const messageList = ref([
-  {
-    id: 1,
-    title: '平台通知',
-    content: '欢迎使用鸿韵体育彩票平台，祝您购彩愉快，好运连连！',
-    createtime: Math.floor(Date.now() / 1000) - 300,
-    is_read: 0
-  },
-  {
-    id: 2,
-    title: '中奖通知',
-    content: '恭喜您！您购买的大乐透彩票已中奖，奖金1500元已到账，请查收',
-    createtime: Math.floor(Date.now() / 1000) - 1800,
-    is_read: 0
-  },
-  {
-    id: 3,
-    title: '关注通知',
-    content: '您关注的用户"月神"发布了新的跟单方案，快去查看吧！',
-    createtime: Math.floor(Date.now() / 1000) - 3600,
-    is_read: 1
-  },
-  {
-    id: 4,
-    title: '系统消息',
-    content: '您的账户已成功充值1000元，当前余额10000元',
-    createtime: Math.floor(Date.now() / 1000) - 7200,
-    is_read: 1
-  },
-  {
-    id: 5,
-    title: '中奖通知',
-    content: '恭喜您！您跟单的足球竞彩已中奖，奖金800元已到账',
-    createtime: Math.floor(Date.now() / 1000) - 14400,
-    is_read: 1
-  },
-  {
-    id: 6,
-    title: '关注通知',
-    content: '您关注的用户"福星高照"发布了新的排列三方案，命中率高达85%',
-    createtime: Math.floor(Date.now() / 1000) - 28800,
-    is_read: 1
-  },
-  {
-    id: 7,
-    title: '平台通知',
-    content: '新用户首充优惠活动开始啦！充值即送20%奖金，最高送500元',
-    createtime: Math.floor(Date.now() / 1000) - 86400,
-    is_read: 1
-  },
-  {
-    id: 8,
-    title: '系统消息',
-    content: '您的提现申请已通过审核，预计2小时内到账，请注意查收',
-    createtime: Math.floor(Date.now() / 1000) - 172800,
-    is_read: 1
-  },
-  {
-    id: 9,
-    title: '关注通知',
-    content: '您关注的用户"鸿运当头"近7日盈利率达到120%，快去跟单吧！',
-    createtime: Math.floor(Date.now() / 1000) - 259200,
-    is_read: 1
-  },
-  {
-    id: 10,
-    title: '平台通知',
-    content: '系统将于今晚23:00-24:00进行维护升级，请提前做好准备',
-    createtime: Math.floor(Date.now() / 1000) - 345600,
-    is_read: 1
-  }
-]);
+const messageList = ref([]);
 
 // 格式化时间
 const formatTime = (timestamp) => {
@@ -170,7 +101,16 @@ const handleMessageClick = async (item) => {
 
 function onClickLeft() {
   router.back();
-}
+};
+
+onMounted(() => {
+  API.getToast().then(res => {
+    messageList.value = res.data.data;
+  })
+});
+
+
+
 </script>
 
 <style scoped>

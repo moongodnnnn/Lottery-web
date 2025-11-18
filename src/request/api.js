@@ -147,6 +147,10 @@ export const API = {
     return instance.get("/gendan/getRank");
   },
 
+  getToast() {
+    return instance.get("user/getToast");
+  },
+
   gendanuserInfo() {
     return instance.get("/gendan/userInfo");
   },

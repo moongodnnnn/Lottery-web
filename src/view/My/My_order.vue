@@ -10,10 +10,8 @@
     <div class="tabs-container">
       <van-tabs v-model:active="activeTab" @change="onTabChange" swipeable animated>
         <van-tab title="全部订单" name="all"></van-tab>
-        <van-tab title="我发起的" name="initiated"></van-tab>
+        <van-tab title="我的发单" name="initiated"></van-tab>
         <van-tab title="我的跟单" name="follow"></van-tab>
-        <van-tab title="我的拼单" name="group"></van-tab>
-        <van-tab title="我参与的" name="participated"></van-tab>
       </van-tabs>
     </div>
 
@@ -77,8 +75,11 @@ import { ref, onMounted } from "vue";
 import { useRouter } from "vue-router";
 import { showToast, showDialog } from "vant";
 import API from "../../request/api.js";
+import { useRoute } from "vue-router";
+
 
 const router = useRouter();
+const route = useRoute();
 
 // 返回上一页
 function onClickLeft() {
@@ -115,9 +116,13 @@ async function loadOrders() {
     // 根据不同的标签页传递不同的参数
     const params = { page: page.value };
 
-    // 如果是"我发起的"标签页，传入 otype: 2
+    // 根据Tab设置otype参数
     if (activeTab.value === "initiated") {
+      // 我的发单
       params.otype = 2;
+    } else if (activeTab.value === "follow") {
+      // 我的跟单
+      params.otype = 3;
     }
 
     const res = await API.get_order_list(params);
@@ -236,7 +241,13 @@ async function goPay(order) {
 }
 
 onMounted(() => {
-  // van-list会自动触发第一次加载
+  // 检查路由参数中是否有指定的tab
+  const tabFromQuery = route.query.tab;
+  if (tabFromQuery && ['all', 'initiated', 'follow'].includes(tabFromQuery)) {
+    activeTab.value = tabFromQuery;
+  } else {
+    // van-list会自动触发第一次加载
+  }
 });
 </script>
 

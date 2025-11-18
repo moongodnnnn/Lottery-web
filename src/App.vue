@@ -125,5 +125,16 @@ body {
     word-wrap: break-word;
     -webkit-overflow-scrolling: touch;
   }
+
+
+  .van-toast {
+    display: flex;
+    flex-direction: column;
+    white-space: pre-wrap;
+    word-break: break-all;
+    text-align: center;
+    background: rgb(0 0 0 / 88%);
+    border-radius: var(--van-toast-radius);
+}
 }
 </style>

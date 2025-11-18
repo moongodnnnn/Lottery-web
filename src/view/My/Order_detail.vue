@@ -224,7 +224,7 @@
 <script setup>
 import { ref, computed, onMounted } from "vue";
 import { useRouter, useRoute } from "vue-router";
-import { showToast } from "vant";
+import { showToast, ImagePreview } from "vant";
 import API from "../../request/api";
 
 const router = useRouter();
@@ -304,7 +304,13 @@ function getBillStatusText(billStatus) {
 
 // 查看票样
 function viewTicket() {
-  showToast("查看票样功能开发中");
+  if (orderDetail.value && orderDetail.value.bill_images && orderDetail.value.bill_images.length > 0) {
+    // 如果有票样图片，则显示图片预览
+    ImagePreview(orderDetail.value.bill_images);
+  } else {
+    // 如果没有票样图片，则提示用户
+    showToast("票样照片店主暂未上传");
+  }
 }
 
 function formatDateTime(timestamp) {

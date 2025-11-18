@@ -32,28 +32,36 @@
       <van-empty v-if="!loading && accountList.length === 0" description="暂无账目记录" />
 
       <!-- 列表 -->
-      <div v-else class="account-list">
-        <div v-for="item in accountList" :key="item.id" class="account-card">
-          <!-- 第一排：用途和金额（加粗） -->
-          <div class="card-row-1">
-            <div class="card-memo">{{ item.memo || '-' }}</div>
-            <div class="card-amount" :class="{ 'amount-add': item.type === 'add', 'amount-reduce': item.type !== 'add' }">
-              {{ item.type === 'add' ? '+' : '-' }}{{ item.money }}
+      <van-list
+        v-else
+        v-model:loading="loading"
+        :finished="finished"
+        finished-text="没有更多了"
+        @load="loadAccountList"
+      >
+        <div class="account-list">
+          <div v-for="item in accountList" :key="item.id" class="account-card">
+            <!-- 第一排：用途和金额（加粗） -->
+            <div class="card-row-1">
+              <div class="card-memo">{{ item.memo || '-' }}</div>
+              <div class="card-amount" :class="{ 'amount-add': item.type === 'add', 'amount-reduce': item.type !== 'add' }">
+                {{ item.type === 'add' ? '+' : '-' }}{{ item.money }}
+              </div>
+            </div>
+
+            <!-- 第二排：类型和余额 -->
+            <div class="card-row-2">
+              <div class="card-type">{{ item.type === 'add' ? '添加' : '扣减' }}</div>
+              <div class="card-balance">余额：{{ item.after_money }}</div>
+            </div>
+
+            <!-- 第三排：时间 -->
+            <div class="card-row-3">
+              <div class="card-time">{{ formatTime(item.createtime) }}</div>
             </div>
           </div>
-
-          <!-- 第二排：类型和余额 -->
-          <div class="card-row-2">
-            <div class="card-type">{{ item.type === 'add' ? '添加' : '扣减' }}</div>
-            <div class="card-balance">余额：{{ item.after_money }}</div>
-          </div>
-
-          <!-- 第三排：时间 -->
-          <div class="card-row-3">
-            <div class="card-time">{{ formatTime(item.createtime) }}</div>
-          </div>
         </div>
-      </div>
+      </van-list>
     </div>
   </div>
 </template>
@@ -150,10 +158,13 @@ const onTimeChange = (timeType) => {
 
 // 加载账目列表
 const loadAccountList = async () => {
-  if (loading.value || finished.value) return;
+  if (finished.value) {
+    console.log('已加载完成，跳过');
+    return;
+  }
 
   try {
-    loading.value = true;
+    console.log('开始加载，当前页:', page.value);
 
     // 获取时间范围
     const timeRange = getTimeRange(activeTime.value);
@@ -174,6 +185,8 @@ const loadAccountList = async () => {
       const listData = res.data.list || {};
       const newList = listData.data || [];
 
+      console.log('当前页:', page.value, '新数据:', newList.length, '总页数:', listData.last_page, '总条数:', listData.total);
+
       // 追加数据
       accountList.value = [...accountList.value, ...newList];
 
@@ -181,11 +194,15 @@ const loadAccountList = async () => {
       if (listData.total !== undefined) {
         total.value = listData.total;
       }
-      page.value++;
 
-      // 判断是否加载完成
-      if (newList.length === 0 || (listData.last_page && page.value > listData.last_page)) {
+      // 判断是否加载完成（当前页 >= 总页数 或 没有新数据）
+      if (newList.length === 0 || (listData.last_page && page.value >= listData.last_page)) {
         finished.value = true;
+        console.log('已加载完成');
+      } else {
+        // 只有未完成时才增加页码
+        page.value++;
+        console.log('准备加载下一页:', page.value);
       }
     } else {
       showToast(res.msg || '加载账目明细失败');
@@ -196,6 +213,7 @@ const loadAccountList = async () => {
     showToast('加载账目明细失败');
     finished.value = true;
   } finally {
+    // van-list 会自动管理 loading 状态，这里手动设置为 false
     loading.value = false;
   }
 };
@@ -291,14 +309,14 @@ onMounted(() => {
 }
 
 .card-memo {
-  font-size: 15px;
+  font-size: 14px;
   color: #323233;
   font-weight: 700;
   flex: 1;
 }
 
 .card-amount {
-  font-size: 18px;
+  font-size: 16px;
   font-weight: 700;
 }
 

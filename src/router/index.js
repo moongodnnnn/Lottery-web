@@ -33,6 +33,8 @@ import CardCenter from "../view/My/CardCenter.vue";
 import AddBankCard from "../view/My/AddBankCard.vue";
 import MessageCenter from "../view/My/MessageCenter.vue";
 import WithdrawPassword from "../view/My/Withdraw_password.vue";
+import Invite_friends from "../view/My/Invite_friends.vue";
+import Invite_store from "../view/My/Invite_store.vue";
 
 const routes = [
   { path: "/", redirect: "/login" },
@@ -70,6 +72,8 @@ const routes = [
   { path: "/add-bank-card", name: "AddBankCard", component: AddBankCard },
   { path: "/message-center", name: "MessageCenter", component: MessageCenter },
   { path: "/withdraw-password", name: "WithdrawPassword", component: WithdrawPassword },
+  { path: "/invite-friends", name: "Invite_friends", component: Invite_friends },
+  { path: "/invite-store", name: "Invite_store", component: Invite_store },
 ];
 
 const router = createRouter({

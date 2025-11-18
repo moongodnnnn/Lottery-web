@@ -5,18 +5,31 @@
     </div>
     <div style="height: 1px; background-color: #f5f5f5"></div>
 
-    <!-- 认证状态提示 -->
-    <div v-if="isAuthenticated" class="auth-status success">
-      <van-icon name="checked" size="24" color="#07c160" />
-      <span class="status-text">已完成实名认证</span>
-    </div>
-    <div v-else class="auth-status pending">
-      <van-icon name="info-o" size="24" color="#ff976a" />
-      <span class="status-text">请完成实名认证</span>
+    <!-- 已认证状态 -->
+    <div v-if="isAuthenticated" class="authenticated-container">
+      <!-- 认证成功图标 -->
+      <div class="auth-success-icon">
+        <van-icon name="passed" size="80" color="#07c160" />
+      </div>
+
+      <!-- 认证状态文字 -->
+      <div class="auth-success-title">已完成实名认证</div>
+
+      <!-- 客服提示 -->
+      <div class="customer-service-tip">
+        <van-icon name="service-o" size="16" color="#969799" />
+        <span>如需更改实名信息，请联系官方客服</span>
+      </div>
     </div>
 
-    <!-- 认证表单 -->
-    <div class="auth-form">
+    <!-- 未认证状态 - 认证表单 -->
+    <div v-else class="auth-form">
+      <!-- 认证状态提示 -->
+      <div class="auth-status pending">
+        <van-icon name="info-o" size="24" color="#ff976a" />
+        <span class="status-text">请完成实名认证</span>
+      </div>
+
       <!-- 证件类型 -->
       <div class="form-card">
         <div class="card-icon">
@@ -39,7 +52,6 @@
             v-model="formData.realName"
             type="text"
             placeholder="请输入真实姓名"
-            :disabled="isAuthenticated"
             class="card-input"
           />
         </div>
@@ -56,7 +68,6 @@
             v-model="formData.idNumber"
             type="text"
             placeholder="请输入18位身份证号码"
-            :disabled="isAuthenticated"
             maxlength="18"
             class="card-input"
           />
@@ -78,7 +89,7 @@
       </div>
 
       <!-- 提交按钮 -->
-      <div class="submit-section" v-if="!isAuthenticated">
+      <div class="submit-section">
         <button class="submit-btn" @click="handleSubmit">提交认证</button>
       </div>
     </div>
@@ -237,19 +248,92 @@ function onClickLeft() {
   margin: 0 auto;
 }
 
-/* 认证状态 */
+/* 已认证状态容器 */
+.authenticated-container {
+  padding: 40px 16px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+
+.auth-success-icon {
+  margin-bottom: 24px;
+  animation: scaleIn 0.5s ease-out;
+}
+
+@keyframes scaleIn {
+  0% {
+    transform: scale(0);
+    opacity: 0;
+  }
+  50% {
+    transform: scale(1.1);
+  }
+  100% {
+    transform: scale(1);
+    opacity: 1;
+  }
+}
+
+.auth-success-title {
+  font-size: 20px;
+  font-weight: 600;
+  color: #07c160;
+  margin-bottom: 32px;
+}
+
+.auth-info-card {
+  width: 100%;
+  background: #fff;
+  border-radius: 12px;
+  padding: 24px;
+  box-shadow: 0 2px 12px rgba(0, 0, 0, 0.08);
+  margin-bottom: 24px;
+}
+
+.info-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 12px 0;
+}
+
+.info-label {
+  font-size: 14px;
+  color: #969799;
+}
+
+.info-value {
+  font-size: 15px;
+  color: #323233;
+  font-weight: 500;
+}
+
+.info-divider {
+  height: 1px;
+  background: #f0f0f0;
+  margin: 8px 0;
+}
+
+.customer-service-tip {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 12px 16px;
+  background: #f7f8fa;
+  border-radius: 8px;
+  font-size: 13px;
+  color: #646566;
+}
+
+/* 未认证状态 */
 .auth-status {
-  margin: 10px 16px 0px 16px;
+  margin-bottom: 16px;
   padding: 12px;
   border-radius: 8px;
   display: flex;
   align-items: center;
   gap: 12px;
-}
-
-.auth-status.success {
-  background: #f0f9ff;
-  border: 1px solid #07c160;
 }
 
 .auth-status.pending {

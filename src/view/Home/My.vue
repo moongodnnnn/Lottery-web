@@ -61,19 +61,19 @@
           </div>
           <div class="function-text">我的订单</div>
         </div>
-        <div class="function-item" @click="goToMyInitiated">
+        <div class="function-item" @click="goToOrderTab('initiated')">
           <div class="function-icon">
             <img src="/icons/222.png" alt="我发起的" />
           </div>
-          <div class="function-text">我发起的</div>
+          <div class="function-text">我的发单</div>
         </div>
-        <div class="function-item" @click="goToMyFollow">
+        <div class="function-item" @click="goToOrderTab('follow')">
           <div class="function-icon">
             <img src="/icons/333.png" alt="我的跟单" />
           </div>
           <div class="function-text">我的跟单</div>
         </div>
-        <div class="function-item" @click="goToMyGroup">
+        <!-- <div class="function-item" @click="goToMyGroup">
           <div class="function-icon">
             <img src="/icons/444.png" alt="我的拼单" />
           </div>
@@ -84,7 +84,7 @@
             <img src="/icons/555.png" alt="我参与的" />
           </div>
           <div class="function-text">我参与的</div>
-        </div>
+        </div> -->
       </div>
     </div>
 
@@ -103,7 +103,7 @@
     <div class="function-grid">
       <div class="function-title">常用工具</div>
       <div class="function-items">
-        <div class="function-item" @click="goToOrders">
+        <div class="function-item" @click="go('/shopkeeper-auth')">
           <div class="function-icon1">
             <img src="/icons/my11.png" alt="店主认证" />
           </div>
@@ -129,13 +129,13 @@
         </div>
       </div>
       <div class="function-items">
-        <div class="function-item" @click="goToOrders">
+        <div class="function-item" @click="go('/invite-store')">
           <div class="function-icon1">
             <img src="/icons/my55.png" alt="邀请店主" />
           </div>
           <div class="function-text">邀请店主</div>
         </div>
-        <div class="function-item" @click="goToMyInitiated">
+        <div class="function-item" @click="go('/invite-friends')">
           <div class="function-icon1">
             <img src="/icons/my66.png" alt="邀请好友" />
           </div>
@@ -179,6 +179,12 @@ function go(path) {
 
 function viewDetail() {
   router.push('/account_detail');
+}
+
+
+// 跳转到订单页面并指定Tab
+function goToOrderTab(tabName) {
+  router.push({ path: '/My_order', query: { tab: tabName } });
 }
 
 // 复制用户名

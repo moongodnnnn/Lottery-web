@@ -28,51 +28,51 @@
     <div class="hot-section">
       <!-- 命中榜 -->
       <div class="rank-section">
-        <div class="rank-header">
-      
-        </div>
+        <div class="rank-header"></div>
         <div class="expert-scroll-wrapper">
           <div class="expert-scroll-container">
-            <div class="expert-card" v-for="(expert, index) in topExperts.slice(0, 10)" :key="index">
-              <div class="expert-avatar">
-                <img :src="expert.avatar" :alt="expert.name" />
+            <template v-if="rankData.mz && rankData.mz.length">
+              <div class="expert-card" v-for="(expert, index) in rankData.mz.slice(0, 10)" :key="expert.id">
+                <div class="expert-avatar">
+                  <img :src="expert.avatar" :alt="expert.name" />
+                </div>
+                <div class="expert-name">{{ expert.name }}</div>
               </div>
-              <div class="expert-name">{{ expert.name }}</div>
-            </div>
+            </template>
           </div>
         </div>
       </div>
 
       <!-- 盈利榜 -->
       <div class="rank-section">
-        <div class="rank-header">
-    
-        </div>
+        <div class="rank-header"></div>
         <div class="expert-scroll-wrapper">
           <div class="expert-scroll-container">
-            <div class="expert-card" v-for="(expert, index) in topExperts.slice(0, 10)" :key="index + 10">
-              <div class="expert-avatar">
-                <img :src="expert.avatar" :alt="expert.name" />
+            <template v-if="rankData.yl && rankData.yl.length">
+              <div class="expert-card" v-for="(expert, index) in rankData.yl.slice(0, 10)" :key="expert.id">
+                <div class="expert-avatar">
+                  <img :src="expert.avatar" :alt="expert.name" />
+                </div>
+                <div class="expert-name">{{ expert.name }}</div>
               </div>
-              <div class="expert-name">{{ expert.name }}</div>
-            </div>
+            </template>
           </div>
         </div>
       </div>
 
       <!-- 官网推荐 -->
       <div class="rank-section">
-        <div class="rank-header">
-     
-        </div>
+        <div class="rank-header"></div>
         <div class="expert-scroll-wrapper">
           <div class="expert-scroll-container">
-            <div class="expert-card" v-for="(expert, index) in topExperts.slice(0, 10)" :key="index + 20">
-              <div class="expert-avatar">
-                <img :src="expert.avatar" :alt="expert.name" />
+            <template v-if="rankData.tj && rankData.tj.length">
+              <div class="expert-card" v-for="(expert, index) in rankData.tj.slice(0, 10)" :key="expert.id">
+                <div class="expert-avatar">
+                  <img :src="expert.avatar" :alt="expert.name" />
+                </div>
+                <div class="expert-name">{{ expert.name }}</div>
               </div>
-              <div class="expert-name">{{ expert.name }}</div>
-            </div>
+            </template>
           </div>
         </div>
       </div>
@@ -260,13 +260,7 @@ const gotoSearchPage = () => {
   // router.push('/search');
 };
 
-const showRules = () => {
-  showDialog({
-    title: "后台配置即可",
-    message: "本周盈利金额为专家在过去7天内的推荐方案累计盈利总额，每日更新排名，仅展示排名前8位的专家。",
-    confirmButtonText: "知道了",
-  });
-};
+
 
 // 专家分类选项卡
 const tabs = ref(['足球竞彩', '排列三']);
@@ -378,16 +372,18 @@ watch(activeSortOption, () => {
   get_gendan();
 });
 
+const rankData = ref({ mz: [], yl: [], tj: [] });
+
 onMounted(() => {
-  console.log("Expert 页面已挂载");
   get_gendan();
-
-
   API.getRank().then(res => {
-    console.log(res);
-  })
-
-})
+    if (res.code === 1 && res.data) {
+      rankData.value = res.data;
+    } else {
+      rankData.value = { mz: [], yl: [], tj: [] };
+    }
+  });
+});
 
 </script>
 
