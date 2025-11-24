@@ -629,12 +629,12 @@ function goBack() {
 }
 
 .option-items {
-  display: flex;
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
   gap: 6px;
 }
 
 .option-item {
-  flex: 1;
   display: flex;
   flex-direction: row;
   align-items: center;
@@ -644,7 +644,6 @@ function goBack() {
   background: white;
   border-radius: 4px;
   border: 1px solid #e5e5e5;
-  max-width: 30%;
 }
 
 .option-item.selected {

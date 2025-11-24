@@ -11,7 +11,7 @@
     <div class="invite-bottom-img">
       <img src="/img/Invitebgbottom.jpg" class="invite-bottom" alt="邀请底部" />
       <div class="qrcode-absolute">
-        <qrcode-vue v-if="inviteLink" :value="inviteLink" :size="140" level="H" class="qrcode" />
+        <qrcode-vue v-if="inviteLink" :value="inviteLink" :size="150" level="H" class="qrcode" />
       </div>
     </div>
 

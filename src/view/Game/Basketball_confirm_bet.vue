@@ -13,8 +13,8 @@
       <img src="/img/gamebanner.png" alt="" style="width: 100%; cursor: pointer" @click="showBannerDetails" />
     </div>
 
-    <!-- 调整方案按钮 -->
-    <div style="padding: 10px 10px 0px 10px">
+    <!-- 调整方案和奖金优化按钮 -->
+    <div style="padding: 4px 10px 0px 10px; display: flex; gap: 10px">
       <van-button
         type="default"
         block
@@ -29,8 +29,23 @@
           border-radius: 8px;
         "
       >
-        <van-icon name="edit" style="margin-right: 4px;" />
         调整方案
+      </van-button>
+      <van-button
+        type="default"
+        block
+        @click="optimizePrize"
+        style="
+          height: 40px;
+          border: 1px solid #ff9500;
+          color: #ff9500;
+          background: #fff;
+          font-size: 14px;
+          font-weight: 500;
+          border-radius: 8px;
+        "
+      >
+        奖金优化
       </van-button>
     </div>
 
@@ -611,7 +626,7 @@ async function confirmSelection() {
     title:'温馨提示',
     confirmButtonText: "确认",
     cancelButtonText: "取消",
-    message: `订单金额：¥${totalAmount.value} <br/> 确认提交此方案吗？`,
+    message: `订单金额：¥${totalAmount.value} \n  \n 确认提交此方案吗？`,
   })
     .then(async () => {
       // 用户点击确认，准备接口参数
@@ -805,6 +820,25 @@ function adjustPlan() {
       adjustMode: 'true',
       selectedBets: JSON.stringify(betDetails.value)
     }
+  });
+}
+
+// 奖金优化
+function optimizePrize() {
+  if (!canConfirm.value) {
+    showToast("请先选择投注选项");
+    return;
+  }
+
+  // 跳转到奖金优化页面，传递投注数据
+  router.push({
+    path: "/prize-optimize",
+    query: {
+      details: JSON.stringify(betDetails.value),
+      totalAmount: totalAmount.value,
+      betMultiple: betMultiple.value,
+      selectedBetTypes: JSON.stringify(selectedBetTypes.value),
+    },
   });
 }
 

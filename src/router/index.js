@@ -35,6 +35,7 @@ import MessageCenter from "../view/My/MessageCenter.vue";
 import WithdrawPassword from "../view/My/Withdraw_password.vue";
 import Invite_friends from "../view/My/Invite_friends.vue";
 import Invite_store from "../view/My/Invite_store.vue";
+import Prize_optimize from "../view/Game/Prize_optimize.vue";
 
 const routes = [
   { path: "/", redirect: "/login" },
@@ -74,6 +75,7 @@ const routes = [
   { path: "/withdraw-password", name: "WithdrawPassword", component: WithdrawPassword },
   { path: "/invite-friends", name: "Invite_friends", component: Invite_friends },
   { path: "/invite-store", name: "Invite_store", component: Invite_store },
+  { path: "/prize-optimize", name: "Prize_optimize", component: Prize_optimize },
 ];
 
 const router = createRouter({

@@ -13,8 +13,8 @@
       <img src="/img/gamebanner.png" alt="" style="width: 100%; cursor: pointer" @click="showBannerDetails" />
     </div>
 
-    <!-- 调整方案按钮 -->
-    <div style="padding: 10px 10px 0px 10px">
+    <!-- 调整方案和奖金优化按钮 -->
+    <div style="padding: 4px 10px 0px 10px; display: flex; gap: 10px">
       <van-button
         type="default"
         block
@@ -29,29 +29,62 @@
           border-radius: 8px;
         "
       >
-        <van-icon name="edit" style="margin-right: 4px" />
         调整方案
+      </van-button>
+      <van-button
+        type="default"
+        block
+        @click="optimizePrize"
+        style="
+          height: 40px;
+          border: 1px solid #ff9500;
+          color: #ff9500;
+          background: #fff;
+          font-size: 14px;
+          font-weight: 500;
+          border-radius: 8px;
+        "
+      >
+        奖金优化
       </van-button>
     </div>
 
     <!-- 投注内容列表 - 按比赛分组 -->
     <div class="bet-list">
-      <div v-for="(game, gameId) in groupedBets" :key="gameId" class="bet-item">
-        <!-- 比赛信息头部 - 单行显示 -->
-        <div class="bet-header">
-          <span class="bet-number">{{ game.gameInfo?.xuhao || "未知" }}</span>
-          <span class="bet-teams">{{ game.gameInfo?.home_team_name }} VS {{ game.gameInfo?.guest_team_name }}</span>
-          <span class="bet-league">{{ formatMatchTime(game.gameInfo?.start_time) }}</span>
-          <span class="bet-time">{{ game.gameInfo?.league_name }} </span>
-        </div>
+      <!-- Loading 状态 -->
+      <div v-if="isLoading" class="loading-container">
+        <van-loading size="32px" color="#999999" vertical>
+          <template #icon>
+            <van-icon name="football-o" size="32" color="#999999" />
+          </template>
+          加载中...
+        </van-loading>
+      </div>
 
-        <!-- 投注选项列表 - 每排4个 -->
-        <div class="bet-options-grid">
-          <div v-for="bet in game.bets" :key="bet.betId" class="bet-option-item">
-            <div class="option-name">{{ getDisplayOptionName(bet) }}</div>
-            <div class="option-value">({{ bet.optionValue }})</div>
+      <!-- 投注列表内容 -->
+      <div v-else-if="Object.keys(groupedBets).length > 0">
+        <div v-for="(game, gameId) in groupedBets" :key="gameId" class="bet-item">
+          <!-- 比赛信息头部 - 单行显示 -->
+          <div class="bet-header">
+            <span class="bet-number">{{ game.gameInfo?.xuhao || "未知" }}</span>
+            <span class="bet-teams">{{ game.gameInfo?.home_team_name }} VS {{ game.gameInfo?.guest_team_name }}</span>
+            <span class="bet-league">{{ formatMatchTime(game.gameInfo?.start_time) }}</span>
+            <span class="bet-time">{{ game.gameInfo?.league_name }} </span>
+          </div>
+
+          <!-- 投注选项列表 - 每排4个 -->
+          <div class="bet-options-grid">
+            <div v-for="bet in game.bets" :key="bet.betId" class="bet-option-item">
+              <div class="option-name">{{ getDisplayOptionName(bet) }}</div>
+              <div class="option-value">({{ bet.optionValue }})</div>
+            </div>
           </div>
         </div>
+      </div>
+
+      <!-- 空状态 -->
+      <div v-else class="empty-state">
+        <van-empty description="暂无投注数据" />
       </div>
     </div>
 
@@ -186,6 +219,7 @@ const showRule = ref(false);
 const showBannerPopup = ref(false);
 const showBetTypePopup = ref(false);
 const userBalance = ref(0); // 用户余额
+const isLoading = ref(true); // 加载状态
 
 const hasScoreOrHalfPlay = computed(() => {
   return betDetails.value.some((bet) => bet.rateType === "3" || bet.rateType === "5");
@@ -800,7 +834,7 @@ async function confirmSelection() {
     title: "温馨提示",
     confirmButtonText: "确认",
     cancelButtonText: "取消",
-    message: `订单金额：¥${totalAmount.value} <br/> 确认提交此方案吗？`,
+    message: `订单金额：¥${totalAmount.value} \n  \n 确认提交此方案吗？`,
   })
     .then(async () => {
       const orderParams = prepareOrderParams();
@@ -1028,7 +1062,28 @@ function adjustPlan() {
   });
 }
 
+// 奖金优化
+function optimizePrize() {
+  if (!canConfirm.value) {
+    showToast("请先选择投注选项");
+    return;
+  }
+
+  // 跳转到奖金优化页面，传递投注数据
+  router.push({
+    path: "/prize-optimize",
+    query: {
+      details: JSON.stringify(betDetails.value),
+      totalAmount: totalAmount.value,
+      betMultiple: betMultiple.value,
+      selectedBetTypes: JSON.stringify(selectedBetTypes.value),
+    },
+  });
+}
+
 onMounted(async () => {
+  isLoading.value = true; // 开始加载
+  
   // 获取用户余额
   try {
     const balanceRes = await API.balanceof();
@@ -1070,6 +1125,8 @@ onMounted(async () => {
     console.error("解析投注数据失败:", error);
     showToast("数据解析失败");
     router.back();
+  } finally {
+    isLoading.value = false; // 加载完成
   }
 });
 </script>
@@ -1116,6 +1173,24 @@ onMounted(async () => {
   padding: 10px;
   flex: 1;
   overflow-y: auto;
+}
+
+/* Loading 容器 */
+.loading-container {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  min-height: 200px;
+  padding: 40px 0;
+}
+
+/* 空状态 */
+.empty-state {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  min-height: 200px;
+  padding: 40px 0;
 }
 
 .bet-item {

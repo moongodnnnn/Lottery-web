@@ -529,18 +529,21 @@ onMounted(async () => {
 
           // 恢复选中状态
           previousBets.forEach(bet => {
-            const betId = `${bet.gameId}-${bet.rateType}-${bet.betId}`;
+            // bet.betId 已经是完整的格式 "gameId-rateType-optionKey"
+            const betId = bet.betId;
 
             // 添加到选中列表
             if (!selectedBets.value.includes(betId)) {
               selectedBets.value.push(betId);
             }
 
-            // 添加到详细信息
+            // 添加到详细信息（直接使用原有的完整数据）
             selectedBetsDetails.value[betId] = {
+              betId: bet.betId,
               gameId: bet.gameId,
               rateType: bet.rateType,
-              optionKey: bet.betId,
+              rateTypeName: bet.rateTypeName,
+              optionKey: bet.optionKey,
               optionName: bet.optionName,
               optionValue: bet.optionValue,
               gameInfo: bet.gameInfo

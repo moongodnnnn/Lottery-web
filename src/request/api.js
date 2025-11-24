@@ -225,6 +225,21 @@ export const API = {
   userAudit(payload) {
     return instance.post("/user/userAudit", payload);
   },
+
+  // 获取支付方式列表
+  getMethods() {
+    return instance.get("/user/getMethods");
+  },
+
+  // 查询支付结果
+  payNotify() {
+    return instance.get("/pay/toNotify");
+  },
+
+  // 在线充值
+  toPay(id, payload) {
+    return instance.post(`/pay/toPay/id/${id}`, payload);
+  },
 };
 
 export default API;

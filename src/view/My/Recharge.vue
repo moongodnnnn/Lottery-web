@@ -64,25 +64,22 @@
       <div class="payment-section">
         <h3 class="section-title">充值方式</h3>
         <van-radio-group v-model="selectedPayment" class="payment-options">
-          <div class="payment-option" :class="{ active: selectedPayment === 'union1' }" @click="selectedPayment = 'union1'">
-            <div  aria-hidden="true">
-              <img src="/icons/bank.png" alt="" class="payment-leading-icon">
+          <div
+            v-for="method in paymentMethods"
+            :key="method.id"
+            class="payment-option"
+            :class="{ active: selectedPayment === method.id }"
+            @click="selectedPayment = method.id"
+          >
+            <div aria-hidden="true">
+              <img :src="method.image" alt="" class="payment-leading-icon" />
             </div>
-            <span class="payment-text">银联快捷1</span>
-            <div class="payment-spacer"></div>
-            <van-radio class="radio-right" name="union1" :checked="selectedPayment === 'union1'">
-              <template #icon="props">
-                <div class="radio-icon" :class="{ checked: props.checked }"></div>
-              </template>
-            </van-radio>
-          </div>
-          <div class="payment-option" :class="{ active: selectedPayment === 'union2' }" @click="selectedPayment = 'union2'">
-            <div  aria-hidden="true">
-              <img src="/icons/bank.png" alt="" class="payment-leading-icon">
+            <div class="payment-info">
+              <span class="payment-text">{{ method.name }}</span>
+              <span class="payment-limit">限额: {{ method.min }}-{{ method.max }}元</span>
             </div>
-            <span class="payment-text">银联快捷2</span>
             <div class="payment-spacer"></div>
-            <van-radio class="radio-right" name="union2" :checked="selectedPayment === 'union2'">
+            <van-radio class="radio-right" :name="method.id" :checked="selectedPayment === method.id">
               <template #icon="props">
                 <div class="radio-icon" :class="{ checked: props.checked }"></div>
               </template>
@@ -102,17 +99,18 @@
 
 <script setup>
 import { ref, onMounted, computed } from "vue";
-import { showToast, Dialog } from "vant";
+import { showToast, showLoadingToast, closeToast, showConfirmDialog } from "vant";
 import { useRouter } from "vue-router";
-import { showConfirmDialog } from "vant";
+import { API } from "../../request/api";
 
 const router = useRouter();
 
 // 充值相关数据
 const rechargeAmount = ref("");
 const selectedQuickAmount = ref(null);
-const selectedPayment = ref("union1");
+const selectedPayment = ref(null);
 const quickAmounts = [12, 27, 93, 245, 357, 985, 1667, 3868];
+const paymentMethods = ref([]);
 
 // 格式化输入金额
 function onAmountInput(e) {
@@ -132,7 +130,7 @@ function selectQuickAmount(amount) {
 }
 
 // 确认充值
-function confirmRecharge() {
+async function confirmRecharge() {
   if (!canSubmit.value) {
     showToast("请输入有效的充值金额");
     return;
@@ -144,16 +142,93 @@ function confirmRecharge() {
     return;
   }
 
+  // 验证充值金额是否在选择的支付方式限额内
+  const selectedMethod = paymentMethods.value.find(m => m.id === selectedPayment.value);
+  if (selectedMethod) {
+    if (amount < selectedMethod.min) {
+      showToast(`充值金额不能少于${selectedMethod.min}元`);
+      return;
+    }
+    if (amount > selectedMethod.max) {
+      showToast(`充值金额不能超过${selectedMethod.max}元`);
+      return;
+    }
+  }
+
   showConfirmDialog({
     title: "确认充值",
-    message: `确认充值 ${amount} 元？\n支付方式：${selectedPayment.value === "union1" ? "银联快捷1" : "银联快捷2"}`,
+    message: `确认充值 ${amount} 元`,
   })
-    .then(() => {
-      // 处理充值逻辑
-      showToast("正在跳转到支付页面...");
-      // 这里可以调用充值API
-      console.log("充值金额:", amount);
-      console.log("支付方式:", selectedPayment.value);
+    .then(async () => {
+      try {
+        showLoadingToast({
+          message: "正在处理...",
+          forbidClick: true,
+          duration: 0,
+        });
+
+        // 调用支付接口
+        const res = await API.toPay(selectedPayment.value, {
+          amount: amount
+        });
+
+        closeToast();
+
+        if (res.code === 1) {
+          // 获取支付链接
+          const paymentUrl = res.data?.qrcode || res.data?.payUrl || res.data?.url;
+          
+          if (paymentUrl) {
+            // 弹窗提示用户确认跳转
+            showConfirmDialog({
+              title: "充值确认",
+              message: `充值金额：¥${amount}\n  \n \n 支付成功后1分钟内到账 \n\n 如未到账联系客服提供支付凭证`,
+              confirmButtonText: "确认",
+              cancelButtonText: "取消",
+            })
+              .then(() => {
+                // 用户点击确认，打开支付链接
+                const payWindow = window.open(paymentUrl, '_blank');
+                
+                if (payWindow) {
+                  showToast({
+                    message: "已打开支付页面",
+                    duration: 2000,
+                  });
+                } else {
+                  // 如果被浏览器拦截，提示用户手动点击
+                  showToast({
+                    message: "请允许弹出窗口以完成支付",
+                    duration: 3000,
+                  });
+                  // 备用方案：直接跳转
+                  setTimeout(() => {
+                    window.location.href = paymentUrl;
+                  }, 1000);
+                }
+                
+                // 清空输入
+                rechargeAmount.value = "";
+                selectedQuickAmount.value = null;
+              })
+              .catch(() => {
+                // 用户点击取消，不做任何操作
+                console.log("用户取消充值");
+              });
+          } else {
+            showToast("充值订单已创建");
+            // 清空输入
+            rechargeAmount.value = "";
+            selectedQuickAmount.value = null;
+          }
+        } else {
+          showToast(res.msg || "充值失败");
+        }
+      } catch (err) {
+        closeToast();
+        console.error("充值失败:", err);
+        showToast(err.message || "充值失败，请稍后重试");
+      }
     })
     .catch(() => {
       // 用户取消
@@ -165,7 +240,21 @@ function onClickLeft() {
 }
 
 onMounted(() => {
-  // 初始化页面数据
+  API.getMethods().then((res) => {
+    if (res.code === 1) {
+      console.log("支付方式列表:", res.data);
+      paymentMethods.value = res.data;
+      // 默认选中第一个支付方式
+      if (res.data && res.data.length > 0) {
+        selectedPayment.value = res.data[0].id;
+      }
+    } else {
+      showToast(res.msg || "获取支付方式失败");
+    }
+  }).catch((err) => {
+    console.error("获取支付方式失败:", err);
+    showToast("获取支付方式失败");
+  });
 });
 </script>
 
@@ -438,10 +527,21 @@ onMounted(() => {
   color: #333;
 }
 
+.payment-info {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.payment-limit {
+  font-size: 0.75rem;
+  color: #999;
+}
+
 /* 左侧图标占位，后续可替换为实际图标背景或 <img> */
 .payment-leading-icon {
   width: 36px;
-  height: 32px;
+  height: 36px;
   border-radius: 6px;
   margin-right: 10px;
 }
