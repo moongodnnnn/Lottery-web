@@ -151,17 +151,29 @@
         <div class="setting-group">
           <span class="setting-label">倍数</span>
           <div class="multiple-controls">
-            <van-button class="control-btn" icon="minus" @click="decreaseMultiple" :disabled="betMultiple <= 1" />
+            <van-button 
+              class="control-btn" 
+              icon="minus" 
+              @click="decreaseMultiple" 
+              :disabled="betMultiple <= 1"
+          
+            />
             <input
               class="multiple-input"
               v-model.number="betMultiple"
               type="number"
               min="1"
-              max="99"
+              max="999"
               @input="onMultipleInput"
               @blur="validateMultiple"
             />
-            <van-button class="control-btn" icon="plus" @click="increaseMultiple" :disabled="betMultiple >= 99" />
+            <van-button 
+              class="control-btn" 
+              icon="plus" 
+              @click="increaseMultiple" 
+              :disabled="betMultiple >= 999"
+        
+            />
           </div>
         </div>
       </div>
@@ -728,7 +740,7 @@ function onMultipleInput(e) {
   } else {
     let num = parseInt(value);
     if (num < 1) num = 1;
-    if (num > 99) num = 99;
+    if (num > 99) num = 999;
     betMultiple.value = num;
   }
 }
@@ -737,10 +749,12 @@ function onMultipleInput(e) {
 function validateMultiple() {
   if (!betMultiple.value || betMultiple.value < 1) {
     betMultiple.value = 1;
-  } else if (betMultiple.value > 99) {
-    betMultiple.value = 99;
+  } else if (betMultiple.value > 999) {
+    betMultiple.value = 999;
   }
 }
+
+
 
 // 显示Banner详情
 function showBannerDetails() {
@@ -1143,6 +1157,8 @@ onMounted(async () => {
   max-width: 430px;
   margin: 0 auto;
   padding-bottom: 110px;
+  /* 防止 Safari 双击缩放 */
+  touch-action: manipulation;
 }
 
 .nav-bar-center-wrap {
@@ -1324,6 +1340,11 @@ onMounted(async () => {
   background: #f8f9fa;
   border: 1px solid #e8e8e8;
   font-weight: 600;
+  /* 防止 Safari 双击缩放 */
+  touch-action: manipulation;
+  user-select: none;
+  -webkit-user-select: none;
+  -webkit-touch-callout: none;
 }
 
 .control-btn:active {
@@ -1337,7 +1358,7 @@ onMounted(async () => {
 }
 
 .multiple-input {
-  width: 50px;
+  width: 58px;
   height: 28px;
   text-align: center;
   font-size: 1rem;

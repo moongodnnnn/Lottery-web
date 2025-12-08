@@ -22,45 +22,51 @@
 
           <div class="lottery-cards">
             <!-- 足球彩票卡片 -->
-            <div class="lottery-card">
+            <div class="lottery-card" @click="goToGame('football')">
               <div class="card-header">
                 <div class="card-title">竞彩足球</div>
-                <div class="card-date">{{ currentDate }}</div>
+                <div class="card-date" v-if="jcResults.zq">{{ jcResults.zq.date }}</div>
               </div>
               <div class="card-content">
                 <div>
                   <span class="stat-label">已开场</span>
-                  <span class="stat-value">0场</span>
+                  <span class="stat-value">{{ jcResults.zq?.open || 0 }}场</span>
                 </div>
 
                 <div>
-                  <span class="stat-value highlight">0胜</span>
-                  <span class="stat-value">0平</span>
-                  <span class="stat-value highlight">0败</span>
+                  <span class="stat-value highlight">{{ jcResults.zq?.res?.s || 0 }}胜</span>
+                  <span class="stat-value">{{ jcResults.zq?.res?.p || 0 }}平</span>
+                  <span class="stat-value highlight">{{ jcResults.zq?.res?.f || 0 }}败</span>
                 </div>
               </div>
-              <div class="stat-item">今日暂无开奖比赛</div>
+              <div class="stat-item" v-if="jcResults.zq?.last">
+                {{ jcResults.zq.last.xuhao }} {{ jcResults.zq.last.home }} VS {{ jcResults.zq.last.guest }}
+              </div>
+              <div class="stat-item" v-else>今日暂无开奖比赛</div>
             </div>
 
             <!-- 篮球彩票卡片 -->
-            <div class="lottery-card">
+            <div class="lottery-card" @click="goToGame('basketball')">
               <div class="card-header">
                 <div class="card-title">竞彩篮球</div>
-                <div class="card-date">{{ currentDate }}</div>
+                <div class="card-date" v-if="jcResults.lq">{{ jcResults.lq.date }}</div>
               </div>
               <div class="card-content">
                 <div>
                   <span class="stat-label">已开场</span>
-                  <span class="stat-value">0场</span>
+                  <span class="stat-value">{{ jcResults.lq?.open || 0 }}场</span>
                 </div>
 
                 <div>
-                  <span class="stat-value highlight">0胜</span>
-                  <span class="stat-value">0平</span>
-                  <span class="stat-value highlight">0败</span>
+                  <span class="stat-value highlight">{{ jcResults.lq?.res?.s || 0 }}胜</span>
+                  <span class="stat-value">{{ jcResults.lq?.res?.p || 0 }}平</span>
+                  <span class="stat-value highlight">{{ jcResults.lq?.res?.f || 0 }}败</span>
                 </div>
               </div>
-              <div class="stat-item">今日暂无开奖比赛</div>
+              <div class="stat-item" v-if="jcResults.lq?.last">
+                {{ jcResults.lq.last.xuhao }} {{ jcResults.lq.last.home }} VS {{ jcResults.lq.last.guest }}
+              </div>
+              <div class="stat-item" v-else>今日暂无开奖比赛</div>
             </div>
           </div>
         </van-tab>
@@ -72,7 +78,7 @@
 
           <div class="lottery-cards">
             <!-- 超级大乐透 -->
-            <div class="lottery-card">
+            <div class="lottery-card" @click="goToDetail('loto')">
               <div class="card-header">
                 <div class="card-title">超级大乐透</div>
                 <div class="card-date" v-if="lotteryResults.loto">
@@ -99,7 +105,7 @@
             </div>
 
             <!-- 排列三 -->
-            <div class="lottery-card">
+            <div class="lottery-card" @click="goToDetail('pl3')">
               <div class="card-header">
                 <div class="card-title">排列三</div>
                 <div class="card-date">第{{ lotteryResults.pl3.phase }}期 {{ lotteryResults.pl3.date }}</div>
@@ -113,7 +119,7 @@
             </div>
 
             <!-- 排列五 -->
-            <div class="lottery-card">
+            <div class="lottery-card" @click="goToDetail('pl5')">
               <div class="card-header">
                 <div class="card-title">排列五</div>
                 <div class="card-date">第{{ lotteryResults.pl5.phase }}期 {{ lotteryResults.pl5.date }}</div>
@@ -126,7 +132,7 @@
             </div>
 
             <!-- 七星彩 -->
-            <div class="lottery-card">
+            <div class="lottery-card" @click="goToDetail('qxc')">
               <div class="card-header">
                 <div class="card-title">七星彩</div>
                 <div class="card-date">第{{ lotteryResults.qxc.phase }}期 {{ lotteryResults.qxc.date }}</div>
@@ -152,7 +158,20 @@ import { API } from "../../request/api";
 
 const router = useRouter();
 const active = ref(0);
-
+const jcResults = ref({
+  zq: {
+    date: '',
+    open: 0,
+    res: { s: 0, p: 0, f: 0 },
+    last: null
+  },
+  lq: {
+    date: '',
+    open: 0,
+    res: { s: 0, p: 0, f: 0 },
+    last: null
+  }
+});
 // 获取当前日期并格式化为 "YYYY-MM-DD 星期几" 的形式
 const currentDate = computed(() => {
   const now = new Date();
@@ -190,9 +209,45 @@ const lotteryResults = ref({
   },
 });
 
+// 跳转到详情页面
+const goToDetail = (type) => {
+  const phase = lotteryResults.value[type]?.phase;
+  if (!phase) {
+    showToast('期数信息缺失');
+    return;
+  }
+  
+  router.push({
+    path: '/lottery-detail',
+    query: {
+      type: type,
+      phase: phase
+    }
+  });
+};
+
+// 跳转到游戏页面
+const goToGame = (type) => {
+  router.push({
+    path: '/game',
+    query: {
+      type: type
+    }
+  });
+};
 
 onMounted(async () => {
   try {
+
+    const jcRes = await API.jclottery();
+    if (jcRes.code === 1) {
+      jcResults.value = jcRes.data; 
+    } else {
+      showToast(jcRes.msg || "获取竞彩信息失败"); 
+    }
+
+
+
     const lotRes = await API.lotteryloto("all"); 
     if (lotRes.code === 1) {
       lotteryResults.value = lotRes.data; 
@@ -304,6 +359,13 @@ function onClickLeft() {
   background-color: #fff;
   border-radius: 10px;
   padding: 10px;
+  cursor: pointer;
+  transition: transform 0.2s, box-shadow 0.2s;
+}
+
+.lottery-card:active {
+  transform: scale(0.98);
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
 }
 
 .card-header {
@@ -328,7 +390,7 @@ function onClickLeft() {
 
 .card-content {
   background-color: #f4f5f9;
-  padding: 6px 10px;
+  padding: 6px;
   border-radius: 6px;
   font-size: 12px;
   margin-bottom: 10px;

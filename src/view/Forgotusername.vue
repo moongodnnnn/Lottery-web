@@ -35,7 +35,7 @@
 
 <script setup>
 import { ref, onBeforeUnmount, onMounted, computed } from "vue";
-import { showToast } from "vant";
+import { showToast, showDialog } from "vant";
 import { useRouter } from "vue-router";
 import { API } from "../request/api";
 
@@ -61,9 +61,11 @@ function onSubmit() {
   })
     .then((res) => {
       if (res.code == 1) {
-        localStorage.setItem("token", res.data.token);
-        localStorage.setItem("user", JSON.stringify(res.data.user));
-        router.push("/home");
+        showDialog({
+          message: "您的用户名为：" + res.data.user[0].username,
+          showCancelButton: false,
+          confirmButtonText: "确定",
+        }).then(() => {});
       } else {
         showToast(res.msg || "找回用户名失败");
       }

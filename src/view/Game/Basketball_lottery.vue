@@ -233,34 +233,105 @@
     </van-popup>
 
     <!-- 规则说明弹窗 -->
-    <van-popup v-model:show="showRule" position="bottom" :style="{ height: '70%', maxWidth: '430px', left: '50%', transform: 'translateX(-50%)' }" round closeable>
-      <div class="rule-content">
-        <div class="rule-title">竞彩篮球玩法说明</div>
-        <div class="rule-body">
-          <div class="rule-section">
-            <div class="rule-section-title">胜负玩法</div>
-            <div class="rule-text">竞猜主队和客队的胜负关系，主胜或客胜。</div>
-          </div>
+    <van-popup
+      v-model:show="showRule"
+      position="bottom"
+      :style="{ height: '80%', maxWidth: '430px', left: '50%', transform: 'translateX(-50%)', borderRadius: '20px 20px 0 0' }"
+      closeable
+    >
+      <div class="rule-popup-content">
+        <div class="rule-popup-header">
+          <h3>竞彩篮球玩法介绍</h3>
+        </div>
+        
+        <div class="rule-popup-body">
+          <h4>基本规则</h4>
+          <p>篮球比赛由两支队伍在专用篮球场地竞赛，每队5名队员在场上比赛。</p>
+          <p>比赛分为4节，每节12分钟（NBA）或10分钟（FIBA），中场休息后进行下半场比赛。</p>
+          <p>竞彩篮球彩票竞猜的比赛结果为全场比赛（含加时赛）结束后的结果。</p>
 
-          <div class="rule-section">
-            <div class="rule-section-title">让分胜负玩法</div>
-            <div class="rule-text">竞猜让分后主队和客队的胜负关系。让分数由官方指定，主队得分减去让分数后与客队得分比较，得分高者为胜。</div>
-          </div>
+          <h4>胜负玩法</h4>
+          <p>竞猜主队和客队的胜负关系，只有两个选项：</p>
+          <ul>
+            <li><strong>主胜</strong>：主队得分高于客队</li>
+            <li><strong>客胜</strong>：客队得分高于主队</li>
+          </ul>
+          <p class="tip-note">注：篮球比赛不存在平局，必有胜负。</p>
 
-          <div class="rule-section">
-            <div class="rule-section-title">大小分玩法</div>
-            <div class="rule-text">竞猜双方总得分是否超过官方指定的预设总分。总得分大于预设总分为"大分"，小于预设总分为"小分"。</div>
-          </div>
+          <h4>让分胜负玩法</h4>
+          <p>当两支球队实力悬殊较大时，采取让分的方式平衡双方胜负关系。让分数由官方指定并维持不变。</p>
+          <p><strong>计算方式：</strong>主队得分 - 让分数 与 客队得分 进行比较</p>
+          
+          <h5>主队让分示例</h5>
+          <p>假设主队让5.5分：</p>
+          <ul>
+            <li>主队胜出6分或以上 → 让分后主队胜</li>
+            <li>主队胜出5分或以下 → 让分后客队胜</li>
+            <li>客队获胜任意分数 → 让分后客队胜</li>
+          </ul>
 
-          <div class="rule-section">
-            <div class="rule-section-title">胜分差玩法</div>
-            <div class="rule-text">竞猜主队获胜的分差范围或客队获胜的分差范围。分差范围包括：1-5分、6-10分、11-15分、16-20分、21-25分、26分及以上。</div>
-          </div>
+          <h5>客队让分示例</h5>
+          <p>假设客队让3.5分：</p>
+          <ul>
+            <li>客队胜出4分或以上 → 让分后客队胜</li>
+            <li>客队胜出3分或以下 → 让分后主队胜</li>
+            <li>主队获胜任意分数 → 让分后主队胜</li>
+          </ul>
 
-          <div class="rule-section">
-            <div class="rule-section-title">串关说明</div>
-            <div class="rule-text">可以选择多场比赛进行串关投注，最少2场，最多8场。串关方式包括2串1、3串1、4串1等多种组合。</div>
-          </div>
+          <h4>大小分玩法</h4>
+          <p>竞猜双方全场总得分是否超过官方指定的预设总分值。</p>
+          <p><strong>计算方式：</strong>主队得分 + 客队得分 = 总得分</p>
+          <ul>
+            <li><strong>大分</strong>：总得分 > 预设总分</li>
+            <li><strong>小分</strong>：总得分 < 预设总分</li>
+          </ul>
+          
+          <h5>示例说明</h5>
+          <p>预设总分为 200.5 分：</p>
+          <ul>
+            <li>比赛结果 105:96，总分201分 → 大分</li>
+            <li>比赛结果 98:95，总分193分 → 小分</li>
+          </ul>
+
+          <h4>胜分差玩法</h4>
+          <p>竞猜获胜球队及其获胜的具体分差范围。共有12个选项：</p>
+          
+          <h5>主队胜分差选项</h5>
+          <ul>
+            <li>主胜 1-5 分</li>
+            <li>主胜 6-10 分</li>
+            <li>主胜 11-15 分</li>
+            <li>主胜 16-20 分</li>
+            <li>主胜 21-25 分</li>
+            <li>主胜 26 分及以上</li>
+          </ul>
+
+          <h5>客队胜分差选项</h5>
+          <ul>
+            <li>客胜 1-5 分</li>
+            <li>客胜 6-10 分</li>
+            <li>客胜 11-15 分</li>
+            <li>客胜 16-20 分</li>
+            <li>客胜 21-25 分</li>
+            <li>客胜 26 分及以上</li>
+          </ul>
+
+          <h4>混合过关说明</h4>
+          <p>可以选择多场比赛、多种玩法进行组合投注：</p>
+          <ul>
+            <li><strong>场次要求</strong>：最少2场，最多8场</li>
+            <li><strong>玩法组合</strong>：可以混合胜负、让分胜负、大小分等不同玩法</li>
+            <li><strong>串关方式</strong>：2串1、3串1、4串1、5串1等多种组合</li>
+            <li><strong>奖金计算</strong>：各场比赛赔率相乘，再乘以投注金额</li>
+          </ul>
+
+          <h4>温馨提示</h4>
+          <ul>
+            <li>所有玩法均以全场比赛（含加时赛）结束后的结果为准</li>
+            <li>让分数、预设总分一旦确定将维持不变</li>
+            <li>请理性购彩，量力而行</li>
+            <li>未成年人不得购买彩票</li>
+          </ul>
         </div>
       </div>
     </van-popup>
@@ -379,7 +450,6 @@ const loadMorePlayRates = async (gameId) => {
   try {
     const res = await API.gamesRate(gameId);
     if (res.code === 1 && res.data) {
-      // 将对象转换为数组，并过滤掉已在主界面显示的玩法（胜负6、让分胜负7、大小分9）
       const ratesArray = Object.values(res.data).filter(
         (rate) => rate.rate_type !== "6" && rate.rate_type !== "7" && rate.rate_type !== "9"
       );
@@ -1098,44 +1168,89 @@ onMounted(async () => {
 
 
 
-.rule-content {
-  padding: 20px;
+
+/* 规则说明弹窗样式 */
+.rule-popup-content {
   height: 100%;
-  overflow-y: auto;
+  display: flex;
+  flex-direction: column;
+  background: white;
 }
 
-.rule-title {
-  font-size: 1.2rem;
+.rule-popup-header {
+  padding: 16px;
+  border-bottom: 1px solid #f0f0f0;
+}
+
+.rule-popup-header h3 {
+  margin: 0;
+  font-size: 1.1rem;
   font-weight: 600;
   color: #333;
   text-align: center;
-  margin-bottom: 20px;
 }
 
-.rule-body {
-  display: flex;
-  flex-direction: column;
-  gap: 16px;
+.rule-popup-body {
+  flex: 1;
+  overflow-y: auto;
+  padding: 20px;
+  line-height: 1.8;
+  color: #333;
 }
 
-.rule-section {
-  background: #f8f8f8;
-  padding: 12px;
-  border-radius: 8px;
+.rule-popup-body h4 {
+  font-size: 1rem;
+  font-weight: 600;
+  color: #333;
+  margin: 20px 0 10px 0;
+  padding-bottom: 8px;
+  border-bottom: 1px solid #f0f0f0;
 }
 
-.rule-section-title {
+.rule-popup-body h4:first-child {
+  margin-top: 0;
+}
+
+.rule-popup-body h5 {
   font-size: 0.95rem;
   font-weight: 600;
-  color: #fc3c3c;
-  margin-bottom: 8px;
+  color: #666;
+  margin: 16px 0 8px 0;
 }
 
-.rule-text {
-  font-size: 0.85rem;
+.rule-popup-body p {
+  margin: 8px 0;
+  font-size: 0.9rem;
   color: #666;
-  line-height: 1.6;
+}
+
+.rule-popup-body ul {
+  margin: 8px 0;
+  padding-left: 20px;
+}
+
+.rule-popup-body ul li {
+  margin: 6px 0;
+  font-size: 0.9rem;
+  color: #666;
+  list-style-type: disc;
+}
+
+.rule-popup-body strong {
+  color: #333;
+  font-weight: 600;
+}
+
+.tip-note {
+  background: #fff3e0;
+  padding: 8px 12px;
+  border-radius: 4px;
+  color: #e65100;
+  font-size: 0.85rem;
+  margin: 8px 0;
 }
 </style>
+
+
 
 

@@ -724,7 +724,7 @@ function prepareOrderParams() {
     amount: parseFloat(totalAmount.value),
     bell_all: bell_all,
     bill_nums: betMultiple.value,
-    cate_id: 60, // 篮球彩票（根据后端定义，可能需要调整）
+    cate_id: 2,
     games: games,
     max_price: maxPrize,
     multi: betMultiple.value,

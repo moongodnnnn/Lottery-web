@@ -186,6 +186,44 @@
         </div>
       </div>
 
+      <!-- 优化方案 -->
+      <div class="info-card" v-if="orderDetail.is_opt === 1 && orderDetail.opt_values && orderDetail.opt_values.length > 0">
+        <div class="card-header">
+          <div class="card-title">优化方案分配</div>
+        </div>
+        <div class="optimization-table">
+          <table>
+            <thead>
+              <tr>
+                <th>方案</th>
+                <th>投注组合</th>
+                <th>总赔率</th>
+                <th>倍数</th>
+                <th>预计奖金</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr v-for="(scheme, index) in orderDetail.opt_values" :key="index">
+                <td class="scheme-number">方案{{ index + 1 }}</td>
+                <td class="bet-combination">
+                  <div class="combination-text">
+                    <span v-for="(item, idx) in scheme.list" :key="idx" class="combo-item">
+                      <span class="team-name">{{ item.game?.home_team_name || '' }}</span>
+                      <span class="bet-type">{{ item.name }}</span>
+                      <span class="odds-value">@{{ item.val }}</span>
+                      <span v-if="idx < scheme.list.length - 1" class="separator"> + </span>
+                    </span>
+                  </div>
+                </td>
+                <td class="total-odds">{{ scheme.pl }}</td>
+                <td class="multiples">{{ scheme.multi }}倍</td>
+                <td class="expected-prize">{{ calculatePrize(scheme) }}元</td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+
       <!-- 订单信息和店铺信息 -->
       <div class="info-card">
         <div class="info-row">
@@ -237,8 +275,8 @@ const orderDetail = ref(null);
 // 判断是否为数字彩票
 const isDigitalLottery = computed(() => {
   if (!orderDetail.value) return false;
-  // cate_id: 6=排列三, 5=大乐透, 7=排列五
-  return [5, 6, 7].includes(orderDetail.value.cate_id);
+  // cate_id: 5=大乐透, 6=排列三, 7=排列五, 8=七星彩
+  return [5, 6, 7, 8].includes(orderDetail.value.cate_id);
 });
 
 // 获取排列三的 odds 数据
@@ -364,6 +402,14 @@ function formatRules(rules) {
   if (!rules) return "未知";
   // 将 "3#1" 格式转换为 "3串1" 格式
   return rules.replace("#", "串");
+}
+
+// 计算优化方案的预计奖金
+function calculatePrize(scheme) {
+  if (!scheme || !scheme.multi || !scheme.pl) return '0.00';
+  // 预计奖金 = 倍数 × 2元 × 总赔率
+  const prize = parseFloat(scheme.multi) * 2 * parseFloat(scheme.pl);
+  return prize.toFixed(2);
 }
 
 function goBack() {
@@ -778,5 +824,108 @@ function goBack() {
   color: #fc3c3c;
   font-weight: 600;
 }
+
+/* 优化方案表格样式 */
+.optimization-table {
+  margin-top: 12px;
+  overflow-x: auto;
+}
+
+.optimization-table table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 0.8rem;
+  background: #fff;
+}
+
+.optimization-table thead {
+  background: #f8f8f8;
+}
+
+.optimization-table th {
+  padding: 10px 6px;
+  text-align: center;
+  font-weight: 600;
+  color: #333;
+  border-bottom: 2px solid #e0e0e0;
+  white-space: nowrap;
+  font-size: 0.75rem;
+}
+
+.optimization-table td {
+  padding: 12px 6px;
+  text-align: center;
+  border-bottom: 1px solid #f0f0f0;
+  vertical-align: middle;
+}
+
+.optimization-table tbody tr:last-child td {
+  border-bottom: none;
+}
+
+.scheme-number {
+  font-weight: 600;
+  color: #fc3c3c;
+  white-space: nowrap;
+}
+
+.bet-combination {
+  text-align: left;
+  max-width: 200px;
+}
+
+.combination-text {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 4px;
+  align-items: center;
+}
+
+.combo-item {
+  display: inline-flex;
+  align-items: center;
+  gap: 3px;
+  font-size: 0.7rem;
+  line-height: 1.4;
+}
+
+.team-name {
+  color: #333;
+  font-weight: 500;
+}
+
+.bet-type {
+  color: #fc3c3c;
+  font-weight: 600;
+}
+
+.odds-value {
+  color: #666;
+  font-size: 0.65rem;
+}
+
+.separator {
+  color: #999;
+  margin: 0 2px;
+}
+
+.total-odds {
+  color: #1e90ff;
+  font-weight: 600;
+  white-space: nowrap;
+}
+
+.multiples {
+  color: #fc3c3c;
+  font-weight: 600;
+  white-space: nowrap;
+}
+
+.expected-prize {
+  color: #ff8c00;
+  font-weight: 600;
+  white-space: nowrap;
+}
+
 </style>
 

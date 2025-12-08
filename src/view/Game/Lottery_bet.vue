@@ -523,10 +523,10 @@ function prepareOrderParams() {
   // 数字彩票
   if (isDigitalLottery.value) {
     const lotteryTypeMap = {
-      'pl3': 6,       // 排列3
-      'pl5': 7,       // 排列5
+      'pl3': 6,         // 排列3
+      'pl5': 7,         // 排列5
       'seven_stars': 8, // 七星彩
-      'daletou': 5    // 大乐透
+      'daletou': 5      // 大乐透
     };
 
     // 处理 odds 参数格式
@@ -582,7 +582,7 @@ function prepareOrderParams() {
     amount: parseFloat(totalAmount.value),
     bell_all: bell_all,
     bill_nums: betMultiple.value,
-    cate_id: 3, 
+    cate_id: 1, // 足球彩票
     games: games,
     max_price: maxPrize,
     multi: betMultiple.value,

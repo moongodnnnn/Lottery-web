@@ -11,21 +11,14 @@
     </div>
     <div style="height: 1px; background-color: #f5f5f5"></div>
 
-
-    <!-- 计划购买金额 -->
+    <!-- 计划购买倍数 -->
     <div class="amount-input-section">
-      <span class="amount-label">计划购买金额</span>
+      <span class="amount-label">计划购买倍数</span>
       <div class="amount-controls">
         <van-button class="control-btn" icon="minus" @click="decreaseAmount" />
-        <input
-          class="amount-input"
-          v-model.number="totalAmount"
-          type="number"
-          min="10"
-          @input="onAmountInput"
-        />
+        <input class="amount-input" v-model.number="totalMultiple" type="number" min="1" @input="onAmountInput" />
         <van-button class="control-btn" icon="plus" @click="increaseAmount" />
-        <span class="amount-unit">元</span>
+        <span class="amount-unit">倍</span>
       </div>
     </div>
 
@@ -54,31 +47,16 @@
         <div class="col-scheme">
           <div class="scheme-matches">
             <div v-for="(item, i) in bet.bets" :key="i" class="scheme-item">
-              {{ item.gameInfo?.home_team_name || '主队' }}
+              {{ item.gameInfo?.home_team_name || "主队" }}
               <span class="option-tag">{{ getDisplayOptionName(item) }}</span>
             </div>
           </div>
         </div>
         <div class="col-multiple">
           <div class="multiple-controls">
-            <van-button
-              class="mini-btn"
-              icon="minus"
-              @click="decreaseMultiple(index)"
-              :disabled="bet.multiple <= 1"
-            />
-            <input
-              class="multiple-input"
-              v-model.number="bet.multiple"
-              type="number"
-              min="1"
-              @input="onMultipleInput(index, $event)"
-            />
-            <van-button
-              class="mini-btn"
-              icon="plus"
-              @click="increaseMultiple(index)"
-            />
+            <van-button class="mini-btn" icon="minus" @click="decreaseMultiple(index)" :disabled="bet.multiple <= 1" />
+            <input class="multiple-input" v-model.number="bet.multiple" type="number" min="1" @input="onMultipleInput(index, $event)" />
+            <van-button class="mini-btn" icon="plus" @click="increaseMultiple(index)" />
           </div>
         </div>
         <div class="col-prize">{{ bet.estimatedPrize }}元</div>
@@ -88,30 +66,32 @@
     <!-- 底部操作栏 -->
     <div class="bottom-bar">
       <div class="total-info">
-        <span class="total-label">金额</span>
-        <span class="total-amount">{{ calculateTotalAmount() }}</span>
-        <span class="total-unit">元</span>
+        <div class="info-item">
+          <span class="info-label">共</span>
+          <span class="info-value">{{ getTotalBets() }}</span>
+          <span class="info-label">注</span>
+        </div>
+        <div class="info-divider">|</div>
+        <div class="info-item">
+          <span class="info-value highlight">{{ calculateTotalAmount() }}</span>
+          <span class="info-label">元</span>
+        </div>
       </div>
       <div class="action-buttons">
-        <van-button class="save-btn" @click="onClickLeft">取消</van-button>
         <van-button class="next-btn" type="primary" @click="confirmOptimize">确认下单</van-button>
       </div>
     </div>
 
     <!-- 倍数选择器弹窗 -->
     <van-popup v-model:show="showMultiplePopup" position="bottom" round>
-      <van-picker
-        :columns="multipleColumns"
-        @confirm="onMultipleConfirm"
-        @cancel="showMultiplePopup = false"
-      />
+      <van-picker :columns="multipleColumns" @confirm="onMultipleConfirm" @cancel="showMultiplePopup = false" />
     </van-popup>
 
     <!-- 帮助说明弹窗 -->
     <van-popup v-model:show="showHelp" position="bottom" round :style="{ padding: '20px', maxHeight: '70vh' }">
       <div class="help-content">
-        <h3 style="text-align: center; margin-bottom: 16px;">奖金优化说明</h3>
-        
+        <h3 style="text-align: center; margin-bottom: 16px">奖金优化说明</h3>
+
         <div class="help-section">
           <h4>平均优化</h4>
           <p>将投注金额平均分配到所有投注组合上，无论哪个结果命中，获得的奖金都相对稳定。适合稳健型投资者。</p>
@@ -127,9 +107,7 @@
           <p>将更多资金投注到赔率较高（冷门）的选项上，追求高额奖金回报，但风险较大。适合风险偏好型投资者。</p>
         </div>
 
-        <van-button block type="primary" @click="showHelp = false" style="margin-top: 20px;">
-          我知道了
-        </van-button>
+        <van-button block type="primary" @click="showHelp = false" style="margin-top: 20px"> 我知道了 </van-button>
       </div>
     </van-popup>
   </div>
@@ -146,7 +124,7 @@ const route = useRoute();
 
 // 数据
 const betDetails = ref([]);
-const totalAmount = ref('');
+const totalMultiple = ref("");
 const betMultiple = ref(1);
 const selectedBetTypes = ref([]);
 const optimizeType = ref("average");
@@ -176,7 +154,8 @@ const groupedBets = computed(() => {
 // 获取显示的选项名称
 function getDisplayOptionName(bet) {
   if (bet.rateType === "2") {
-    return `${bet.optionName}`;
+    // 让球胜平负，加上"让"字
+    return `让${bet.optionName}`;
   }
   return bet.optionName;
 }
@@ -202,30 +181,30 @@ const optimizedBets = computed(() => {
 
 // 生成所有投注组合
 function generateAllCombinations() {
-  const gamesBets = Object.values(groupedBets.value).map(game => game.bets);
-  
+  const gamesBets = Object.values(groupedBets.value).map((game) => game.bets);
+
   function cartesian(arrays) {
     if (arrays.length === 0) return [[]];
-    if (arrays.length === 1) return arrays[0].map(item => [item]);
-    
+    if (arrays.length === 1) return arrays[0].map((item) => [item]);
+
     const result = [];
     const [first, ...rest] = arrays;
     const restProduct = cartesian(rest);
-    
-    first.forEach(item => {
-      restProduct.forEach(combo => {
+
+    first.forEach((item) => {
+      restProduct.forEach((combo) => {
         result.push([item, ...combo]);
       });
     });
-    
+
     return result;
   }
-  
+
   const combinations = cartesian(gamesBets);
-  
-  return combinations.map(combo => {
+
+  return combinations.map((combo) => {
     const totalOdds = combo.reduce((acc, bet) => acc * parseFloat(bet.optionValue), 1);
-    
+
     return {
       bets: combo,
       totalOdds,
@@ -237,72 +216,166 @@ function generateAllCombinations() {
 // 计算优化后的投注分配
 function calculateOptimizedBets(combinations) {
   if (combinations.length === 0) return [];
-  
+
   const perBetAmount = 2; // 每注基础金额2元
-  let totalBets = totalAmount.value / perBetAmount;
-  
+  let totalBets = totalMultiple.value; // 直接使用倍数
+
   let optimized = [];
-  
-  if (optimizeType.value === 'average') {
-    // 平均优化：每注倍数相同
-    const avgMultiple = Math.floor(totalBets / combinations.length);
-    optimized = combinations.map(combo => ({
-      ...combo,
-      multiple: avgMultiple > 0 ? avgMultiple : 1,
-      estimatedPrize: (perBetAmount * (avgMultiple > 0 ? avgMultiple : 1) * combo.totalOdds).toFixed(2),
-    }));
-  } else if (optimizeType.value === 'hot') {
-    // 博热优化：赔率越低，倍数越多
-    const totalInverseOdds = combinations.reduce((sum, combo) => sum + (1 / combo.totalOdds), 0);
-    
-    optimized = combinations.map(combo => {
-      const weight = (1 / combo.totalOdds) / totalInverseOdds;
-      const multiple = Math.max(1, Math.floor(totalBets * weight));
+
+  if (optimizeType.value === "average") {
+    // 平均优化：让所有方案的预计奖金相同
+    // 预计奖金 = 倍数 × 2元 × 赔率
+    // 要使奖金相同，倍数应该与赔率成反比
+
+    // 找出最高赔率
+    const maxOdds = Math.max(...combinations.map((c) => c.totalOdds));
+
+    // 计算每个方案需要的倍数比例（赔率越低需要的倍数越高）
+    const oddsRatios = combinations.map((combo) => maxOdds / combo.totalOdds);
+    const totalRatio = oddsRatios.reduce((sum, ratio) => sum + ratio, 0);
+
+    // 按比例分配总倍数（先用 floor）
+    optimized = combinations.map((combo, index) => {
+      const ratio = oddsRatios[index] / totalRatio;
+      const multiple = Math.floor(totalBets * ratio);
       return {
         ...combo,
-        multiple,
-        estimatedPrize: (perBetAmount * multiple * combo.totalOdds).toFixed(2),
+        multiple: Math.max(1, multiple),
+        estimatedPrize: 0,
       };
     });
-  } else if (optimizeType.value === 'cold') {
-    // 博冷优化：赔率越高，倍数越多
-    const totalOdds = combinations.reduce((sum, combo) => sum + combo.totalOdds, 0);
+
+    // 计算已分配的倍数
+    let allocatedMultiple = optimized.reduce((sum, bet) => sum + bet.multiple, 0);
     
-    optimized = combinations.map(combo => {
-      const weight = combo.totalOdds / totalOdds;
-      const multiple = Math.max(1, Math.floor(totalBets * weight));
+    // 如果还有剩余倍数，分配给赔率最低（需要倍数最多）的方案
+    if (allocatedMultiple < totalBets) {
+      const remaining = totalBets - allocatedMultiple;
+      const maxRatioIndex = oddsRatios.indexOf(Math.max(...oddsRatios));
+      optimized[maxRatioIndex].multiple += remaining;
+    }
+    
+    // 更新预计奖金
+    optimized.forEach(bet => {
+      bet.estimatedPrize = (perBetAmount * bet.multiple * bet.totalOdds).toFixed(2);
+    });
+
+  } else if (optimizeType.value === "hot") {
+    // 博热优化：保本策略
+    // 目标：所有非热门方案各自保本，剩余全部倍数给热门方案追求高回报
+    
+    const totalInvestment = totalBets * perBetAmount; // 总投入金额
+    
+    // 找出赔率最低的方案（热门）
+    const minOdds = Math.min(...combinations.map(c => c.totalOdds));
+    const hotIndex = combinations.findIndex(c => c.totalOdds === minOdds);
+    
+    // 计算所有非热门方案各自保本所需的倍数
+    let totalNeededForOthers = 0;
+    const multipleMap = new Map();
+    
+    combinations.forEach((combo, index) => {
+      if (index !== hotIndex) {
+        // 非热门方案：计算保本所需倍数
+        const neededMultiple = Math.ceil(totalInvestment / (perBetAmount * combo.totalOdds));
+        multipleMap.set(index, neededMultiple);
+        totalNeededForOthers += neededMultiple;
+      }
+    });
+    
+    // 热门方案获得剩余所有倍数
+    const hotMultiple = Math.max(1, totalBets - totalNeededForOthers);
+    multipleMap.set(hotIndex, hotMultiple);
+    
+    console.log('博热优化:', `总投入${totalInvestment}元, 热门方案获得${hotMultiple}倍, 其他方案保本共需${totalNeededForOthers}倍`);
+    
+    // 分配倍数
+    optimized = combinations.map((combo, index) => {
       return {
         ...combo,
-        multiple,
-        estimatedPrize: (perBetAmount * multiple * combo.totalOdds).toFixed(2),
+        multiple: multipleMap.get(index) || 1,
+        estimatedPrize: 0,
       };
+    });
+    
+    // 更新预计奖金
+    optimized.forEach(bet => {
+      bet.estimatedPrize = (perBetAmount * bet.multiple * bet.totalOdds).toFixed(2);
+    });
+    
+  } else if (optimizeType.value === "cold") {
+    // 博冷优化：保本策略
+    // 目标：所有非冷门方案各自保本，剩余全部倍数给冷门方案追求高回报
+    
+    const totalInvestment = totalBets * perBetAmount; // 总投入金额
+    
+    // 找出赔率最高的方案（冷门）
+    const maxOdds = Math.max(...combinations.map(c => c.totalOdds));
+    const coldIndex = combinations.findIndex(c => c.totalOdds === maxOdds);
+    
+    // 计算所有非冷门方案各自保本所需的倍数
+    let totalNeededForOthers = 0;
+    const multipleMap = new Map();
+    
+    combinations.forEach((combo, index) => {
+      if (index !== coldIndex) {
+        // 非冷门方案：计算保本所需倍数
+        const neededMultiple = Math.ceil(totalInvestment / (perBetAmount * combo.totalOdds));
+        multipleMap.set(index, neededMultiple);
+        totalNeededForOthers += neededMultiple;
+      }
+    });
+    
+    // 冷门方案获得剩余所有倍数
+    const coldMultiple = Math.max(1, totalBets - totalNeededForOthers);
+    multipleMap.set(coldIndex, coldMultiple);
+    
+    console.log('博冷优化:', `总投入${totalInvestment}元, 冷门方案获得${coldMultiple}倍, 其他方案保本共需${totalNeededForOthers}倍`);
+    
+    // 分配倍数
+    optimized = combinations.map((combo, index) => {
+      return {
+        ...combo,
+        multiple: multipleMap.get(index) || 1,
+        estimatedPrize: 0,
+      };
+    });
+    
+    // 更新预计奖金
+    optimized.forEach(bet => {
+      bet.estimatedPrize = (perBetAmount * bet.multiple * bet.totalOdds).toFixed(2);
     });
   }
-  
+
   return optimized;
+}
+
+// 计算总注数
+function getTotalBets() {
+  return optimizedBets.value.length;
 }
 
 // 计算总金额
 function calculateTotalAmount() {
-  const total = optimizedBets.value.reduce((sum, bet) => sum + (bet.multiple * 2), 0);
-  return total + ' ';
+  const total = optimizedBets.value.reduce((sum, bet) => sum + bet.multiple * 2, 0);
+  return total + " ";
 }
 
-// 金额调整
+// 倍数调整
 function decreaseAmount() {
-  if (totalAmount.value > 10) {
-    totalAmount.value -= 2;
+  if (totalMultiple.value > 1) {
+    totalMultiple.value -= 1;
   }
 }
 
 function increaseAmount() {
-  totalAmount.value += 2;
+  totalMultiple.value += 1;
 }
 
 function onAmountInput(e) {
   let value = e.target.value;
-  if (value < 10) {
-    totalAmount.value = 10;
+  if (value < 1) {
+    totalMultiple.value = 1;
   }
 }
 
@@ -345,7 +418,7 @@ function saveOptimize() {
 // 确认优化方案（下单）
 async function confirmOptimize() {
   const calculatedTotalAmount = calculateTotalAmount().trim();
-  
+
   // 检查余额是否充足
   if (userBalance.value < parseFloat(calculatedTotalAmount)) {
     showDialog({
@@ -471,7 +544,7 @@ function prepareOrderParams() {
   const totalNums = optimizedBets.value.reduce((sum, bet) => sum + bet.multiple, 0);
 
   // 8. 计算总金额
-  const totalAmountValue = optimizedBets.value.reduce((sum, bet) => sum + (bet.multiple * 2), 0);
+  const totalAmountValue = optimizedBets.value.reduce((sum, bet) => sum + bet.multiple * 2, 0);
 
   // 9. 生成 odds_value（每场比赛每种玩法的赔率）
   const odds_value = generateOddsValue();
@@ -514,17 +587,17 @@ function convertBetTypeToRules(betType) {
 // 规则：比赛id-玩法类型-选项索引: 赔率值
 function generateOddsValue() {
   const oddsValue = {};
-  
+
   betDetails.value.forEach((bet) => {
     // 构建 key: gameId-rateType-optionIndex
     // betId 格式可能是 "gameId-rateType-optionIndex"
     // 或者我们需要从 bet 对象中提取这些信息
     const key = bet.betId; // 假设 betId 就是这个格式
     const value = bet.optionValue; // 赔率值
-    
+
     oddsValue[key] = String(value);
   });
-  
+
   return oddsValue;
 }
 
@@ -532,7 +605,7 @@ function generateOddsValue() {
 // 格式：[{ multi: 倍数, pl: 优化后的赔率, list: [...] }]
 function generateOptValues() {
   const optValues = [];
-  
+
   optimizedBets.value.forEach((bet) => {
     const optItem = {
       multi: bet.multiple, // 倍数
@@ -545,10 +618,10 @@ function generateOptValues() {
         val: item.optionValue, // 赔率
       })),
     };
-    
+
     optValues.push(optItem);
   });
-  
+
   return optValues;
 }
 
@@ -556,23 +629,23 @@ function generateOptValues() {
 // 格式：[{ gr: {比赛id:玩法id}, max_reward: 本组理论奖金, multi: 倍数, nums: 倍数, odds: [...], rate_type: [...] }]
 function generateBillData() {
   const billData = [];
-  
+
   optimizedBets.value.forEach((bet) => {
     // 构建 gr 对象：{ 比赛id: 玩法id }
     const gr = {};
     bet.bets.forEach((item) => {
       gr[item.gameId] = item.rateType;
     });
-    
+
     // 构建 odds 数组：[比赛id-玩法id-索引, ...]
     const odds = bet.bets.map((item) => item.betId);
-    
+
     // 构建 rate_type 数组：[玩法id, ...]
     const rateType = bet.bets.map((item) => item.rateType);
-    
+
     // 计算本组理论奖金（倍数 × 2元 × 总赔率）
     const maxReward = (bet.multiple * 2 * bet.totalOdds).toFixed(2);
-    
+
     const billItem = {
       gr: gr,
       max_reward: parseFloat(maxReward),
@@ -581,10 +654,10 @@ function generateBillData() {
       odds: odds,
       rate_type: rateType,
     };
-    
+
     billData.push(billItem);
   });
-  
+
   return billData;
 }
 
@@ -608,7 +681,7 @@ function generateOptimizedBellAll() {
   optimizedBets.value.forEach((bet) => {
     // 每个优化后的投注组合，根据其倍数生成对应数量的条目
     const combo = bet.bets.map((item) => item.betId);
-    
+
     // 根据倍数重复添加
     for (let i = 0; i < bet.multiple; i++) {
       allCombinations.push([[combo]]);
@@ -656,15 +729,18 @@ onMounted(async () => {
     if (route.query.details) {
       betDetails.value = JSON.parse(route.query.details);
     }
-    
-    if (route.query.totalAmount) {
-      totalAmount.value = parseFloat(route.query.totalAmount);
+
+    if (route.query.totalMultiple) {
+      totalMultiple.value = parseFloat(route.query.totalMultiple);
+    } else if (route.query.totalAmount) {
+      // 兼容旧的 totalAmount 参数，转换为倍数
+      totalMultiple.value = Math.floor(parseFloat(route.query.totalAmount) / 2);
     }
-    
+
     if (route.query.betMultiple) {
       betMultiple.value = parseInt(route.query.betMultiple);
     }
-    
+
     if (route.query.selectedBetTypes) {
       selectedBetTypes.value = JSON.parse(route.query.selectedBetTypes);
     }
@@ -765,6 +841,12 @@ onMounted(async () => {
   color: #333;
 }
 
+.total-count {
+  padding: 0 4px;
+  font-size: 14px;
+  font-weight: 600;
+}
+
 /* 优化方式选择 */
 .optimize-tabs-section {
   background: #fff;
@@ -800,7 +882,6 @@ onMounted(async () => {
   align-items: center;
   justify-content: center;
 }
-
 
 /* 表格行 */
 .table-row {
@@ -858,7 +939,7 @@ onMounted(async () => {
 
 .option-tag {
   display: inline-block;
-  color:#fc3c3c;
+  color: #fc3c3c;
   font-size: 0.7rem;
   font-weight: 500;
   white-space: nowrap;
@@ -930,24 +1011,36 @@ onMounted(async () => {
 
 .total-info {
   display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.info-item {
+  display: flex;
   align-items: baseline;
   gap: 4px;
 }
 
-.total-label {
-  font-size: 0.85rem;
-  color: #666;
+.info-divider {
+  font-size: 1rem;
+  color: #ddd;
+  font-weight: 300;
 }
 
-.total-amount {
-  font-size: 1.2rem;
+.info-label {
+  font-size: 0.8rem;
+  color: #999;
+}
+
+.info-value {
+  font-size: 1.1rem;
   font-weight: 700;
-  color: #fc3c3c;
+  color: #333;
 }
 
-.total-unit {
-  font-size: 0.9rem;
-  color: #333;
+.info-value.highlight {
+  font-size: 1.3rem;
+  color: #fc3c3c;
 }
 
 .action-buttons {

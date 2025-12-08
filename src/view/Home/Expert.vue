@@ -33,7 +33,7 @@
           <div class="expert-scroll-container">
             <template v-if="rankData.mz && rankData.mz.length">
               <div class="expert-card" v-for="(expert, index) in rankData.mz.slice(0, 10)" :key="expert.id">
-                <div class="expert-avatar">
+                <div class="expert-avatar" @click="handleAvatarClick(expert.user_id)">
                   <img :src="expert.avatar" :alt="expert.name" />
                 </div>
                 <div class="expert-name">{{ expert.name }}</div>
@@ -50,7 +50,7 @@
           <div class="expert-scroll-container">
             <template v-if="rankData.yl && rankData.yl.length">
               <div class="expert-card" v-for="(expert, index) in rankData.yl.slice(0, 10)" :key="expert.id">
-                <div class="expert-avatar">
+                <div class="expert-avatar" @click="handleAvatarClick(expert.user_id)">
                   <img :src="expert.avatar" :alt="expert.name" />
                 </div>
                 <div class="expert-name">{{ expert.name }}</div>
@@ -67,7 +67,7 @@
           <div class="expert-scroll-container">
             <template v-if="rankData.tj && rankData.tj.length">
               <div class="expert-card" v-for="(expert, index) in rankData.tj.slice(0, 10)" :key="expert.id">
-                <div class="expert-avatar">
+                <div class="expert-avatar" @click="handleAvatarClick(expert.user_id)">
                   <img :src="expert.avatar" :alt="expert.name" />
                 </div>
                 <div class="expert-name">{{ expert.name }}</div>
@@ -182,7 +182,7 @@
 import { ref, computed, onMounted, watch } from "vue";
 import { useRouter } from "vue-router";
 import { showToast, showDialog, Field as VanField, Icon as VanIcon } from "vant";
-import API from "../../request/api";
+import { API } from "../../request/api";
 
 const searchValue = ref("");
 
@@ -254,10 +254,10 @@ const onSearch = () => {
   }
 };
 
+const router = useRouter();
+
 const gotoSearchPage = () => {
-  showToast("跳转到搜索页面");
-  // 这里可以添加实际的页面跳转逻辑，比如：
-  // router.push('/search');
+  router.push('/search');
 };
 
 
@@ -295,7 +295,6 @@ const filteredExperts = computed(() => {
 });
 
 // 跟单方法 - 跳转到跟单详情页
-const router = useRouter();
 const followExpert = (expertId) => {
   router.push({
     path: '/gendan_detail',
@@ -373,6 +372,19 @@ watch(activeSortOption, () => {
 });
 
 const rankData = ref({ mz: [], yl: [], tj: [] });
+
+// 点击头像获取用户详情
+const handleAvatarClick = async (userId) => {
+  try {
+    router.push({
+      path: '/user-detail',
+      query: { id: userId }
+    });
+  } catch (error) {
+    console.error('跳转失败:', error);
+    showToast('跳转失败，请稍后重试');
+  }
+};
 
 onMounted(() => {
   get_gendan();
@@ -569,6 +581,12 @@ onMounted(() => {
   overflow: hidden;
   border: 2px solid #f5f5f5;
   margin-bottom: 4px;
+  cursor: pointer;
+  transition: transform 0.2s;
+}
+
+.expert-avatar:active {
+  transform: scale(0.95);
 }
 
 .expert-avatar img {

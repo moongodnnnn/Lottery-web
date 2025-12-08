@@ -361,8 +361,8 @@ async function confirmPublish() {
 
 // 准备发单参数
 function preparePublishParams() {
-  // 足球竞猜
-  if (orderData.value.type === 'football') {
+  // 足球竞猜或篮球竞猜
+  if (orderData.value.type === 'football' || orderData.value.type === 'basketball') {
     // 提取所有比赛ID
     const games = [...new Set(orderData.value.betDetails.map((bet) => bet.gameId))];
 
@@ -414,14 +414,35 @@ function preparePublishParams() {
       maxPrize = parseFloat((oddsProduct * 2 * orderData.value.betMultiple * parseInt(n)).toFixed(2));
     }
 
-    // 生成 bell_all（简化版，实际应该生成所有组合）
-    const bell_all = odds.join(',');
+    // 生成 bell_all - 生成所有比赛选项的笛卡尔积组合
+    const gameGroups = Object.values(orderData.value.groupedBets).map(game =>
+      game.bets.map(bet => bet.betId)
+    );
+
+    // 生成笛卡尔积
+    function cartesianProduct(arrays) {
+      if (arrays.length === 0) return [[]];
+      if (arrays.length === 1) return arrays[0].map(item => [item]);
+
+      const [first, ...rest] = arrays;
+      const restProduct = cartesianProduct(rest);
+
+      return first.flatMap(item =>
+        restProduct.map(combination => [item, ...combination])
+      );
+    }
+
+    const allCombinations = cartesianProduct(gameGroups);
+    const bell_all = allCombinations.map(combo => [[combo]]);
+
+    // 确定 cate_id：足球=1，篮球=2
+    const cate_id = orderData.value.type === 'basketball' ? 2 : 1;
 
     return {
       amount: parseFloat(totalAmount.value),
       bell_all: bell_all,
       bill_nums: orderData.value.betMultiple,
-      cate_id: 1, // 足球彩票
+      cate_id: cate_id,
       games: games,
       max_price: maxPrize,
       multi: orderData.value.betMultiple,
@@ -440,10 +461,10 @@ function preparePublishParams() {
 
   // 数字彩票
   const lotteryTypeMap = {
-    pl3: 6, // 排列3
-    pl5: 7, // 排列5
+    pl3: 6,         // 排列3
+    pl5: 7,         // 排列5
     seven_stars: 8, // 七星彩
-    daletou: 5, // 大乐透
+    daletou: 5      // 大乐透
   };
 
   return {
@@ -491,6 +512,7 @@ onMounted(async () => {
         const gameNameMap = {
           pl3: "排列三",
           pl5: "排列五",
+           basketball: "竞猜篮球",
           seven_stars: "七星彩",
           daletou: "大乐透",
         };

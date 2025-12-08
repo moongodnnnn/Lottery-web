@@ -18,7 +18,7 @@
       </template>
     </van-tabbar-item>
     <van-tabbar-item to="/community">
-      <span style="font-weight: 500">社区</span>
+      <span style="font-weight: 500">消息</span>
       <template #icon="props">
         <img style="width: 1.8rem; height: 1.8rem" :src="props.active ? icon3.active : icon3.inactive" />
       </template>

@@ -28,7 +28,7 @@
         <!-- 开奖历史展开区域 -->
         <transition name="slide-fade">
             <div v-if="showHistory" class="history-section">
-                <div v-for="item in historyData" :key="item.period" class="history-item">
+                <div v-for="item in historyData" :key="item.period" class="history-item" @click="goToDetail(item.period)">
                     <span class="history-period">{{ item.period }}期</span>
                     <div class="history-balls">
                         <span class="ball-group pl3-group">
@@ -570,6 +570,17 @@ onUnmounted(() => {
 // 切换开奖历史显示状态
 function toggleHistory() {
     showHistory.value = !showHistory.value;
+}
+
+// 跳转到开奖详情页
+function goToDetail(phase) {
+    router.push({
+        path: '/lottery-detail',
+        query: {
+            type: 'qxc',
+            phase: phase
+        }
+    });
 }
 
 function onClickLeft() {

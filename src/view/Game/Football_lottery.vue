@@ -129,6 +129,13 @@
                 </template>
               </div>
             </div>
+
+            <!-- 比赛分析按钮 -->
+            <div class="analysis-btn" @click="getAnalysisData(game.id)">
+              <span class="analysis-text">比赛分析</span>
+              <van-icon name="arrow-down" class="analysis-icon" />
+            
+            </div>
           </div>
         </div>
       </div>
@@ -274,6 +281,82 @@
           <div v-else class="empty-container">
             <van-empty description="暂无更多玩法" />
           </div>
+        </div>
+      </div>
+    </van-popup>
+
+    <!-- 规则说明弹窗 -->
+    <van-popup
+      v-model:show="showRule"
+      position="bottom"
+      :style="{ height: '80%', maxWidth: '430px', left: '50%', transform: 'translateX(-50%)', borderRadius: '20px 20px 0 0' }"
+      closeable
+    >
+      <div class="rule-popup-content">
+        <div class="rule-popup-header">
+          <h3>竞彩足球玩法介绍</h3>
+        </div>
+        
+        <div class="rule-popup-body">
+          <h4>基本规则</h4>
+          <p>足球比赛由两支队伍在专用足球场地竞赛，每队11名队员，法定比赛时间为90分钟，有时裁判会根据比赛时队员受伤后救治所耽误的时间在90分钟后补时，多为几分钟，称为伤停补时时间。</p>
+          <p>竞彩足球彩票竞猜的比赛结果为90分钟加上伤停补时的时间里的结果。</p>
+
+          <h4>比赛结果</h4>
+          <p>足球比赛的结果有3种：主队胜、主队负以及双方打平。</p>
+          <ul>
+            <li>主队胜：主队得3分</li>
+            <li>主队负：主队不得分</li>
+            <li>主客战平：主队得1分</li>
+          </ul>
+
+          <h4>胜平负玩法</h4>
+          <p>足球彩票竞猜胜平负时用3、1、0分别代表主队胜、主客战平和主队负。</p>
+          <p>彩民选定1场比赛，对主队在全场90分钟（含伤停补时）的"胜"、"平"、"负"结果进行投注。</p>
+          <p><strong>投注示例：</strong>曼联(主队) VS 利物浦(客队)</p>
+          <ul>
+            <li>选择"3"：主队胜出</li>
+            <li>选择"1"：双方打平</li>
+            <li>选择"0"：主队落败</li>
+          </ul>
+
+          <h4>让球规则</h4>
+          <p>当两支球队实力悬殊较大时，采取让球的方式确定双方的胜平负关系。让球的数量确定后将维持不变。</p>
+
+          <h5>一、主队让一球 (-1)</h5>
+          <ul>
+            <li>"3" 主队胜：主队比分减去客队比分大于1</li>
+            <li>"1" 平局：主队比分减去客队比分等于1</li>
+            <li>"0" 主队负：主队比分减去客队比分小于1</li>
+          </ul>
+
+          <h5>二、客队让一球 (+1)</h5>
+          <ul>
+            <li>"3" 主队胜：客队比分减去主队比分小于1</li>
+            <li>"1" 平局：客队比分减去主队比分等于1</li>
+            <li>"0" 主队负：客队比分减去主队比分大于1</li>
+          </ul>
+
+          <h5>三、主队让两球 (-2)</h5>
+          <ul>
+            <li>"3" 主队胜：主队比分减去客队比分大于2</li>
+            <li>"1" 平局：主队比分减去客队比分等于2</li>
+            <li>"0" 主队负：主队比分减去客队比分小于2</li>
+          </ul>
+
+          <h5>四、客队让两球 (+2)</h5>
+          <ul>
+            <li>"3" 主队胜：客队比分减去主队比分小于2</li>
+            <li>"1" 平局：客队比分减去主队比分等于2</li>
+            <li>"0" 主队负：客队比分减去主队比分大于2</li>
+          </ul>
+
+          <h4>温馨提示</h4>
+          <ul>
+            <li>让球数量一旦确定将维持不变</li>
+            <li>请理性购彩，量力而行</li>
+            <li>未成年人不得购买彩票</li>
+          </ul>
         </div>
       </div>
     </van-popup>
@@ -563,18 +646,18 @@ onMounted(async () => {
     handleError(error, "请求失败");
   } finally {
     loading.value = false;
-  }
-
-
-
-  API.analysisData(1211).then(res => {
-    console.log(res);
-  })
-
+  };
 
 });
 
 
+// 跳转到比赛分析页面
+function getAnalysisData(id) {
+  router.push({
+    path: '/match-analysis',
+    query: { id }
+  });
+}
 
 
 
@@ -967,7 +1050,7 @@ function getLeagueStyle(leagueName) {
 }
 
 .game-item {
-  padding: 14px 8px;
+  padding: 14px 8px 4px 8px;
   border-bottom: 10px solid #f5f4f9;
   background: white;
 }
@@ -1483,4 +1566,128 @@ function getLeagueStyle(leagueName) {
   max-height: 0;
   transform: translateY(-10px);
 }
+
+/* 比赛分析按钮样式 */
+.analysis-btn {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 4px;
+  padding: 8px 0;
+  cursor: pointer;
+  color:#fd5b3c;
+  transition: all 0.3s ease;
+  position: relative;
+  overflow: hidden;
+}
+
+.analysis-btn::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: -100%;
+  width: 100%;
+  height: 100%;
+  background: linear-gradient(90deg, transparent, rgba(252, 60, 60, 0.1), transparent);
+  transition: left 0.5s ease;
+}
+
+.analysis-btn:hover::before {
+  left: 100%;
+}
+
+.analysis-btn:active {
+  background: linear-gradient(135deg, #e9ecef 0%, #dee2e6 100%);
+  transform: scale(0.98);
+}
+
+.analysis-text {
+  font-size: 0.75rem;
+  color: #7e7e7e;
+  font-weight: 500;
+  letter-spacing: 0.5px;
+}
+
+.analysis-icon {
+  color: #7e7e7e;
+  font-size: 0.8rem;
+  transition: transform 0.3s ease;
+}
+
+.analysis-btn:active .analysis-icon {
+  transform: translateX(3px);
+}
+
+/* 规则说明弹窗样式 */
+.rule-popup-content {
+  height: 100%;
+  display: flex;
+  flex-direction: column;
+  background: white;
+}
+
+.rule-popup-header {
+  padding: 16px;
+  border-bottom: 1px solid #f0f0f0;
+}
+
+.rule-popup-header h3 {
+  margin: 0;
+  font-size: 1.1rem;
+  font-weight: 600;
+  color: #333;
+  text-align: center;
+}
+
+.rule-popup-body {
+  flex: 1;
+  overflow-y: auto;
+  padding: 20px;
+  line-height: 1.8;
+  color: #333;
+}
+
+.rule-popup-body h4 {
+  font-size: 1rem;
+  font-weight: 600;
+  color: #333;
+  margin: 20px 0 10px 0;
+  padding-bottom: 8px;
+  border-bottom: 1px solid #f0f0f0;
+}
+
+.rule-popup-body h4:first-child {
+  margin-top: 0;
+}
+
+.rule-popup-body h5 {
+  font-size: 0.95rem;
+  font-weight: 600;
+  color: #666;
+  margin: 16px 0 8px 0;
+}
+
+.rule-popup-body p {
+  margin: 8px 0;
+  font-size: 0.9rem;
+  color: #666;
+}
+
+.rule-popup-body ul {
+  margin: 8px 0;
+  padding-left: 20px;
+}
+
+.rule-popup-body ul li {
+  margin: 6px 0;
+  font-size: 0.9rem;
+  color: #666;
+  list-style-type: disc;
+}
+
+.rule-popup-body strong {
+  color: #333;
+  font-weight: 600;
+}
 </style>
+

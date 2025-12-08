@@ -103,11 +103,11 @@
     <div class="function-grid">
       <div class="function-title">常用工具</div>
       <div class="function-items">
-        <div class="function-item" @click="go('/shopkeeper-auth')">
+    <div class="function-item" @click="go('/invite-store')">
           <div class="function-icon1">
-            <img src="/icons/my11.png" alt="店主认证" />
+            <img src="/icons/my55.png" alt="邀请店主" />
           </div>
-          <div class="function-text">店主认证</div>
+          <div class="function-text">邀请店主</div>
         </div>
         <div class="function-item" @click="go('/authentication')">
           <div class="function-icon1">
@@ -129,32 +129,60 @@
         </div>
       </div>
       <div class="function-items">
-        <div class="function-item" @click="go('/invite-store')">
-          <div class="function-icon1">
-            <img src="/icons/my55.png" alt="邀请店主" />
-          </div>
-          <div class="function-text">邀请店主</div>
-        </div>
+    
         <div class="function-item" @click="go('/invite-friends')">
           <div class="function-icon1">
             <img src="/icons/my66.png" alt="邀请好友" />
           </div>
           <div class="function-text">邀请好友</div>
         </div>
-        <div class="function-item" @click="goToMyFollow">
+        <div class="function-item" @click="go('/invite-records')">
           <div class="function-icon1">
             <img src="/icons/my77.png" alt="邀请记录" />
           </div>
           <div class="function-text">邀请记录</div>
         </div>
-        <div class="function-item" @click="goToMyGroup">
+        <div class="function-item" @click="openKefu">
           <div class="function-icon1">
             <img src="/icons/my88.png" alt="客服中心" />
           </div>
           <div class="function-text">客服中心</div>
         </div>
+           <div class="function-item">
+          <div class="function-icon1">
+            
+          </div>
+          <div class="function-text" style="color: #fff;">客服中心</div>
+        </div>
       </div>
     </div>
+
+    <!-- 客服弹窗 -->
+    <van-popup
+      v-model:show="showKefu"
+      position="bottom"
+      :style="{ height: '85%', borderRadius: '20px 20px 0 0' }"
+      :close-on-click-overlay="true"
+    >
+      <div class="kefu-popup">
+        <div class="kefu-header">
+          <div class="kefu-title">客服中心</div>
+          <van-icon name="cross" size="20" @click="showKefu = false" class="close-icon" />
+        </div>
+        <div class="kefu-content">
+          <iframe
+            v-if="kefuUrl"
+            :src="kefuUrl"
+            frameborder="0"
+            class="kefu-iframe"
+            allowfullscreen
+          ></iframe>
+          <div v-else class="kefu-loading">
+            <van-loading size="40px" vertical color="#fc3c3c">加载客服中心...</van-loading>
+          </div>
+        </div>
+      </div>
+    </van-popup>
   </div>
 </template>
 
@@ -173,6 +201,10 @@ const reservedAmount = ref("0");
 const followCount = ref(0);
 const fansCount = ref(0);
 
+// 客服相关
+const showKefu = ref(false);
+const kefuUrl = ref("");
+
 function go(path) {
   router.push(path);
 }
@@ -181,6 +213,27 @@ function viewDetail() {
   router.push('/account_detail');
 }
 
+// 打开客服中心
+function openKefu() {
+  try {
+    // 从 localStorage 读取配置
+    const configStr = localStorage.getItem('config');
+    if (configStr) {
+      const config = JSON.parse(configStr);
+      if (config.kefu_url) {
+        kefuUrl.value = config.kefu_url;
+        showKefu.value = true;
+      } else {
+        showToast('客服中心暂未配置');
+      }
+    } else {
+      showToast('配置信息加载中，请稍后重试');
+    }
+  } catch (error) {
+    console.error('打开客服中心失败:', error);
+    showToast('打开客服中心失败');
+  }
+}
 
 // 跳转到订单页面并指定Tab
 function goToOrderTab(tabName) {
@@ -528,7 +581,7 @@ onMounted(async () => {
 
 .function-items {
   display: flex;
-  justify-content: space-between;
+  justify-content: flex-start;
   align-items: center;
   margin-top: 12px;
 }
@@ -638,6 +691,59 @@ onMounted(async () => {
 .banner-desc {
   font-size: 0.78rem;
   text-shadow: 0 2px 8px rgba(0, 0, 0, 0.18);
+}
+
+/* 客服弹窗样式 */
+.kefu-popup {
+  height: 100%;
+  display: flex;
+  flex-direction: column;
+  background: #fff;
+}
+
+.kefu-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 16px 20px;
+  border-bottom: 1px solid #f0f0f0;
+  flex-shrink: 0;
+}
+
+.kefu-title {
+  font-size: 17px;
+  font-weight: 600;
+  color: #323233;
+}
+
+.close-icon {
+  cursor: pointer;
+  color: #969799;
+  padding: 4px;
+}
+
+.close-icon:active {
+  opacity: 0.6;
+}
+
+.kefu-content {
+  flex: 1;
+  overflow: hidden;
+  position: relative;
+}
+
+.kefu-iframe {
+  width: 100%;
+  height: 100%;
+  border: none;
+}
+
+.kefu-loading {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  height: 100%;
+  background: #f5f5f5;
 }
 
 /* 响应式适配 */

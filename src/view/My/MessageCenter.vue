@@ -8,22 +8,17 @@
     <div class="message-content">
       <!-- 消息列表 -->
       <div v-if="messageList.length > 0" class="message-list">
-        <div
-          v-for="item in messageList"
-          :key="item.id"
-          class="message-item"
-          @click="handleMessageClick(item)"
-        >
+        <div v-for="item in messageList" :key="item.id" class="message-item" @click="handleMessageClick(item)">
           <div class="message-icon">
             <van-icon name="bell" size="24" color="#fc3c3c" />
             <span v-if="item.is_read === 0" class="unread-dot"></span>
           </div>
           <div class="message-main">
             <div class="message-header">
-              <div class="message-title">{{ item.title }}</div>
-              <div class="message-time">{{ formatTime(item.createtime) }}</div>
+              <div class="message-title">{{ item.type_text || "系统消息" }}</div>
+              <div class="message-time">{{ item.time || formatTime(item.createtime) }}</div>
             </div>
-            <div class="message-content-text">{{ item.content }}</div>
+            <div class="message-content-text">{{ item.msg }}</div>
           </div>
         </div>
       </div>
@@ -33,84 +28,113 @@
         <van-empty description="暂无消息" />
       </div>
     </div>
+
+    <!-- 消息详情弹窗 -->
+    <van-popup v-model:show="showMessageDetail" position="bottom" :style="{ maxHeight: '70%', borderRadius: '20px 20px 0 0' }">
+      <div class="message-detail">
+        <div class="detail-header">
+          <div class="detail-title">{{ currentMessage?.type_text || "系统消息" }}</div>
+          <van-icon name="cross" @click="showMessageDetail = false" />
+        </div>
+        <div class="detail-time">{{ currentMessage?.time || formatTime(currentMessage?.createtime) }}</div>
+        <div class="detail-content">{{ currentMessage?.msg }}</div>
+      </div>
+    </van-popup>
   </div>
 </template>
 
 <script setup>
-import { ref,onMounted } from "vue";
+import { ref, onMounted } from "vue";
 import { showToast } from "vant";
 import { useRouter } from "vue-router";
 import API from "../../request/api";
-
 
 const router = useRouter();
 
 // 消息列表 - 静态数据
 const messageList = ref([]);
+const showMessageDetail = ref(false);
+const currentMessage = ref(null);
 
 // 格式化时间
 const formatTime = (timestamp) => {
-  if (!timestamp) return '';
-  
+  if (!timestamp) return "";
+
   const date = new Date(timestamp * 1000);
   const now = new Date();
   const diff = now - date;
-  
+
   // 一分钟内
   if (diff < 60000) {
-    return '刚刚';
+    return "刚刚";
   }
-  
+
   // 一小时内
   if (diff < 3600000) {
-    return Math.floor(diff / 60000) + '分钟前';
+    return Math.floor(diff / 60000) + "分钟前";
   }
-  
+
   // 今天
   if (date.toDateString() === now.toDateString()) {
-    return date.getHours().toString().padStart(2, '0') + ':' + 
-           date.getMinutes().toString().padStart(2, '0');
+    return date.getHours().toString().padStart(2, "0") + ":" + date.getMinutes().toString().padStart(2, "0");
   }
-  
+
   // 昨天
   const yesterday = new Date(now);
   yesterday.setDate(yesterday.getDate() - 1);
   if (date.toDateString() === yesterday.toDateString()) {
-    return '昨天 ' + date.getHours().toString().padStart(2, '0') + ':' + 
-           date.getMinutes().toString().padStart(2, '0');
+    return "昨天 " + date.getHours().toString().padStart(2, "0") + ":" + date.getMinutes().toString().padStart(2, "0");
   }
-  
+
   // 其他日期
-  const month = (date.getMonth() + 1).toString().padStart(2, '0');
-  const day = date.getDate().toString().padStart(2, '0');
-  return month + '-' + day;
+  const month = (date.getMonth() + 1).toString().padStart(2, "0");
+  const day = date.getDate().toString().padStart(2, "0");
+  return month + "-" + day;
 };
 
 // 点击消息
 const handleMessageClick = async (item) => {
+  // 设置当前消息并显示弹窗
+  currentMessage.value = item;
+  showMessageDetail.value = true;
+
   // 标记为已读
   if (item.is_read === 0) {
     item.is_read = 1;
-    // TODO: 调用接口标记已读
-    // await API.markMessageRead(item.id);
+    // 调用接口标记已读
+    try {
+      await API.markMessageRead(item.id);
+      console.log("标记消息已读成功:", item.id);
+    } catch (error) {
+      console.error("标记已读失败:", error);
+    }
   }
-
-  // TODO: 根据消息类型跳转到不同页面
-  showToast('查看消息详情');
 };
 
 function onClickLeft() {
   router.back();
+}
+
+// 加载消息列表
+const loadMessages = async () => {
+  try {
+    const res = await API.getToast();
+    console.log("消息列表数据:", res);
+
+    if (res.code === 1 && res.data) {
+      messageList.value = res.data.data || [];
+    } else {
+      showToast(res.msg || "获取消息失败");
+    }
+  } catch (error) {
+    console.error("获取消息列表失败:", error);
+    showToast("获取消息失败");
+  }
 };
 
 onMounted(() => {
-  API.getToast().then(res => {
-    messageList.value = res.data.data;
-  })
+  loadMessages();
 });
-
-
-
 </script>
 
 <style scoped>
@@ -231,5 +255,46 @@ onMounted(() => {
 .empty-state {
   padding: 80px 0;
 }
-</style>
 
+/* 消息详情弹窗 */
+.message-detail {
+  padding: 20px;
+  max-height: 70vh;
+  overflow-y: auto;
+}
+
+.detail-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 12px;
+  padding-bottom: 12px;
+  border-bottom: 1px solid #f0f0f0;
+}
+
+.detail-title {
+  font-size: 18px;
+  font-weight: 600;
+  color: #333;
+}
+
+.detail-header .van-icon {
+  font-size: 20px;
+  color: #999;
+  cursor: pointer;
+}
+
+.detail-time {
+  font-size: 12px;
+  color: #999;
+  margin-bottom: 16px;
+}
+
+.detail-content {
+  font-size: 15px;
+  color: #333;
+  line-height: 1.8;
+  word-break: break-word;
+  white-space: pre-wrap;
+}
+</style>

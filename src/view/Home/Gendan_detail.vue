@@ -163,7 +163,7 @@
 <script setup>
 import { ref, computed, onMounted } from 'vue';
 import { useRouter, useRoute } from 'vue-router';
-import { showToast, showConfirmDialog } from 'vant';
+import { showToast, showConfirmDialog, showDialog } from 'vant';
 import API from '../../request/api';
 
 const router = useRouter();
@@ -173,6 +173,7 @@ const loading = ref(true);
 const gendanInfo = ref(null);
 const isFollowed = ref(false);
 const selectedMultiple = ref(1); // 选择的倍数
+const userBalance = ref(0); // 用户余额
 
 // 获取用户头像
 const getUserAvatar = () => {
@@ -305,11 +306,13 @@ const getHitRate = () => {
 const getTrendList = () => {
   // jw_zj 数组：0=未中，1=中
   if (gendanInfo.value?.jw_zj && Array.isArray(gendanInfo.value.jw_zj)) {
-    return gendanInfo.value.jw_zj.map(item => ({
+    // 只取最新的 5 条数据
+    const recentData = gendanInfo.value.jw_zj.slice(-5);
+    return recentData.map(item => ({
       status: item === 1 ? 'win' : 'lose'
     }));
   }
-  // 默认返回5个空数据
+
   return Array(5).fill({ status: 'lose' });
 };
 
@@ -403,10 +406,64 @@ const confirmGendan = async () => {
     console.log('跟单下单结果:', res);
 
     if (res.code === 1) {
-      showToast('跟单成功');
-      setTimeout(() => {
-        router.back();
-      }, 1500);
+      // 下单成功后，调用支付接口
+      const orderId = res.data?.id || res.data?.order_id || '';
+      
+      if (orderId) {
+        try {
+          // 调用余额支付接口
+          const payRes = await API.toBalance({ id: orderId });
+          
+          if (payRes.code === 1) {
+            // 支付成功
+            showToast('跟单成功');
+            setTimeout(() => {
+              // 跳转到下单成功页面
+              router.replace({
+                path: '/bet_success',
+                query: { orderId }
+              });
+            }, 1500);
+          } else {
+            // 支付失败
+            if (payRes.msg === '资金不足') {
+              // 获取最新余额
+              try {
+                const balanceRes = await API.balanceof();
+                if (balanceRes.code === 1 && balanceRes.data) {
+                  userBalance.value = parseFloat(balanceRes.data.amount);
+                }
+              } catch (error) {
+                console.error('获取余额失败:', error);
+              }
+
+              // 显示余额不足对话框
+              showDialog({
+                message: `资金不足,去充值<br/><div style="font-size: 14px; color: #999;padding-top: 20px;">当前余额：¥${userBalance.value.toFixed(2)}</div>`,
+                messageAlign: 'center',
+                title: '温馨提示',
+                showCancelButton: true,
+                confirmButtonText: '去充值',
+                cancelButtonText: '取消',
+                allowHtml: true,
+              })
+                .then(() => {
+                  router.push('/recharge');
+                })
+                .catch(() => {
+                  console.log('用户取消充值');
+                });
+            } else {
+              showToast(payRes.msg || '支付失败');
+            }
+          }
+        } catch (error) {
+          console.error('余额支付失败:', error);
+          showToast('支付失败');
+        }
+      } else {
+        showToast('订单ID获取失败');
+      }
     } else {
       showToast(res.msg || '跟单失败，请稍后重试');
     }
@@ -454,8 +511,21 @@ const getGendanDetail = async () => {
   }
 };
 
+// 获取用户余额
+const getUserBalance = async () => {
+  try {
+    const balanceRes = await API.balanceof();
+    if (balanceRes.code === 1 && balanceRes.data) {
+      userBalance.value = parseFloat(balanceRes.data.amount);
+    }
+  } catch (error) {
+    console.error('获取用户余额失败:', error);
+  }
+};
+
 onMounted(() => {
   getGendanDetail();
+  getUserBalance(); // 页面加载时获取用户余额
 });
 </script>
 

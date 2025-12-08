@@ -195,22 +195,47 @@
                 </div>
               </div>
               <template v-if="redListRanking.length">
-                <!-- 领奖台（前3名） -->
+                <!-- 领奖台（前3名）- 2-1-3顺序 -->
                 <div class="podium-container">
-                  <div v-for="(user, idx) in redListRanking.slice(0, 3)" :key="user.id" :class="['podium-item', `rank-${idx+1}`]">
-                    <div :class="['podium-base', `rank-${idx+1}-base`]">
+                  <!-- 第二名 -->
+                  <div v-if="redListRanking[1]" :class="['podium-item', 'rank-2']" @click="handleAvatarClick(redListRanking[1].user_id)">
+                    <div :class="['podium-base', 'rank-2-base']">
                       <div class="avatar-wrapper">
-                        <img class="podium-avatar" :src="user.avatar" alt="" />
-                        <img :src="`/icons/top${idx+1}.png`" alt="" class="crown-icon" />
+                        <img class="podium-avatar" :src="redListRanking[1].avatar" alt="" />
+                        <img src="/icons/top2.png" alt="" class="crown-icon" />
                       </div>
-                      <div class="podium-name">{{ user.name }}</div>
-                      <div class="podium-value">¥{{ user.nums?.toLocaleString?.() ?? user.nums }}</div>
+                      <div class="podium-name">{{ redListRanking[1].name }}</div>
+                      <div class="podium-value">¥{{ redListRanking[1].nums?.toLocaleString?.() ?? redListRanking[1].nums }}</div>
+                    </div>
+                  </div>
+                  
+                  <!-- 第一名（中间） -->
+                  <div v-if="redListRanking[0]" :class="['podium-item', 'rank-1']" @click="handleAvatarClick(redListRanking[0].user_id)">
+                    <div :class="['podium-base', 'rank-1-base']">
+                      <div class="avatar-wrapper">
+                        <img class="podium-avatar" :src="redListRanking[0].avatar" alt="" />
+                        <img src="/icons/top1.png" alt="" class="crown-icon" />
+                      </div>
+                      <div class="podium-name">{{ redListRanking[0].name }}</div>
+                      <div class="podium-value">¥{{ redListRanking[0].nums?.toLocaleString?.() ?? redListRanking[0].nums }}</div>
+                    </div>
+                  </div>
+                  
+                  <!-- 第三名 -->
+                  <div v-if="redListRanking[2]" :class="['podium-item', 'rank-3']" @click="handleAvatarClick(redListRanking[2].user_id)">
+                    <div :class="['podium-base', 'rank-3-base']">
+                      <div class="avatar-wrapper">
+                        <img class="podium-avatar" :src="redListRanking[2].avatar" alt="" />
+                        <img src="/icons/top3.png" alt="" class="crown-icon" />
+                      </div>
+                      <div class="podium-name">{{ redListRanking[2].name }}</div>
+                      <div class="podium-value">¥{{ redListRanking[2].nums?.toLocaleString?.() ?? redListRanking[2].nums }}</div>
                     </div>
                   </div>
                 </div>
                 <!-- 4-10名列表 -->
                 <div class="ranking-normal-list">
-                  <div v-for="(user, index) in redListRanking.slice(3)" :key="user.id" class="ranking-item">
+                  <div v-for="(user, index) in redListRanking.slice(3)" :key="user.id" class="ranking-item" @click="handleAvatarClick(user.user_id)">
                     <div class="ranking-number">{{ index + 4 }}</div>
                     <img class="ranking-avatar" :src="user.avatar" alt="" />
                     <div class="ranking-info">
@@ -239,22 +264,47 @@
                 </div>
               </div>
               <template v-if="hitListRanking.length">
-                <!-- 领奖台（前3名） -->
+                <!-- 领奖台（前3名）- 2-1-3顺序 -->
                 <div class="podium-container">
-                  <div v-for="(user, idx) in hitListRanking.slice(0, 3)" :key="user.id" :class="['podium-item', `rank-${idx+1}`]">
-                    <div :class="['podium-base', `rank-${idx+1}-base`]">
+                  <!-- 第二名 -->
+                  <div v-if="hitListRanking[1]" :class="['podium-item', 'rank-2']" @click="handleAvatarClick(hitListRanking[1].user_id)">
+                    <div :class="['podium-base', 'rank-2-base']">
                       <div class="avatar-wrapper">
-                        <img class="podium-avatar" :src="user.avatar" alt="" />
-                        <img :src="`/icons/top${idx+1}.png`" alt="" class="crown-icon" />
+                        <img class="podium-avatar" :src="hitListRanking[1].avatar" alt="" />
+                        <img src="/icons/top2.png" alt="" class="crown-icon" />
                       </div>
-                      <div class="podium-name">{{ user.name }}</div>
-                      <div class="podium-value">{{ user.nums }}次</div>
+                      <div class="podium-name">{{ hitListRanking[1].name }}</div>
+                      <div class="podium-value">{{ hitListRanking[1].nums }}次</div>
+                    </div>
+                  </div>
+                  
+                  <!-- 第一名（中间） -->
+                  <div v-if="hitListRanking[0]" :class="['podium-item', 'rank-1']" @click="handleAvatarClick(hitListRanking[0].user_id)">
+                    <div :class="['podium-base', 'rank-1-base']">
+                      <div class="avatar-wrapper">
+                        <img class="podium-avatar" :src="hitListRanking[0].avatar" alt="" />
+                        <img src="/icons/top1.png" alt="" class="crown-icon" />
+                      </div>
+                      <div class="podium-name">{{ hitListRanking[0].name }}</div>
+                      <div class="podium-value">{{ hitListRanking[0].nums }}次</div>
+                    </div>
+                  </div>
+                  
+                  <!-- 第三名 -->
+                  <div v-if="hitListRanking[2]" :class="['podium-item', 'rank-3']" @click="handleAvatarClick(hitListRanking[2].user_id)">
+                    <div :class="['podium-base', 'rank-3-base']">
+                      <div class="avatar-wrapper">
+                        <img class="podium-avatar" :src="hitListRanking[2].avatar" alt="" />
+                        <img src="/icons/top3.png" alt="" class="crown-icon" />
+                      </div>
+                      <div class="podium-name">{{ hitListRanking[2].name }}</div>
+                      <div class="podium-value">{{ hitListRanking[2].nums }}次</div>
                     </div>
                   </div>
                 </div>
                 <!-- 4-10名列表 -->
                 <div class="ranking-normal-list">
-                  <div v-for="(user, index) in hitListRanking.slice(3)" :key="user.id" class="ranking-item">
+                  <div v-for="(user, index) in hitListRanking.slice(3)" :key="user.id" class="ranking-item" @click="handleAvatarClick(user.user_id)">
                     <div class="ranking-number">{{ index + 4 }}</div>
                     <img class="ranking-avatar" :src="user.avatar" alt="" />
                     <div class="ranking-info">
@@ -353,6 +403,19 @@ function handleError(error, fallbackMsg) {
   showToast(msg);
 }
 
+// 点击头像获取用户详情
+const handleAvatarClick = async (userId) => {
+  try {
+    router.push({
+      path: '/user-detail',
+      query: { id: userId }
+    });
+  } catch (error) {
+    console.error('跳转失败:', error);
+    showToast('跳转失败，请稍后重试');
+  }
+};
+
 onMounted(async () => {
   loading.value = true;
 
@@ -372,6 +435,7 @@ onMounted(async () => {
   // 缓存key
   const CACHE_KEY = "home_data_cache";
   const CACHE_TIME_KEY = "home_data_cache_time";
+  const RANKING_CACHE_KEY = "ranking_data_cache";
   const POPUP_TIME_KEY = "home_popup_last_time";
   const now = Date.now();
   let cache = null;
@@ -392,6 +456,15 @@ onMounted(async () => {
       }
     } catch {}
   }
+  
+  // 从缓存加载排行榜数据（立即显示）
+  try {
+    const cachedRanking = localStorage.getItem(RANKING_CACHE_KEY);
+    if (cachedRanking) {
+      Ranking_list.value = JSON.parse(cachedRanking);
+    }
+  } catch {}
+  
   if (needRequest) {
     try {
       // 资讯
@@ -426,13 +499,6 @@ onMounted(async () => {
         handleError(drawRes, "获取开奖数据失败");
       }
 
-      const RankingRes = await API.getRank();
-      if (RankingRes.code === 1) {
-        Ranking_list.value = RankingRes.data || { yl: [], mz: [], tj: [] };
-      } else {
-        handleError(RankingRes, "获取排行榜数据失败");
-      }
-
       const lslistRes = await API.lsList();
       if (lslistRes.code === 1) {
         lslist.value = lslistRes.data;
@@ -464,6 +530,21 @@ onMounted(async () => {
       handleError(error, "网络异常或超时");
     }
   }
+  
+  // 每次都请求排行榜数据（不受缓存时间限制）
+  try {
+    const RankingRes = await API.getRank();
+    if (RankingRes.code === 1) {
+      Ranking_list.value = RankingRes.data || { yl: [], mz: [], tj: [] };
+      // 缓存排行榜数据
+      localStorage.setItem(RANKING_CACHE_KEY, JSON.stringify(Ranking_list.value));
+    } else {
+      handleError(RankingRes, "获取排行榜数据失败");
+    }
+  } catch (error) {
+    handleError(error, "获取排行榜数据失败");
+  }
+  
   // 弹窗10分钟展示一次，首次进入立即展示，initConfig接口也做10分钟缓存
   const CONFIG_CACHE_KEY = "config";
   const CONFIG_CACHE_TIME_KEY = "config_cache_time";

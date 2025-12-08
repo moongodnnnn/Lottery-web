@@ -35,7 +35,12 @@ import MessageCenter from "../view/My/MessageCenter.vue";
 import WithdrawPassword from "../view/My/Withdraw_password.vue";
 import Invite_friends from "../view/My/Invite_friends.vue";
 import Invite_store from "../view/My/Invite_store.vue";
+import Invite_records from "../view/My/Invite_records.vue";
+import User_detail from "../view/My/User_detail.vue";
 import Prize_optimize from "../view/Game/Prize_optimize.vue";
+import Lottery_detail from "../view/Home/Lottery_detail.vue";
+import Search from "../view/Home/Search.vue";
+import Match_analysis from "../view/Game/Match_analysis.vue";
 
 const routes = [
   { path: "/", redirect: "/login" },
@@ -75,7 +80,12 @@ const routes = [
   { path: "/withdraw-password", name: "WithdrawPassword", component: WithdrawPassword },
   { path: "/invite-friends", name: "Invite_friends", component: Invite_friends },
   { path: "/invite-store", name: "Invite_store", component: Invite_store },
+  { path: "/invite-records", name: "Invite_records", component: Invite_records },
+  { path: "/user-detail", name: "User_detail", component: User_detail },
   { path: "/prize-optimize", name: "Prize_optimize", component: Prize_optimize },
+  { path: "/lottery-detail", name: "Lottery_detail", component: Lottery_detail },
+  { path: "/search", name: "Search", component: Search },
+  { path: "/match-analysis", name: "Match_analysis", component: Match_analysis },
 ];
 
 const router = createRouter({

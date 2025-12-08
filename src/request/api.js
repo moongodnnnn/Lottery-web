@@ -126,6 +126,11 @@ export const API = {
     return instance.get("/lottery/lottoHistory");
   },
 
+  // 乐透数字详情
+  lotoInfo(payload) {
+    return instance.get("/lottery/lotoInfo", { params: payload });
+  },
+
   order_detail(payload) {
     return instance.get("/betting_order/order_detail", { params: { id: payload } });
   },
@@ -140,6 +145,21 @@ export const API = {
 
   getgendanInfo(payload) {
     return instance.get(`gendan/getInfo/id/${payload}`);
+  },
+
+  // 获取跟单用户详情
+  getUseridInfo(userId) {
+    return instance.get(`/gendan/userInfo/id/${userId}`);
+  },
+
+  // 获取列表用户详情
+  getlistUserInfo(userId) {
+    return instance.get(`/gendan/user/id/${userId}`);
+  },
+
+  // 搜索用户
+  searchUser(name) {
+    return instance.post("/gendan/search", { name });
   },
 
   // 获取跟单排行榜
@@ -234,6 +254,26 @@ export const API = {
   // 查询支付结果
   payNotify() {
     return instance.get("/pay/toNotify");
+  },
+
+  //  今日竟彩开奖
+  jclottery() {
+    return instance.get("/lottery/jc");
+  },
+
+  //  邀请好友记录
+  getUserInvited() {
+    return instance.get("/user/getUserInvited");
+  },
+
+  //  邀请店铺记录
+  getStoreInvited() {
+    return instance.get("/user/getStoreInvited");
+  },
+
+  // 设置消息已读
+  markMessageRead(messageId) {
+    return instance.get(`/user/isRead/id/${messageId}`);
   },
 
   // 在线充值
