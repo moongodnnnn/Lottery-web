@@ -151,30 +151,31 @@
         <div class="setting-group">
           <span class="setting-label">倍数</span>
           <div class="multiple-controls">
-            <van-button 
-              class="control-btn" 
-              icon="minus" 
-              @click="decreaseMultiple" 
-              :disabled="betMultiple <= 1"
-          
-            />
+            <van-button class="control-btn" icon="minus" @click="decreaseMultiple" :disabled="betMultiple <= 1" />
             <input
               class="multiple-input"
               v-model.number="betMultiple"
               type="number"
               min="1"
-              max="999"
+              max="99999"
               @input="onMultipleInput"
               @blur="validateMultiple"
             />
-            <van-button 
-              class="control-btn" 
-              icon="plus" 
-              @click="increaseMultiple" 
-              :disabled="betMultiple >= 999"
-        
-            />
+            <van-button class="control-btn" icon="plus" @click="increaseMultiple" :disabled="betMultiple >= 99999" />
           </div>
+        </div>
+      </div>
+
+      <!-- 倍数快捷选择行 -->
+      <div class="quick-multiple-row">
+        <div 
+          v-for="value in quickMultipleOptions" 
+          :key="value" 
+          class="quick-multiple-item"
+          :class="{ active: betMultiple === value }"
+          @click="setQuickMultiple(value)"
+        >
+          {{ value }}倍
         </div>
       </div>
 
@@ -232,6 +233,18 @@ const showBannerPopup = ref(false);
 const showBetTypePopup = ref(false);
 const userBalance = ref(0); // 用户余额
 const isLoading = ref(true); // 加载状态
+
+// 快捷倍数选项
+const quickMultipleOptions = [20, 50, 100, 500, 1000];
+
+// 设置快捷倍数
+const setQuickMultiple = (value) => {
+  if (value > 99999) {
+    betMultiple.value = 99999;
+  } else {
+    betMultiple.value = value;
+  }
+};
 
 const hasScoreOrHalfPlay = computed(() => {
   return betDetails.value.some((bet) => bet.rateType === "3" || bet.rateType === "5");
@@ -718,7 +731,7 @@ function confirmBetTypeSelection() {
 }
 
 function increaseMultiple() {
-  if (betMultiple.value < 99) {
+  if (betMultiple.value < 99999) {
     betMultiple.value++;
   }
 }
@@ -736,11 +749,11 @@ function onMultipleInput(e) {
   value = value.replace(/[^\d]/g, "");
   // 限制范围
   if (value === "") {
-    betMultiple.value = 1;
+    betMultiple.value = "";
   } else {
     let num = parseInt(value);
     if (num < 1) num = 1;
-    if (num > 99) num = 999;
+    if (num > 99999) num = 99999;
     betMultiple.value = num;
   }
 }
@@ -749,12 +762,10 @@ function onMultipleInput(e) {
 function validateMultiple() {
   if (!betMultiple.value || betMultiple.value < 1) {
     betMultiple.value = 1;
-  } else if (betMultiple.value > 999) {
-    betMultiple.value = 999;
+  } else if (betMultiple.value > 99999) {
+    betMultiple.value = 99999;
   }
 }
-
-
 
 // 显示Banner详情
 function showBannerDetails() {
@@ -874,7 +885,7 @@ async function confirmSelection() {
                 try {
                   const balanceRes = await API.balanceof();
                   if (balanceRes.code === 1 && balanceRes.data) {
-                    userBalance.value = parseFloat(balanceRes.data.amount);
+                    userBalance.value = parseFloat(balanceRes.data.all_amount);
                   }
                 } catch (error) {
                   console.error("获取余额失败:", error);
@@ -1097,12 +1108,12 @@ function optimizePrize() {
 
 onMounted(async () => {
   isLoading.value = true; // 开始加载
-  
+
   // 获取用户余额
   try {
     const balanceRes = await API.balanceof();
     if (balanceRes.code === 1 && balanceRes.data) {
-      userBalance.value = parseFloat(balanceRes.data.amount);
+      userBalance.value = parseFloat(balanceRes.data.all_amount);
     }
   } catch (error) {
     console.error("获取余额失败:", error);
@@ -1358,7 +1369,7 @@ onMounted(async () => {
 }
 
 .multiple-input {
-  width: 58px;
+  width: 66px;
   height: 28px;
   text-align: center;
   font-size: 1rem;
@@ -1408,9 +1419,50 @@ onMounted(async () => {
   align-items: center;
   justify-content: space-between;
   gap: 10px;
-
   padding: 2px 18px 10px 18px;
   border-bottom: 1px solid #f5f5f5;
+}
+
+/* 快捷倍数选择行 */
+.quick-multiple-row {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 6px 12px;
+  overflow-x: auto;
+  scrollbar-width: none; /* Firefox */
+  -ms-overflow-style: none; /* IE/Edge */
+}
+
+.quick-multiple-row::-webkit-scrollbar {
+  display: none; /* Chrome/Safari */
+}
+
+.quick-multiple-item {
+  flex-shrink: 0;
+  padding: 6px 12px;
+  background: #f5f5f5;
+  border: 1px solid #e8e8e8;
+  border-radius: 16px;
+  font-size: 0.8rem;
+  color: #666;
+  cursor: pointer;
+  transition: all 0.2s;
+  white-space: nowrap;
+  user-select: none;
+  -webkit-user-select: none;
+  touch-action: manipulation;
+}
+
+.quick-multiple-item:active {
+  transform: scale(0.95);
+}
+
+.quick-multiple-item.active {
+  background: linear-gradient(135deg, #fc3c3c 0%, #ff6b6b 100%);
+  color: white;
+  border-color: #fc3c3c;
+  font-weight: 600;
 }
 
 .setting-group {

@@ -403,11 +403,11 @@ onMounted(() => {
 
 .prize-label {
   font-size: 0.75rem;
-  color: #ffffff;
+  color: #333;
 }
 
 .prize-value {
-  font-size: 0.8rem;
+  font-size: 0.9rem;
   font-weight: 700;
   color: #fc3c3c;
   letter-spacing: 0.5px;

@@ -260,10 +260,11 @@ onMounted(() => {
 .tab-content-wrapper {
   flex: 1;
   overflow: hidden;
+  max-height: 86vh;
 }
 
 .tab-content {
-  height: calc(100vh - 52px);
+  height: calc(100vh - 98px);
   overflow-y: auto;
   background: #f5f5f5;
 }

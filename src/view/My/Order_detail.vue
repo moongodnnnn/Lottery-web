@@ -262,7 +262,7 @@
 <script setup>
 import { ref, computed, onMounted } from "vue";
 import { useRouter, useRoute } from "vue-router";
-import { showToast, ImagePreview } from "vant";
+import { showToast, showImagePreview } from "vant";
 import API from "../../request/api";
 
 const router = useRouter();
@@ -344,7 +344,11 @@ function getBillStatusText(billStatus) {
 function viewTicket() {
   if (orderDetail.value && orderDetail.value.bill_images && orderDetail.value.bill_images.length > 0) {
     // 如果有票样图片，则显示图片预览
-    ImagePreview(orderDetail.value.bill_images);
+    showImagePreview({
+      images: orderDetail.value.bill_images,
+      startPosition: 0,
+      closeable: true,
+    });
   } else {
     // 如果没有票样图片，则提示用户
     showToast("票样照片店主暂未上传");

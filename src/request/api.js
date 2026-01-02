@@ -3,7 +3,7 @@ import router from "../router/index.js";
 
 // axios 实例
 const instance = axios.create({
-  baseURL: "https://lottery.hongxiu88.com/api",
+  baseURL: "https://atc.lxwdlz.cn/api",
   timeout: 10000,
   headers: { "Content-Type": "application/json" },
 });

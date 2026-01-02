@@ -90,12 +90,25 @@
               v-model.number="betMultiple"
               type="number"
               min="1"
-              max="99"
+              max="99999"
               @input="onMultipleInput"
               @blur="validateMultiple"
             />
             <van-button class="control-btn" icon="plus" @click="increaseMultiple" :disabled="betMultiple >= 99" />
           </div>
+        </div>
+      </div>
+
+      <!-- 快捷倍数选择行 -->
+      <div class="quick-multiple-row">
+        <div 
+          v-for="value in quickMultipleOptions" 
+          :key="value" 
+          class="quick-multiple-item"
+          :class="{ active: betMultiple === value }"
+          @click="setQuickMultiple(value)"
+        >
+          {{ value }}倍
         </div>
       </div>
 
@@ -220,6 +233,18 @@ const showRule = ref(false);
 const showBannerPopup = ref(false); // Banner详情弹窗
 const showBetTypePopup = ref(false); // 串关方式弹窗
 const userBalance = ref(0); // 用户余额
+
+// 快捷倍数选项
+const quickMultipleOptions = [20, 50, 100, 200, 500, 1000, 5000];
+
+// 设置快捷倍数
+const setQuickMultiple = (value) => {
+  if (value > 99999) {
+    betMultiple.value = 99999;
+  } else {
+    betMultiple.value = value;
+  }
+};
 
 // 投注方式选项（串关方式）
 const betTypeOptions = computed(() => {
@@ -495,7 +520,7 @@ function getDisplayOptionName(bet) {
 
 // 增加倍数
 function increaseMultiple() {
-  if (betMultiple.value < 99) {
+  if (betMultiple.value < 99999) {
     betMultiple.value++;
   }
 }
@@ -514,11 +539,11 @@ function onMultipleInput(e) {
   value = value.replace(/[^\d]/g, '');
   // 限制范围
   if (value === '') {
-    betMultiple.value = 1;
+    betMultiple.value = '';
   } else {
     let num = parseInt(value);
     if (num < 1) num = 1;
-    if (num > 99) num = 99;
+    if (num > 99999) num = 99999;
     betMultiple.value = num;
   }
 }
@@ -527,8 +552,8 @@ function onMultipleInput(e) {
 function validateMultiple() {
   if (!betMultiple.value || betMultiple.value < 1) {
     betMultiple.value = 1;
-  } else if (betMultiple.value > 99) {
-    betMultiple.value = 99;
+  } else if (betMultiple.value > 99999) {
+    betMultiple.value = 99999;
   }
 }
 
@@ -656,7 +681,7 @@ async function confirmSelection() {
                 try {
                   const balanceRes = await API.balanceof();
                   if (balanceRes.code === 1 && balanceRes.data) {
-                    userBalance.value = parseFloat(balanceRes.data.amount);
+                    userBalance.value = parseFloat(balanceRes.data.all_amount);
                   }
                 } catch (error) {
                   console.error('获取余额失败:', error);
@@ -848,7 +873,7 @@ onMounted(async () => {
   try {
     const balanceRes = await API.balanceof();
     if (balanceRes.code === 1 && balanceRes.data) {
-      userBalance.value = parseFloat(balanceRes.data.amount);
+      userBalance.value = parseFloat(balanceRes.data.all_amount);
     }
   } catch (error) {
     console.error('获取余额失败:', error);
@@ -1088,7 +1113,7 @@ onMounted(async () => {
 }
 
 .multiple-input {
-  width: 50px;
+  width: 66px;
   height: 28px;
   text-align: center;
   font-size: 1rem;
@@ -1140,6 +1165,48 @@ onMounted(async () => {
   gap: 10px;
   padding: 2px 18px 10px 18px;
   border-bottom: 1px solid #f5f5f5;
+}
+
+/* 快捷倍数选择行 */
+.quick-multiple-row {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 8px 18px;
+  overflow-x: auto;
+  scrollbar-width: none;
+  -ms-overflow-style: none;
+}
+
+.quick-multiple-row::-webkit-scrollbar {
+  display: none;
+}
+
+.quick-multiple-item {
+  flex-shrink: 0;
+  padding: 6px 12px;
+  background: #f5f5f5;
+  border: 1px solid #e8e8e8;
+  border-radius: 16px;
+  font-size: 0.8rem;
+  color: #666;
+  cursor: pointer;
+  transition: all 0.2s;
+  white-space: nowrap;
+  user-select: none;
+  -webkit-user-select: none;
+  touch-action: manipulation;
+}
+
+.quick-multiple-item:active {
+  transform: scale(0.95);
+}
+
+.quick-multiple-item.active {
+  background: linear-gradient(135deg, #fc3c3c 0%, #ff6b6b 100%);
+  color: white;
+  border-color: #fc3c3c;
+  font-weight: 600;
 }
 
 .setting-group {

@@ -81,7 +81,7 @@ const canSubmit = computed(() => {
 
 function refreshImgCode() {
   uniqid.value = getUniqId();
-  imgurl.value = `https://lottery.hongxiu88.com/index/captcha/index/id/${uniqid.value}`;
+  imgurl.value = `https://atc.lxwdlz.cn/index/captcha/index/id/${uniqid.value}`;
 }
 function clearTimer() {
   if (timer) {
@@ -135,7 +135,7 @@ function getUniqId() {
 
 onMounted(() => {
   uniqid.value = getUniqId();
-  imgurl.value = `https://lottery.hongxiu88.com/index/captcha/index/id/${uniqid.value}`;
+  imgurl.value = `https://atc.lxwdlz.cn/index/captcha/index/id/${uniqid.value}`;
 });
 
 onBeforeUnmount(clearTimer);

@@ -174,6 +174,19 @@
         </div>
       </div>
 
+      <!-- 快捷倍数选择行 -->
+      <div class="quick-multiple-row">
+        <div 
+          v-for="value in quickMultipleOptions" 
+          :key="value" 
+          class="quick-multiple-item"
+          :class="{ active: betMultiple === value }"
+          @click="setQuickMultiple(value)"
+        >
+          {{ value }}倍
+        </div>
+      </div>
+
       <!-- 投注信息和按钮行 -->
       <div class="action-row">
         <div class="bet-info">
@@ -234,6 +247,19 @@ const betMultiple = ref(1); // 投注倍数，默认1倍
 const selectedBetType = ref("single"); // 选中的投注方式，默认单关
 const showRule = ref(false);
 const showBannerPopup = ref(false); // Banner详情弹窗
+const userBalance = ref(0); // 用户余额
+
+// 快捷倍数选项
+const quickMultipleOptions = [20, 50, 100, 200, 500, 1000, 5000];
+
+// 设置快捷倍数
+const setQuickMultiple = (value) => {
+  if (value > 99999) {
+    betMultiple.value = 99999;
+  } else {
+    betMultiple.value = value;
+  }
+};
 
 // 判断是否为排列三游戏
 const isPl3Game = computed(() => {
@@ -478,13 +504,35 @@ async function confirmSelection() {
     return;
   }
 
-  // 弹出确认对话框
+  // 先检查余额是否充足
+  if (userBalance.value < totalAmount.value) {
+    // 余额不足，直接提示
+    showDialog({
+      message: `资金不足,去充值<br/><div style="font-size: 14px; color: #999;padding-top: 20px;">当前余额：¥${userBalance.value.toFixed(2)}</div>`,
+      messageAlign: "center",
+      title: "温馨提示",
+      showCancelButton: true,
+      confirmButtonText: "去充值",
+      cancelButtonText: "取消",
+      allowHtml: true,
+    })
+      .then(() => {
+        router.push("/recharge");
+      })
+      .catch(() => {
+        console.log("用户取消充值");
+      });
+    return;
+  }
+
+  // 余额充足，弹出确认对话框
   showDialog({
     messageAlign: "center",
     showCancelButton: true,
+    title: "温馨提示",
     confirmButtonText: "确认",
     cancelButtonText: "取消",
-    message: `订单金额：¥${totalAmount.value}`,
+    message: `订单金额：¥${totalAmount.value} \n  \n 确认提交此方案吗？`,
   })
     .then(async () => {
       // 用户点击确认，准备接口参数
@@ -497,13 +545,60 @@ async function confirmSelection() {
         console.log("接口响应:", response);
 
         if (response.code === 1) {
-          // 跳转到下单成功页面
-          router.replace({
-            path: '/bet_success',
-            query: {
-              orderId: response.data?.id || response.data?.order_id || ''
+          // 下单成功后，调用余额支付接口
+          const orderId = response.data?.id || response.data?.order_id || '';
+          
+          if (orderId) {
+            try {
+              // 调用余额支付接口
+              const payRes = await API.toBalance({ id: orderId });
+              
+              if (payRes.code === 1) {
+                // 支付成功，跳转到下单成功页面
+                router.replace({
+                  path: '/bet_success',
+                  query: { orderId }
+                });
+              } else {
+                // 支付失败
+                if (payRes.msg === '资金不足') {
+                  // 获取最新余额
+                  try {
+                    const balanceRes = await API.balanceof();
+                    if (balanceRes.code === 1 && balanceRes.data) {
+                      userBalance.value = parseFloat(balanceRes.data.all_amount);
+                    }
+                  } catch (error) {
+                    console.error('获取余额失败:', error);
+                  }
+
+                  // 显示余额不足对话框
+                  showDialog({
+                    message: `资金不足,去充值<br/><div style="font-size: 14px; color: #999;padding-top: 20px;">当前余额：¥${userBalance.value.toFixed(2)}</div>`,
+                    messageAlign: "center",
+                    title: "温馨提示",
+                    showCancelButton: true,
+                    confirmButtonText: "去充值",
+                    cancelButtonText: "取消",
+                    allowHtml: true,
+                  })
+                    .then(() => {
+                      router.push("/recharge");
+                    })
+                    .catch(() => {
+                      console.log("用户取消充值");
+                    });
+                } else {
+                  showToast(payRes.msg || "支付失败");
+                }
+              }
+            } catch (error) {
+              console.error('余额支付失败:', error);
+              showToast('支付失败');
             }
-          });
+          } else {
+            showToast('订单ID获取失败');
+          }
         } else {
           showToast(response.msg || "订单提交失败");
         }
@@ -666,7 +761,23 @@ function onClickLeft() {
   router.back();
 }
 
+// 获取用户余额
+async function getUserBalance() {
+  try {
+    const res = await API.balanceof();
+    if (res.code === 1 && res.data) {
+      userBalance.value = parseFloat(res.data.amount);
+      console.log('用户余额:', userBalance.value);
+    }
+  } catch (error) {
+    console.error('获取余额失败:', error);
+  }
+}
+
 onMounted(() => {
+  // 获取用户余额
+  getUserBalance();
+  
   // 从路由参数中获取投注数据
   try {
     // 检查是否为数字彩票
@@ -1106,9 +1217,50 @@ onMounted(() => {
   justify-content: space-between;
   gap: 10px;
   margin-bottom: 8px;
-
   padding: 2px 18px 10px 18px;
   border-bottom: 1px solid #f5f5f5;
+}
+
+/* 快捷倍数选择行 */
+.quick-multiple-row {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 8px 18px;
+  overflow-x: auto;
+  scrollbar-width: none;
+  -ms-overflow-style: none;
+}
+
+.quick-multiple-row::-webkit-scrollbar {
+  display: none;
+}
+
+.quick-multiple-item {
+  flex-shrink: 0;
+  padding: 6px 12px;
+  background: #f5f5f5;
+  border: 1px solid #e8e8e8;
+  border-radius: 16px;
+  font-size: 0.8rem;
+  color: #666;
+  cursor: pointer;
+  transition: all 0.2s;
+  white-space: nowrap;
+  user-select: none;
+  -webkit-user-select: none;
+  touch-action: manipulation;
+}
+
+.quick-multiple-item:active {
+  transform: scale(0.95);
+}
+
+.quick-multiple-item.active {
+  background: linear-gradient(135deg, #fc3c3c 0%, #ff6b6b 100%);
+  color: white;
+  border-color: #fc3c3c;
+  font-weight: 600;
 }
 
 .setting-group {

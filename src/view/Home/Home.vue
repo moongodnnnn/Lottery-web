@@ -58,7 +58,7 @@
       </van-swipe>
 
       <div class="notice-wrapper content">
-        <van-notice-bar>
+        <van-notice-bar @click="gotoastDetail(gonggaoid)">
           <template #left-icon>
             <img src="/icons/notice.png" alt="notice" class="notice-icon" />
           </template>
@@ -187,12 +187,8 @@
             <!-- 红单榜 -->
             <div v-if="activeRankingTab === 'yl'" class="ranking-content">
               <div class="ranking-tabs">
-                <div :class="['ranking-tab', { active: activeRankingTab === 'yl' }]" @click="activeRankingTab = 'yl'">
-                  红单榜
-                </div>
-                <div :class="['ranking-tab', { active: activeRankingTab === 'mz' }]" @click="activeRankingTab = 'mz'">
-                  命中榜
-                </div>
+                <div :class="['ranking-tab', { active: activeRankingTab === 'yl' }]" @click="activeRankingTab = 'yl'">红单榜</div>
+                <div :class="['ranking-tab', { active: activeRankingTab === 'mz' }]" @click="activeRankingTab = 'mz'">命中榜</div>
               </div>
               <template v-if="redListRanking.length">
                 <!-- 领奖台（前3名）- 2-1-3顺序 -->
@@ -208,7 +204,7 @@
                       <div class="podium-value">¥{{ redListRanking[1].nums?.toLocaleString?.() ?? redListRanking[1].nums }}</div>
                     </div>
                   </div>
-                  
+
                   <!-- 第一名（中间） -->
                   <div v-if="redListRanking[0]" :class="['podium-item', 'rank-1']" @click="handleAvatarClick(redListRanking[0].user_id)">
                     <div :class="['podium-base', 'rank-1-base']">
@@ -220,7 +216,7 @@
                       <div class="podium-value">¥{{ redListRanking[0].nums?.toLocaleString?.() ?? redListRanking[0].nums }}</div>
                     </div>
                   </div>
-                  
+
                   <!-- 第三名 -->
                   <div v-if="redListRanking[2]" :class="['podium-item', 'rank-3']" @click="handleAvatarClick(redListRanking[2].user_id)">
                     <div :class="['podium-base', 'rank-3-base']">
@@ -235,7 +231,12 @@
                 </div>
                 <!-- 4-10名列表 -->
                 <div class="ranking-normal-list">
-                  <div v-for="(user, index) in redListRanking.slice(3)" :key="user.id" class="ranking-item" @click="handleAvatarClick(user.user_id)">
+                  <div
+                    v-for="(user, index) in redListRanking.slice(3)"
+                    :key="user.id"
+                    class="ranking-item"
+                    @click="handleAvatarClick(user.user_id)"
+                  >
                     <div class="ranking-number">{{ index + 4 }}</div>
                     <img class="ranking-avatar" :src="user.avatar" alt="" />
                     <div class="ranking-info">
@@ -249,19 +250,15 @@
                 </div>
               </template>
               <template v-else>
-                <div style="text-align:center;padding:24px 0;color:#999;">暂无数据</div>
+                <div style="text-align: center; padding: 24px 0; color: #999">暂无数据</div>
               </template>
             </div>
 
             <!-- 命中榜 -->
             <div v-if="activeRankingTab === 'mz'" class="ranking-content">
               <div class="ranking-tabs">
-                <div :class="['ranking-tab', { active: activeRankingTab === 'yl' }]" @click="activeRankingTab = 'yl'">
-                  红单榜
-                </div>
-                <div :class="['ranking-tab', { active: activeRankingTab === 'mz' }]" @click="activeRankingTab = 'mz'">
-                  命中榜
-                </div>
+                <div :class="['ranking-tab', { active: activeRankingTab === 'yl' }]" @click="activeRankingTab = 'yl'">红单榜</div>
+                <div :class="['ranking-tab', { active: activeRankingTab === 'mz' }]" @click="activeRankingTab = 'mz'">命中榜</div>
               </div>
               <template v-if="hitListRanking.length">
                 <!-- 领奖台（前3名）- 2-1-3顺序 -->
@@ -277,7 +274,7 @@
                       <div class="podium-value">{{ hitListRanking[1].nums }}次</div>
                     </div>
                   </div>
-                  
+
                   <!-- 第一名（中间） -->
                   <div v-if="hitListRanking[0]" :class="['podium-item', 'rank-1']" @click="handleAvatarClick(hitListRanking[0].user_id)">
                     <div :class="['podium-base', 'rank-1-base']">
@@ -289,7 +286,7 @@
                       <div class="podium-value">{{ hitListRanking[0].nums }}次</div>
                     </div>
                   </div>
-                  
+
                   <!-- 第三名 -->
                   <div v-if="hitListRanking[2]" :class="['podium-item', 'rank-3']" @click="handleAvatarClick(hitListRanking[2].user_id)">
                     <div :class="['podium-base', 'rank-3-base']">
@@ -304,7 +301,12 @@
                 </div>
                 <!-- 4-10名列表 -->
                 <div class="ranking-normal-list">
-                  <div v-for="(user, index) in hitListRanking.slice(3)" :key="user.id" class="ranking-item" @click="handleAvatarClick(user.user_id)">
+                  <div
+                    v-for="(user, index) in hitListRanking.slice(3)"
+                    :key="user.id"
+                    class="ranking-item"
+                    @click="handleAvatarClick(user.user_id)"
+                  >
                     <div class="ranking-number">{{ index + 4 }}</div>
                     <img class="ranking-avatar" :src="user.avatar" alt="" />
                     <div class="ranking-info">
@@ -318,7 +320,7 @@
                 </div>
               </template>
               <template v-else>
-                <div style="text-align:center;padding:24px 0;color:#999;">暂无数据</div>
+                <div style="text-align: center; padding: 24px 0; color: #999">暂无数据</div>
               </template>
             </div>
           </div>
@@ -337,6 +339,12 @@
 
 <script setup>
 import { ref, onMounted, computed } from "vue";
+import { useRouter } from "vue-router";
+import { showToast, showDialog } from "vant";
+import { API } from "../../request/api";
+
+const router = useRouter();
+
 // 时间戳转年月日
 function formatDate(ts) {
   if (!ts) return "";
@@ -348,11 +356,6 @@ function formatDate(ts) {
   const day = d.getDate().toString().padStart(2, "0");
   return `${y}-${m}-${day}`;
 }
-import { useRouter } from "vue-router";
-import { showToast } from "vant";
-import { API } from "../../request/api";
-
-const router = useRouter();
 
 const go = (code) => {
   if (code == "zq") {
@@ -392,6 +395,7 @@ const show = ref(false);
 const loading = ref(false);
 const Noticeimg = ref("");
 const lslist = ref([]);
+const gonggaoid = ref("");
 
 const Ranking_list = ref({ yl: [], mz: [], tj: [] });
 const activeRankingTab = ref("yl"); // 当前激活的排行榜tab，默认红单榜
@@ -407,13 +411,24 @@ function handleError(error, fallbackMsg) {
 const handleAvatarClick = async (userId) => {
   try {
     router.push({
-      path: '/user-detail',
-      query: { id: userId }
+      path: "/user-detail",
+      query: { id: userId },
     });
   } catch (error) {
-    console.error('跳转失败:', error);
-    showToast('跳转失败，请稍后重试');
+    console.error("跳转失败:", error);
+    showToast("跳转失败，请稍后重试");
   }
+};
+
+const gotoastDetail = (id) => {
+  API.toastDetail(id).then((res) => {
+    showDialog({
+      title: res.data.title,
+      message: res.data.content,
+    }).then(() => {
+      // on close
+    });
+  });
 };
 
 onMounted(async () => {
@@ -423,6 +438,20 @@ onMounted(async () => {
     const lotRes = await API.lotteryloto("all");
     if (lotRes.code === 1) {
       results.value = lotRes.data;
+      
+      // 处理双色球数据：将 front_n1-5 和 back_n1-2 组合成 draw_numbers 数组
+      if (results.value.loto) {
+        const loto = results.value.loto;
+        results.value.loto.draw_numbers = [
+          loto.front_n1,
+          loto.front_n2,
+          loto.front_n3,
+          loto.front_n4,
+          loto.front_n5,
+          loto.back_n1,
+          loto.back_n2
+        ];
+      }
     }
 
     if (lotRes.code !== 1) {
@@ -456,7 +485,7 @@ onMounted(async () => {
       }
     } catch {}
   }
-  
+
   // 从缓存加载排行榜数据（立即显示）
   try {
     const cachedRanking = localStorage.getItem(RANKING_CACHE_KEY);
@@ -464,7 +493,7 @@ onMounted(async () => {
       Ranking_list.value = JSON.parse(cachedRanking);
     }
   } catch {}
-  
+
   if (needRequest) {
     try {
       // 资讯
@@ -479,6 +508,7 @@ onMounted(async () => {
       const ggRes = await API.toast("gg");
       if (ggRes.code === 1) {
         gonggao.value = ggRes.data[0]?.title || "";
+        gonggaoid.value = ggRes.data[0]?.id;
       } else {
         handleError(ggRes, "获取公告失败");
       }
@@ -530,7 +560,7 @@ onMounted(async () => {
       handleError(error, "网络异常或超时");
     }
   }
-  
+
   // 每次都请求排行榜数据（不受缓存时间限制）
   try {
     const RankingRes = await API.getRank();
@@ -544,7 +574,7 @@ onMounted(async () => {
   } catch (error) {
     handleError(error, "获取排行榜数据失败");
   }
-  
+
   // 弹窗10分钟展示一次，首次进入立即展示，initConfig接口也做10分钟缓存
   const CONFIG_CACHE_KEY = "config";
   const CONFIG_CACHE_TIME_KEY = "config_cache_time";

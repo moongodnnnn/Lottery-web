@@ -14,7 +14,7 @@
     </van-tabbar-item>
     <van-tabbar-item to="/expert">
       <template #icon="props">
-        <img style="width: 3.2rem; height: 3.2rem; margin-top: -1.2rem" :src="props.active ? icon2.active : icon2.inactive" />
+        <img style="width: 3.4rem; height: 3.4rem;" :src="props.active ? icon2.active : icon2.inactive" />
       </template>
     </van-tabbar-item>
     <van-tabbar-item to="/community">
@@ -45,7 +45,7 @@ export default {
       inactive: "/tabicon/icon33.png",
     };
     const icon2 = {
-      active: "/tabicon/icon22.png",
+      active: "/tabicon/icon2.png",
       inactive: "/tabicon/icon2.png",
     };
     const icon3 = {

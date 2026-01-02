@@ -57,7 +57,7 @@
               <!-- 左侧：联赛和时间 -->
               <div class="game-meta">
                 <div class="game-league" :style="getLeagueStyle(game.match?.name)">{{ game.match?.name || "未知联赛" }}</div>
-                <div class="game-time">{{ formatGameTime(game.start_time) }}</div>
+                <div class="game-time">{{ formatGameTime(game.deal_time) }}</div>
               </div>
 
               <!-- 中间：投注选项 -->
@@ -192,43 +192,55 @@
                 {{ rate.type_name || getRateTypeName(rate.rate_type) }}
               </div>
 
-              <!-- 比分玩法 (rate_type = 3) - 统一显示所有比分 -->
+              <!-- 比分玩法 (rate_type = 3) - 统一在一个框内 -->
               <template v-if="rate.rate_type === '3'">
-                <div class="score-section">
-                  <div class="more-rate-options score-options">
-                    <!-- 主胜比分 -->
-                    <div
-                      v-for="(option, key) in rate.rates['1']"
-                      :key="'win-' + key"
-                      class="more-rate-option score-option"
-                      :class="{ selected: isOptionSelected(key), disabled: option.value === '--' }"
-                      @click="option.value !== '--' && selectOption(currentGame.id, rate.rate_type, key, option)"
-                    >
-                      <span class="more-option-name">{{ option.name }}</span>
-                      <span class="more-option-value">{{ option.value }}</span>
-                    </div>
-                    <!-- 平局比分 -->
-                    <div
-                      v-for="(option, key) in rate.rates['2']"
-                      :key="'draw-' + key"
-                      class="more-rate-option score-option"
-                      :class="{ selected: isOptionSelected(key), disabled: option.value === '--' }"
-                      @click="option.value !== '--' && selectOption(currentGame.id, rate.rate_type, key, option)"
-                    >
-                      <span class="more-option-name">{{ option.name }}</span>
-                      <span class="more-option-value">{{ option.value }}</span>
-                    </div>
-                    <!-- 主负比分 -->
-                    <div
-                      v-for="(option, key) in rate.rates['3']"
-                      :key="'lose-' + key"
-                      class="more-rate-option score-option"
-                      :class="{ selected: isOptionSelected(key), disabled: option.value === '--' }"
-                      @click="option.value !== '--' && selectOption(currentGame.id, rate.rate_type, key, option)"
-                    >
-                      <span class="more-option-name">{{ option.name }}</span>
-                      <span class="more-option-value">{{ option.value }}</span>
-                    </div>
+                <div class="more-rate-options score-unified-grid">
+                  <!-- 主胜比分：2行，每行7个，最后一个占2格 -->
+                  <div
+                    v-for="(option, key) in rate.rates['1']"
+                    :key="'win-' + key"
+                    class="more-rate-option score-option"
+                    :class="{ 
+                      selected: isOptionSelected(key), 
+                      disabled: option.value === '--',
+                      'wide-option': option.name === '胜其它'
+                    }"
+                    @click="option.value !== '--' && selectOption(currentGame.id, rate.rate_type, key, option)"
+                  >
+                    <span class="more-option-name">{{ option.name }}</span>
+                    <span class="more-option-value">{{ option.value }}</span>
+                  </div>
+                  
+                  <!-- 平局比分：1行，平其他占3格 -->
+                  <div
+                    v-for="(option, key) in rate.rates['2']"
+                    :key="'draw-' + key"
+                    class="more-rate-option score-option"
+                    :class="{ 
+                      selected: isOptionSelected(key), 
+                      disabled: option.value === '--',
+                      'wide-option-draw': option.name === '平其它'
+                    }"
+                    @click="option.value !== '--' && selectOption(currentGame.id, rate.rate_type, key, option)"
+                  >
+                    <span class="more-option-name">{{ option.name }}</span>
+                    <span class="more-option-value">{{ option.value }}</span>
+                  </div>
+                  
+                  <!-- 主负比分：2行，每行7个，最后一个占2格 -->
+                  <div
+                    v-for="(option, key) in rate.rates['3']"
+                    :key="'lose-' + key"
+                    class="more-rate-option score-option"
+                    :class="{ 
+                      selected: isOptionSelected(key), 
+                      disabled: option.value === '--',
+                      'wide-option': option.name === '负其它'
+                    }"
+                    @click="option.value !== '--' && selectOption(currentGame.id, rate.rate_type, key, option)"
+                  >
+                    <span class="more-option-name">{{ option.name }}</span>
+                    <span class="more-option-value">{{ option.value }}</span>
                   </div>
                 </div>
               </template>
@@ -416,45 +428,62 @@ function confirmSelection() {
   }
 
   const gameIds = new Set();
-  let hasSingleGame = false;
+  const selectedRateTypes = new Set(); // 记录用户选择的所有玩法类型
 
+  // 收集用户选择的所有场次ID和玩法类型
   for (const detail of Object.values(selectedBetsDetails.value)) {
     gameIds.add(detail.gameId);
+    selectedRateTypes.add(detail.rateType);
+  }
 
-    // 检查是否是特殊玩法（比分、总进球、半全场）
-    if (detail.rateType === '3' || detail.rateType === '4' || detail.rateType === '5') {
-      hasSingleGame = true;
-      break;
-    }
+  // 如果只选择了一场比赛，需要检查单关资格
+  if (gameIds.size === 1) {
+    let hasSingleGame = false;
 
-    // 检查这场比赛是否支持单关（检查该比赛的任意一个rate是否有is_signle === 1）
-    let foundSingleRate = false;
-    for (const dayData of gamelist.value) {
-      const game = dayData.games.find(g => g.id === detail.gameId);
-      if (game && game.rates) {
-        // 检查这场比赛的任意一个rate是否标记为单关
-        const hasSingleRate = game.rates.some(r => r.is_signle === 1);
-        if (hasSingleRate) {
-          hasSingleGame = true;
-          foundSingleRate = true;
-          break;
+    // 检查用户选择的所有玩法类型是否都支持单关
+    for (const rateType of selectedRateTypes) {
+      // 检查是否是特殊玩法（比分、总进球、半全场）- 这些都支持单关
+      if (rateType === '3' || rateType === '4' || rateType === '5') {
+        continue; // 这个玩法支持单关，继续检查下一个
+      }
+
+      // 对于胜平负(rate_type=1)和让球胜平负(rate_type=2)，需要检查具体玩法是否支持单关
+      if (rateType === '1' || rateType === '2') {
+        let foundSingleRate = false;
+        
+        // 查找这场比赛的这个具体玩法
+        for (const dayData of gamelist.value) {
+          const gameId = Array.from(gameIds)[0]; // 获取唯一的场次ID
+          const game = dayData.games.find(g => g.id === gameId);
+          
+          if (game && game.rates) {
+            // 找到对应的rate，检查它的is_signle标记
+            const rate = game.rates.find(r => r.rate_type === rateType);
+            if (rate && rate.is_signle === 1) {
+              foundSingleRate = true;
+              break;
+            }
+          }
+        }
+        
+        // 如果当前玩法类型不支持单关，直接提示并返回
+        if (!foundSingleRate) {
+          const rateTypeName = rateType === '1' ? '胜平负' : '让球胜平负';
+          showToast(`您选择的${rateTypeName}不支持单关，需要再选择一场`);
+          return;
         }
       }
     }
 
-    // 如果找到了单关标记，跳出外层循环
-    if (foundSingleRate) {
-      break;
+    // 所有选择的玩法类型都支持单关
+    hasSingleGame = true;
+
+    // 最终检查：如果没有任何玩法支持单关
+    if (!hasSingleGame) {
+      showToast("选择非单关场次，需要再选择一场");
+      return;
     }
   }
-
-  if (gameIds.size === 1 && !hasSingleGame) {
-    showToast("选择非单关场次，需要再选择一场");
-    return;
-  }
-
-  console.log("已选择的投注内容:", selectedBets.value);
-  console.log("投注详细信息:", selectedBetsDetails.value);
 
   router.push({
     path: '/Confirm_bet',
@@ -530,7 +559,7 @@ function selectOption(gameId, rateType, optionKey, option) {
           home_team_name: game.home_team_name,
           guest_team_name: game.guest_team_name,
           league_name: game.match?.name || game.league_name || "未知联赛",
-          start_time: game.start_time,
+          deal_time: game.deal_time,
         };
         break;
       }
@@ -1309,7 +1338,7 @@ function getLeagueStyle(leagueName) {
 .more-rate-group {
   background: white;
   border-radius: 8px;
-  padding: 4px 10px;
+  padding: 2px 8px;
   overflow: hidden;
   box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05);
   box-sizing: border-box;
@@ -1348,12 +1377,28 @@ function getLeagueStyle(leagueName) {
   background: #fff;
   padding: 1px;
   box-sizing: border-box;
+ border: 3px solid #d8433d;
 }
 
-/* 比分选项 - 每排6个 */
-.more-rate-options.score-options {
-  grid-template-columns: repeat(6, 1fr);
+/* 比分统一网格布局 - 所有比分在一个框内 */
+.more-rate-options.score-unified-grid {
+  display: grid;
+  grid-template-columns: repeat(7, 1fr);
   gap: 1px;
+  background: #fff;
+  padding: 1px;
+  box-sizing: border-box;
+  border: 3px solid #d8433d;
+}
+
+/* 主胜/主负的"胜其他"和"负其他"占2格 */
+.score-unified-grid .more-rate-option.wide-option {
+  grid-column: span 2 !important;
+}
+
+/* 平局的"平其他"占3格 */
+.score-unified-grid .more-rate-option.wide-option-draw {
+  grid-column: span 3 !important;
 }
 
 /* 总进球数选项 - 每排4个 */

@@ -100,9 +100,74 @@
       <div class="bet-info-card">
         <div class="card-title">投注信息</div>
         <div v-if="isPlanVisible" class="bet-content">
-          <!-- TODO: 显示具体投注内容 -->
-          <div class="bet-placeholder">
-            <p>投注内容将在这里显示</p>
+          <!-- 比赛信息 (足球/篮球) -->
+          <div v-if="gendanInfo.order?.games && gendanInfo.order.games.length > 0" class="games-list">
+            <div v-for="game in gendanInfo.order.games" :key="game.id" class="game-item">
+              <div class="game-header">
+                <span class="game-number">{{ game.xuhao }}</span>
+                <span class="game-league">{{ game.match?.name || '联赛' }}</span>
+                <span class="game-time">{{ game.date }}</span>
+              </div>
+              <div class="game-teams">
+                <span class="team-name">{{ game.home_team_name }}</span>
+                <span class="vs">VS</span>
+                <span class="team-name">{{ game.guest_team_name }}</span>
+              </div>
+              
+              <!-- 投注选项 -->
+              <div class="bet-options">
+                <div v-for="rate in game.rates" :key="rate.id" class="bet-option">
+                  <div class="option-type">{{ getRateTypeName(rate.rate_type) }}{{ rate.rangqiu === 1 ? '(让球)' : '' }}</div>
+                  <div class="option-items">
+                    <div
+                      v-for="(option, key) in getFilteredOptions(rate)"
+                      :key="key"
+                      :class="['option-item', { 'selected': isOptionSelected(game.id, rate.id, key) }]"
+                    >
+                      <span class="option-name">{{ option.name }}</span>
+                      <span class="option-value">{{ option.value }}</span>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- 数字彩票内容 -->
+          <div v-else-if="gendanInfo.order?.odds" class="lottery-content">
+            <!-- 大乐透 -->
+            <div v-if="gendanInfo.cate_id === 5" class="lottery-list">
+              <div v-for="(item, index) in gendanInfo.order.odds" :key="index" class="lottery-item">
+                <div class="ball-zone">
+                  <span class="zone-label">前区</span>
+                  <div class="number-list">
+                    <span v-for="num in item.front" :key="'front-' + num" class="number-ball red-ball">
+                      {{ String(num).padStart(2, '0') }}
+                    </span>
+                  </div>
+                </div>
+                <div class="ball-zone">
+                  <span class="zone-label">后区</span>
+                  <div class="number-list">
+                    <span v-for="num in item.back" :key="'back-' + num" class="number-ball blue-ball">
+                      {{ String(num).padStart(2, '0') }}
+                    </span>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <!-- 排列三/五/七星彩 等其他数字彩票 -->
+            <div v-else class="lottery-list">
+              <div class="bet-placeholder">
+                <p>{{ gendanInfo.cate_name || '彩票' }}投注内容</p>
+              </div>
+            </div>
+          </div>
+
+          <!-- 无数据 -->
+          <div v-else class="bet-placeholder">
+            <p>暂无投注内容</p>
           </div>
         </div>
         <div v-else class="bet-locked">
@@ -117,7 +182,7 @@
         <div v-if="hasFollowers" class="followers-list">
           <div class="follower-item" v-for="(follower, index) in getFollowersList()" :key="index">
             <img :src="follower.avatar" class="follower-avatar" />
-            <span class="follower-name">{{ follower.name }}</span>
+            <span class="follower-name">{{ encryptName(follower.name) }}</span>
             <span class="follower-amount">{{ follower.amount }}元</span>
           </div>
         </div>
@@ -138,9 +203,17 @@
       <div class="multiple-section">
         <span class="multiple-label">选择倍数</span>
         <div class="multiple-control">
-          <button class="multiple-btn" @click="decreaseMultiple">-</button>
-          <input type="number" v-model.number="selectedMultiple" class="multiple-input" readonly />
-          <button class="multiple-btn" @click="increaseMultiple">+</button>
+          <button class="multiple-btn" @click="decreaseMultiple" :disabled="selectedMultiple <= 1">-</button>
+          <input
+            type="number"
+            v-model.number="selectedMultiple"
+            class="multiple-input"
+            min="1"
+            max="99999"
+            @input="onMultipleInput"
+            @blur="validateMultiple"
+          />
+          <button class="multiple-btn" @click="increaseMultiple" :disabled="selectedMultiple >= 99999">+</button>
         </div>
       </div>
 
@@ -324,7 +397,7 @@ const totalAmount = computed(() => {
 
 // 增加倍数
 const increaseMultiple = () => {
-  if (selectedMultiple.value < 99) {
+  if (selectedMultiple.value < 99999) {
     selectedMultiple.value++;
   }
 };
@@ -333,6 +406,31 @@ const increaseMultiple = () => {
 const decreaseMultiple = () => {
   if (selectedMultiple.value > 1) {
     selectedMultiple.value--;
+  }
+};
+
+// 倍数输入验证
+const onMultipleInput = (e) => {
+  let value = e.target.value;
+  // 移除非数字字符
+  value = value.replace(/[^\d]/g, "");
+  // 限制范围
+  if (value === "") {
+    selectedMultiple.value = "";
+  } else {
+    let num = parseInt(value);
+    if (num < 1) num = 1;
+    if (num > 99999) num = 99999;
+    selectedMultiple.value = num;
+  }
+};
+
+// 失去焦点时验证
+const validateMultiple = () => {
+  if (!selectedMultiple.value || selectedMultiple.value < 1) {
+    selectedMultiple.value = 1;
+  } else if (selectedMultiple.value > 99999) {
+    selectedMultiple.value = 99999;
   }
 };
 
@@ -431,7 +529,7 @@ const confirmGendan = async () => {
               try {
                 const balanceRes = await API.balanceof();
                 if (balanceRes.code === 1 && balanceRes.data) {
-                  userBalance.value = parseFloat(balanceRes.data.amount);
+                  userBalance.value = parseFloat(balanceRes.data.all_amount);
                 }
               } catch (error) {
                 console.error('获取余额失败:', error);
@@ -516,10 +614,73 @@ const getUserBalance = async () => {
   try {
     const balanceRes = await API.balanceof();
     if (balanceRes.code === 1 && balanceRes.data) {
-      userBalance.value = parseFloat(balanceRes.data.amount);
+      userBalance.value = parseFloat(balanceRes.data.all_amount);
     }
   } catch (error) {
     console.error('获取用户余额失败:', error);
+  }
+};
+
+// 获取投注类型名称
+const getRateTypeName = (rateType) => {
+  const typeNames = {
+    1: '胜平负',
+    2: '让球胜平负',
+    3: '比分',
+    4: '总进球',
+    5: '半全场',
+    6: '胜负',
+    7: '让分胜负',
+    8: '大小分',
+    9: '胜分差'
+  };
+  return typeNames[rateType] || '未知';
+};
+
+// 过滤掉隐藏的选项（value为-1的选项）
+const getFilteredOptions = (rate) => {
+  if (!rate.options) return {};
+  const filtered = {};
+  Object.keys(rate.options).forEach(key => {
+    if (rate.options[key].value !== '-1' && rate.options[key].value !== -1) {
+      filtered[key] = rate.options[key];
+    }
+  });
+  return filtered;
+};
+
+// 判断选项是否被选中
+const isOptionSelected = (gameId, rateId, optionKey) => {
+  if (!gendanInfo.value?.order?.odds) return false;
+  
+  // odds 是一个数组，每个元素包含选中的投注信息
+  const selectedOdds = gendanInfo.value.order.odds;
+  
+  // 查找是否有匹配的选项
+  return selectedOdds.some(odd => {
+    // 检查是否匹配游戏ID和选项
+    return odd.game_id === gameId && 
+           odd.rate_id === rateId && 
+           odd.option === optionKey;
+  });
+};
+
+// 加密用户名（后4位显示****，不足4位只显示首位）
+const encryptName = (name) => {
+  if (!name) return '****';
+  
+  const nameStr = String(name);
+  const len = nameStr.length;
+  
+  if (len <= 1) {
+    // 只有1个字符，直接返回
+    return nameStr;
+  } else if (len <= 4) {
+    // 2-4个字符，只显示首位，其余用*代替
+    return nameStr.charAt(0) + '*'.repeat(len - 1);
+  } else {
+    // 5个字符以上，显示前面部分，后4位用****代替
+    return nameStr.substring(0, len - 4) + '****';
   }
 };
 
@@ -600,8 +761,8 @@ onMounted(() => {
 }
 
 .user-avatar {
-  width: 58px;
-  height: 58px;
+  width: 54px;
+  height: 54px;
   border-radius: 50%;
   overflow: hidden;
   margin: 0 auto 6px;
@@ -730,7 +891,7 @@ onMounted(() => {
 }
 
 .bet-title {
-  font-size: 15px;
+  font-size: 13px;
   font-weight: 600;
   color: #323233;
 }
@@ -751,7 +912,7 @@ onMounted(() => {
 .bet-info-row {
   display: flex;
   justify-content: space-between;
-  padding: 16px;
+  padding: 14px;
   border-top: 1px solid #f5f5f5;
 }
 
@@ -768,7 +929,7 @@ onMounted(() => {
 }
 
 .bet-info-value {
-  font-size: 15px;
+  font-size: 14px;
   font-weight: 600;
   color: #323233;
 }
@@ -786,15 +947,197 @@ onMounted(() => {
 }
 
 .card-title {
-  font-size: 15px;
+  font-size: 14px;
   font-weight: 600;
   color: #323233;
   margin-bottom: 12px;
 }
 
 .bet-content {
-  padding: 12px;
   background: #f5f5f5;
+  border-radius: 6px;
+  padding: 0;
+  max-height: 400px;
+  overflow-y: auto;
+}
+
+/* 比赛列表 */
+.games-list {
+  padding: 12px;
+}
+
+.game-item {
+  background: #fff;
+  border-radius: 6px;
+  padding: 12px;
+  margin-bottom: 12px;
+}
+
+.game-item:last-child {
+  margin-bottom: 0;
+}
+
+.game-header {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-bottom: 8px;
+  font-size: 12px;
+}
+
+.game-number {
+  background: #fc3c3c;
+  color: white;
+  padding: 2px 8px;
+  border-radius: 3px;
+  font-weight: 600;
+}
+
+.game-league {
+  color: #646566;
+  flex: 1;
+}
+
+.game-time {
+  color: #969799;
+  font-size: 11px;
+}
+
+.game-teams {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 12px;
+  padding: 8px 0;
+  font-size: 14px;
+  font-weight: 500;
+}
+
+.team-name {
+  color: #323233;
+}
+
+.vs {
+  color: #969799;
+  font-size: 12px;
+}
+
+.bet-options {
+  margin-top: 12px;
+}
+
+.bet-option {
+  margin-bottom: 10px;
+}
+
+.bet-option:last-child {
+  margin-bottom: 0;
+}
+
+.option-type {
+  font-size: 12px;
+  color: #646566;
+  margin-bottom: 6px;
+  font-weight: 500;
+}
+
+.option-items {
+  display: flex;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+
+.option-item {
+  flex: 1;
+  min-width: 70px;
+  background: #f5f5f5;
+  border: 1px solid #e8e8e8;
+  border-radius: 4px;
+  padding: 8px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 4px;
+}
+
+.option-item.selected {
+  background: #fff5f5;
+  border-color: #fc3c3c;
+}
+
+.option-name {
+  font-size: 13px;
+  color: #323233;
+  font-weight: 500;
+}
+
+.option-item.selected .option-name {
+  color: #fc3c3c;
+}
+
+.option-value {
+  font-size: 14px;
+  color: #fc3c3c;
+  font-weight: 600;
+}
+
+/* 数字彩票内容 */
+.lottery-content {
+  padding: 12px;
+}
+
+.lottery-list {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.lottery-item {
+  background: #fff;
+  border-radius: 6px;
+  padding: 12px;
+}
+
+.ball-zone {
+  margin-bottom: 10px;
+}
+
+.ball-zone:last-child {
+  margin-bottom: 0;
+}
+
+.zone-label {
+  font-size: 12px;
+  color: #646566;
+  margin-right: 8px;
+  font-weight: 500;
+}
+
+.number-list {
+  display: inline-flex;
+  gap: 6px;
+  flex-wrap: wrap;
+  margin-top: 6px;
+}
+
+.number-ball {
+  width: 32px;
+  height: 32px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 14px;
+  font-weight: 600;
+  color: #fff;
+}
+
+.red-ball {
+  background: linear-gradient(135deg, #fc3c3c 0%, #e63535 100%);
+}
+
+.blue-ball {
+  background: linear-gradient(135deg, #1989fa 0%, #0969da 100%);
 }
 
 .bet-placeholder {
@@ -837,8 +1180,8 @@ onMounted(() => {
 }
 
 .follower-avatar {
-  width: 32px;
-  height: 32px;
+  width: 30px;
+  height: 30px;
   border-radius: 50%;
   object-fit: cover;
   flex-shrink: 0;
@@ -846,7 +1189,7 @@ onMounted(() => {
 
 .follower-name {
   flex: 1;
-  font-size: 13px;
+  font-size: 14px;
   color: #323233;
 }
 
@@ -916,20 +1259,49 @@ onMounted(() => {
   display: flex;
   align-items: center;
   justify-content: center;
+  transition: all 0.2s;
 }
 
 .multiple-btn:active {
   background: #f5f5f5;
 }
 
+.multiple-btn:disabled {
+  background: #f5f5f5;
+  color: #ccc;
+  border-color: #f0f0f0;
+  cursor: not-allowed;
+}
+
 .multiple-input {
-  width: 60px;
+  width: 66px;
   height: 32px;
   text-align: center;
-  border: 1px solid #dcdee0;
-  border-radius: 4px;
-  font-size: 15px;
-  color: #323233;
+  border: 1px solid #e8e8e8;
+  border-radius: 6px;
+  font-size: 1rem;
+  font-weight: 700;
+  color: #fc3c3c;
+  background: #fff;
+  outline: none;
+  padding: 0;
+}
+
+.multiple-input:focus {
+  border-color: #fc3c3c;
+  background: #fff;
+}
+
+/* 隐藏数字输入框的上下箭头 */
+.multiple-input::-webkit-outer-spin-button,
+.multiple-input::-webkit-inner-spin-button {
+  -webkit-appearance: none;
+  margin: 0;
+}
+
+.multiple-input[type="number"] {
+  -moz-appearance: textfield;
+  appearance: textfield;
 }
 
 .bottom-action {
@@ -967,7 +1339,7 @@ onMounted(() => {
   color: white;
   border: none;
   border-radius: 20px;
-  font-size: 15px;
+  font-size: 14px;
   font-weight: 600;
   cursor: pointer;
 }

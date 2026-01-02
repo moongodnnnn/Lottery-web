@@ -170,7 +170,7 @@ function getUniqId() {
 }
 function refreshImgCode() {
   uniqid.value = getUniqId();
-  imgurl.value = `https://lottery.hongxiu88.com/index/captcha/index/id/${uniqid.value}`;
+  imgurl.value = `https://atc.lxwdlz.cn/index/captcha/index/id/${uniqid.value}`;
 }
 
 function go(path) {
@@ -332,7 +332,7 @@ function onSubmit() {
 
 onMounted(() => {
   uniqid.value = getUniqId();
-  imgurl.value = `https://lottery.hongxiu88.com/index/captcha/index/id/${uniqid.value}`;
+  imgurl.value = `https://atc.lxwdlz.cn/index/captcha/index/id/${uniqid.value}`;
 });
 
 onBeforeUnmount(() => {

@@ -52,7 +52,7 @@
             <!-- 第二排：类型和余额 -->
             <div class="card-row-2">
               <div class="card-type">{{ item.type === 'add' ? '添加' : '扣减' }}</div>
-              <div class="card-balance">余额：{{ item.after_money }}</div>
+              <div class="card-balance">总余额：{{ item.after_amount }}</div>
             </div>
 
             <!-- 第三排：时间 -->

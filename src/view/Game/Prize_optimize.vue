@@ -475,7 +475,7 @@ async function confirmOptimize() {
                 try {
                   const balanceRes = await API.balanceof();
                   if (balanceRes.code === 1 && balanceRes.data) {
-                    userBalance.value = parseFloat(balanceRes.data.amount);
+                    userBalance.value = parseFloat(balanceRes.data.all_amount);
                   }
                 } catch (error) {
                   console.error("获取余额失败:", error);
@@ -719,7 +719,7 @@ onMounted(async () => {
   try {
     const balanceRes = await API.balanceof();
     if (balanceRes.code === 1 && balanceRes.data) {
-      userBalance.value = parseFloat(balanceRes.data.amount);
+      userBalance.value = parseFloat(balanceRes.data.all_amount);
     }
   } catch (error) {
     console.error("获取余额失败:", error);
@@ -973,7 +973,7 @@ onMounted(async () => {
 }
 
 .multiple-input {
-  width: 32px;
+  width: 66px;
   height: 20px;
   text-align: center;
   font-size: 0.75rem;

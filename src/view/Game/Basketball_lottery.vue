@@ -46,11 +46,13 @@
             <div class="game-row-1">
               <div class="game-number">
                 <div class="number-text">{{ game.xuhao }}</div>
-                <div class="time-text">{{ formatGameTime(game.start_time) }}</div>
+                <div class="time-text">{{ formatGameTime(game.deal_time) }}</div>
               </div>
               <div class="teams-inline">
+                  <span v-if="game.rates?.some(r => r.is_signle === 1)" class="single-badge">单</span>
                 <span class="team-name">{{ game.guest_team_name }}</span>
                 <span class="vs-text">VS</span>
+              
                 <span class="team-name">{{ game.home_team_name }}</span>
               </div>
               <div class="game-meta">
@@ -178,6 +180,7 @@
             <span class="mini-number">{{ currentGame.xuhao }}</span>
             <span class="mini-teams">{{ currentGame.home_team_name }} VS {{ currentGame.guest_team_name }}</span>
           </div>
+          <div class="single-tip">以下玩法可投单关</div>
         </div>
 
         <div class="more-play-body">
@@ -484,6 +487,38 @@ const confirmSelection = () => {
     return;
   }
 
+  // 检查是否只选了一场比赛
+  const gameIds = new Set(selectedBets.value.map(bet => bet.gameId));
+  
+  // 如果只选了一场比赛，需要检查是否支持单关
+  if (gameIds.size === 1) {
+    let hasSingleGame = false;
+    
+    // 获取第一个投注的详情
+    const firstBet = selectedBets.value[0];
+    
+    // 检查这场比赛是否支持单关（检查该比赛的任意一个rate是否有is_signle === 1）
+    let foundSingleRate = false;
+    for (const dayData of gamelist.value) {
+      const game = dayData.games.find(g => g.id === firstBet.gameId);
+      if (game && game.rates) {
+        // 检查这场比赛的任意一个rate是否标记为单关
+        const hasSingleRate = game.rates.some(r => r.is_signle === 1);
+        if (hasSingleRate) {
+          hasSingleGame = true;
+          foundSingleRate = true;
+          break;
+        }
+      }
+    }
+    
+    // 如果找到了单关标记，跳出外层循环
+    if (!foundSingleRate && !hasSingleGame) {
+      showToast("选择非单关场次，需要再选择一场");
+      return;
+    }
+  }
+
   // 准备传递给确认页面的数据
   const betsWithGameInfo = selectedBets.value.map((bet) => {
     // 找到对应的比赛信息
@@ -495,7 +530,7 @@ const confirmSelection = () => {
           xuhao: game.xuhao,
           home_team_name: game.home_team_name,
           guest_team_name: game.guest_team_name,
-          start_time: game.start_time,
+          deal_time: game.deal_time,
           league_name: game.match?.name || "未知联赛",
         };
         break;
@@ -753,7 +788,7 @@ onMounted(async () => {
 .teams-inline {
   display: flex;
   align-items: center;
-  gap: 4px;
+  gap: 6px;
   flex: 1;
   justify-content: center;
 }
@@ -770,6 +805,19 @@ onMounted(async () => {
   color: #999;
   padding: 0 4px;
   font-weight: 500;
+}
+
+.single-badge {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  padding: 2px 4px;
+  background: #fc3c3c;
+  color: white;
+  font-size: 0.65rem;
+  font-weight: 600;
+  border-radius: 2px;
+  margin-right: 2px;
 }
 
 .game-meta {
@@ -1082,6 +1130,16 @@ onMounted(async () => {
   font-size: 0.9rem;
   font-weight: 600;
   color: #333;
+}
+
+.single-tip {
+  font-size: 0.75rem;
+  color: #fc3c3c;
+  margin-top: 8px;
+  padding: 4px 8px;
+  background: #fff5f5;
+  border-radius: 4px;
+  display: inline-block;
 }
 
 .more-play-body {

@@ -168,16 +168,19 @@
 
       <!-- 发单宣言 -->
       <div class="declaration-section">
-        <van-field
-          v-model="declaration"
-          rows="4"
-          autosize
-          type="textarea"
-          maxlength="200"
-          placeholder="请输入发单宣言，让更多人关注您的方案..."
-          show-word-limit
-          class="declaration-input"
-        />
+        <label class="declaration-field">
+          <span class="label">发单宣言</span>
+          <div class="textarea-wrapper">
+            <textarea
+              v-model="declaration"
+              rows="4"
+              maxlength="200"
+              placeholder="请输入发单宣言，让更多人关注您的方案..."
+              class="declaration-textarea"
+            ></textarea>
+            <span class="word-count">{{ declaration.length }}/200</span>
+          </div>
+        </label>
       </div>
     </div>
 
@@ -317,7 +320,7 @@ async function confirmPublish() {
                 try {
                   const balanceRes = await API.balanceof();
                   if (balanceRes.code === 1 && balanceRes.data) {
-                    userBalance.value = parseFloat(balanceRes.data.amount);
+                    userBalance.value = parseFloat(balanceRes.data.all_amount);
                   }
                 } catch (error) {
                   console.error('获取余额失败:', error);
@@ -492,7 +495,7 @@ onMounted(async () => {
   try {
     const balanceRes = await API.balanceof();
     if (balanceRes.code === 1 && balanceRes.data) {
-      userBalance.value = parseFloat(balanceRes.data.amount);
+      userBalance.value = parseFloat(balanceRes.data.all_amount);
     }
   } catch (error) {
     console.error('获取余额失败:', error);
@@ -793,15 +796,61 @@ onMounted(async () => {
 .declaration-section {
   background: white;
   border-radius: 8px;
-  padding:0px;
+  padding: 16px;
   margin-bottom: 10px;
 }
 
-.declaration-input {
-  margin-top: 10px;
-  background: #f8f9fa;
-  border-radius: 6px;
-  padding: 10px;
+.declaration-field {
+  display: block;
+  width: 100%;
+}
+
+.declaration-field .label {
+  display: block;
+  font-size: 0.8rem;
+  color: #333;
+  margin-bottom: 8px;
+  font-weight: 500;
+}
+
+.textarea-wrapper {
+  position: relative;
+  width: 100%;
+}
+
+.declaration-textarea {
+  width: 100%;
+  padding: 0.6rem 0.7rem;
+  border: 1px solid transparent;
+  border-radius: 8px;
+  font-size: 14px;
+  color: #333;
+  background: #f9f6f6;
+  outline: none;
+  box-sizing: border-box;
+  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif, "Apple Color Emoji", "Segoe UI Emoji", "Segoe UI Symbol";
+  resize: vertical;
+  min-height: 100px;
+  line-height: 1.5;
+}
+
+.declaration-textarea::placeholder {
+  color: #c7c7c7;
+  font-size: 0.9rem;
+}
+
+.declaration-textarea:focus {
+  border-color: #c8391c;
+  background: #fff;
+}
+
+.word-count {
+  position: absolute;
+  right: 12px;
+  bottom: 8px;
+  font-size: 0.75rem;
+  color: #999;
+  pointer-events: none;
 }
 
 /* 底部按钮 */

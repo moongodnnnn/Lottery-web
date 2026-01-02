@@ -139,7 +139,8 @@
         </div> 
         
         <div class="expert-card-desc">
-         <span style="color: #1bb0d3;"> 【{{ tabs[activeTab] }}】 </span> {{ expert.description }}
+         <span style="color: #1bb0d3;" v-if="expert.cate_name =='竞彩足球'"> 【{{ expert.cate_name }}】 </span>
+         <span style="color:#cf601b;" v-else> 【{{ expert.cate_name }}】 </span> {{ expert.description }}
         </div>
       
         <!-- 详细信息区域 -->
@@ -263,8 +264,8 @@ const gotoSearchPage = () => {
 
 
 // 专家分类选项卡
-const tabs = ref(['足球竞彩', '排列三']);
-const activeTab = ref(0); // 默认选中足球竞彩
+const tabs = ref(['竞彩跟单', '排列三']);
+const activeTab = ref(0); // 默认选中竞彩跟单
 
 // 排序选项
 const sortOptions = ref(['金额', '人气', '盈利率', '我关注的']);
@@ -272,8 +273,8 @@ const activeSortOption = ref(0); // 默认按金额排序
 
 // 获取当前选中游戏的 cate_id
 const getCurrentCateId = () => {
-  // 0=足球竞彩 cate_id:1, 1=排列三 cate_id:6
-  return activeTab.value === 0 ? 1 : 6;
+  // 0=竞彩跟单 cate_id:1, 1=排列三 cate_id:6
+  return activeTab.value === 0 ? 0 : 6;
 };
 
 // 获取当前排序类型
@@ -310,7 +311,7 @@ const get_gendan = async () => {
     const sortType = getCurrentSortType();
 
     console.log(`=== 加载跟单列表 ===`);
-    console.log(`游戏类型: ${activeTab.value === 0 ? '足球竞彩' : '排列三'} (cate_id: ${cateId})`);
+    console.log(`游戏类型: ${activeTab.value === 0 ? '竞彩跟单' : '排列三'} (cate_id: ${cateId})`);
     console.log(`排序方式: ${sortOptions.value[activeSortOption.value]} (type: ${sortType})`);
 
     const res = await API.gendan_list({ type: sortType, cate_id: cateId });
@@ -341,6 +342,7 @@ const get_gendan = async () => {
           orderAmount: item.amount || '0',
           expectedReturn: item.multi || '0', // 使用 multi 作为预估回报率
           followCount: item.mood || 0, // 跟单人数
+          cate_name: item.cate_name || '', // 彩种名称
         };
       });
       console.log("专家列表已更新，共", expertList.value.length, "条数据");
@@ -361,7 +363,7 @@ const get_gendan = async () => {
 
 // 监听 tab 切换
 watch(activeTab, () => {
-  console.log("切换游戏类型:", activeTab.value === 0 ? '足球竞彩' : '排列三');
+  console.log("切换游戏类型:", activeTab.value === 0 ? '竞彩跟单' : '排列三');
   get_gendan();
 });
 

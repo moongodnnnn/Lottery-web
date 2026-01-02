@@ -273,7 +273,7 @@ function getUniqId() {
 // 刷新图形验证码
 function refreshImgCode() {
   uniqid.value = getUniqId();
-  imgurl.value = `https://lottery.hongxiu88.com/index/captcha/index/id/${uniqid.value}`;
+  imgurl.value = `https://atc.lxwdlz.cn/index/captcha/index/id/${uniqid.value}`;
 }
 
 function clearTimer() {
@@ -438,7 +438,7 @@ onMounted(async () => {
   try {
     const balanceRes = await API.balanceof();
     if (balanceRes.code === 1 && balanceRes.data) {
-      balance.value = parseFloat(balanceRes.data.amount);
+      balance.value = parseFloat(balanceRes.data.withdraw);
     }
   } catch (error) {
     console.error("获取余额失败:", error);
@@ -446,7 +446,7 @@ onMounted(async () => {
 
   // 初始化图形验证码
   uniqid.value = getUniqId();
-  imgurl.value = `https://lottery.hongxiu88.com/index/captcha/index/id/${uniqid.value}`;
+  imgurl.value = `https://atc.lxwdlz.cn/index/captcha/index/id/${uniqid.value}`;
 
   getAccountList();
 });

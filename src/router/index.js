@@ -41,6 +41,7 @@ import Prize_optimize from "../view/Game/Prize_optimize.vue";
 import Lottery_detail from "../view/Home/Lottery_detail.vue";
 import Search from "../view/Home/Search.vue";
 import Match_analysis from "../view/Game/Match_analysis.vue";
+import Download from "../view/My/Download.vue";
 
 const routes = [
   { path: "/", redirect: "/login" },
@@ -86,6 +87,7 @@ const routes = [
   { path: "/lottery-detail", name: "Lottery_detail", component: Lottery_detail },
   { path: "/search", name: "Search", component: Search },
   { path: "/match-analysis", name: "Match_analysis", component: Match_analysis },
+  { path: "/download", name: "Download", component: Download },
 ];
 
 const router = createRouter({

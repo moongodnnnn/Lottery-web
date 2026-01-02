@@ -35,7 +35,7 @@ body {
   --van-toast-font-size: 0.86rem;
   --van-toast-background: rgba(0, 0, 0, 0.7);
   --van-notice-bar-icon-min-width: 62px;
-  --van-tabbar-height: 3.6rem;
+  --van-tabbar-height: 3.8rem;
   --van-nav-bar-background: #e33212;
   --van-dialog-confirm-button-text-color: #e33212;
   --van-nav-bar-icon-color: #333;
@@ -45,6 +45,8 @@ body {
   --van-tabs-bottom-bar-color: #e33212;
   --van-number-keyboard-z-index: 10000;
   --van-tabs-default-color: #fc3c3c;
+  --van-image-preview-close-icon-margin:32px;
+  --van-image-preview-close-icon-size:32px;
 
   .van-cell {
     position: relative;

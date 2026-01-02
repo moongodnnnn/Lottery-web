@@ -85,7 +85,7 @@
                   第{{ lotteryResults.loto.phase }}期 {{ lotteryResults.loto.date }}
                 </div>
               </div>
-              <div class="number-result" v-if="lotteryResults.loto">
+              <div class="number-result" v-if="lotteryResults.loto && Array.isArray(lotteryResults.loto.draw_numbers)">
                 <div class="number-balls">
                   <span
                     v-for="(num, index) in lotteryResults.loto.draw_numbers.slice(0, 5)"
@@ -250,7 +250,34 @@ onMounted(async () => {
 
     const lotRes = await API.lotteryloto("all"); 
     if (lotRes.code === 1) {
-      lotteryResults.value = lotRes.data; 
+      const data = lotRes.data;
+      
+      // 处理双色球数据：将 front_n1-5 和 back_n1-2 组合成 draw_numbers 数组
+      if (data.loto) {
+        data.loto.draw_numbers = [
+          data.loto.front_n1,
+          data.loto.front_n2,
+          data.loto.front_n3,
+          data.loto.front_n4,
+          data.loto.front_n5,
+          data.loto.back_n1,
+          data.loto.back_n2
+        ];
+      }
+      
+      // 确保其他彩种的 draw_numbers 也是数组
+      if (data.pl3 && !Array.isArray(data.pl3.draw_numbers)) {
+        data.pl3.draw_numbers = data.pl3.draw_numbers ? String(data.pl3.draw_numbers).split('') : ["0", "0", "0"];
+      }
+      if (data.pl5 && !Array.isArray(data.pl5.draw_numbers)) {
+        data.pl5.draw_numbers = data.pl5.draw_numbers ? String(data.pl5.draw_numbers).split('') : [0, 0, 0, 0, 0];
+      }
+      if (data.qxc && !Array.isArray(data.qxc.draw_numbers)) {
+        data.qxc.draw_numbers = data.qxc.draw_numbers ? String(data.qxc.draw_numbers).split('') : [0, 0, 0, 0, 0, 0, 0];
+      }
+      
+      // 转换完成后再赋值
+      lotteryResults.value = data;
     } else {
       showToast(lotRes.msg || "获取彩种信息失败"); 
     }

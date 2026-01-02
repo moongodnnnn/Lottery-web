@@ -36,17 +36,21 @@
       </div>
 
       <div class="balance-amount">
-        <div class="amount-text">{{ balance }}</div>
+        <div class="amount-text">{{ reservedAmount }}</div>
         <div class="balance-actions">
-           <button class="action-btn withdraw-btn" @click="go('/withdraw')">提现</button>
+          <button class="action-btn withdraw-btn" @click="go('/withdraw')">提现</button>
           <button class="action-btn recharge-btn" @click="go('/recharge')">充值</button>
-
         </div>
       </div>
 
       <div class="balance-footer">
-        <div class="reserved-text">预留金额（提现未处理与拼单保底金额累计）</div>
-        <div class="reserved-amount">{{ reservedAmount }}元</div>
+        <div class="reserved-text">总余额</div>
+        <div class="reserved-amount">{{ balance }}元</div>
+      </div>
+
+      <div class="balance-footer">
+        <div class="reserved-text">礼金</div>
+        <div class="reserved-amount">{{ gitmoney1 }}元</div>
       </div>
     </div>
     <div style="height: 8px"></div>
@@ -103,7 +107,7 @@
     <div class="function-grid">
       <div class="function-title">常用工具</div>
       <div class="function-items">
-    <div class="function-item" @click="go('/invite-store')">
+        <div class="function-item" @click="go('/invite-store')">
           <div class="function-icon1">
             <img src="/icons/my55.png" alt="邀请店主" />
           </div>
@@ -129,7 +133,6 @@
         </div>
       </div>
       <div class="function-items">
-    
         <div class="function-item" @click="go('/invite-friends')">
           <div class="function-icon1">
             <img src="/icons/my66.png" alt="邀请好友" />
@@ -148,11 +151,12 @@
           </div>
           <div class="function-text">客服中心</div>
         </div>
-           <div class="function-item">
+
+        <div class="function-item" @click="go('/download')">
           <div class="function-icon1">
-            
+            <img src="/icons/my99.png" alt="下载中心" />
           </div>
-          <div class="function-text" style="color: #fff;">客服中心</div>
+          <div class="function-text">下载APP</div>
         </div>
       </div>
     </div>
@@ -170,13 +174,7 @@
           <van-icon name="cross" size="20" @click="showKefu = false" class="close-icon" />
         </div>
         <div class="kefu-content">
-          <iframe
-            v-if="kefuUrl"
-            :src="kefuUrl"
-            frameborder="0"
-            class="kefu-iframe"
-            allowfullscreen
-          ></iframe>
+          <iframe v-if="kefuUrl" :src="kefuUrl" frameborder="0" class="kefu-iframe" allowfullscreen></iframe>
           <div v-else class="kefu-loading">
             <van-loading size="40px" vertical color="#fc3c3c">加载客服中心...</van-loading>
           </div>
@@ -200,6 +198,7 @@ const balance = ref("0.00");
 const reservedAmount = ref("0");
 const followCount = ref(0);
 const fansCount = ref(0);
+const gitmoney1 = ref(0);
 
 // 客服相关
 const showKefu = ref(false);
@@ -210,43 +209,46 @@ function go(path) {
 }
 
 function viewDetail() {
-  router.push('/account_detail');
+  router.push("/account_detail");
 }
 
 // 打开客服中心
 function openKefu() {
   try {
     // 从 localStorage 读取配置
-    const configStr = localStorage.getItem('config');
+    const configStr = localStorage.getItem("config");
     if (configStr) {
       const config = JSON.parse(configStr);
       if (config.kefu_url) {
         kefuUrl.value = config.kefu_url;
         showKefu.value = true;
       } else {
-        showToast('客服中心暂未配置');
+        showToast("客服中心暂未配置");
       }
     } else {
-      showToast('配置信息加载中，请稍后重试');
+      showToast("配置信息加载中，请稍后重试");
     }
   } catch (error) {
-    console.error('打开客服中心失败:', error);
-    showToast('打开客服中心失败');
+    console.error("打开客服中心失败:", error);
+    showToast("打开客服中心失败");
   }
 }
 
 // 跳转到订单页面并指定Tab
 function goToOrderTab(tabName) {
-  router.push({ path: '/My_order', query: { tab: tabName } });
+  router.push({ path: "/My_order", query: { tab: tabName } });
 }
 
 // 复制用户名
 function copy(text) {
-  navigator.clipboard.writeText(text).then(() => {
-    showToast('复制成功');
-  }).catch(() => {
-    showToast('复制失败');
-  });
+  navigator.clipboard
+    .writeText(text)
+    .then(() => {
+      showToast("复制成功");
+    })
+    .catch(() => {
+      showToast("复制失败");
+    });
 }
 
 // 获取用户信息
@@ -258,7 +260,7 @@ const getUserInfo = async () => {
       const user = res.data;
 
       // 更新用户基本信息
-      username.value = user.nickname || user.username || "用户";
+      username.value = user.username || user.username || "用户";
       avatarUrl.value = user.avatar || "/icons/avatar1.png";
 
       // 更新关注和粉丝数量
@@ -267,19 +269,20 @@ const getUserInfo = async () => {
 
       // 更新余额信息（从 store.user_amount 获取）
       if (user.store?.user_amount) {
-        balance.value = user.store.user_amount.amount || "0.00";
+        balance.value = user.store.user_amount.all_amount || "0.00";
 
         // 预留金额 = git_money + withdraw
         const gitMoney = parseFloat(user.store.user_amount.git_money || 0);
         const withdraw = parseFloat(user.store.user_amount.withdraw || 0);
-        reservedAmount.value = (gitMoney + withdraw).toFixed(2);
+        gitmoney1.value = gitMoney.toFixed(2);
+        reservedAmount.value = withdraw.toFixed(2);
       }
 
       // 更新本地存储
       localStorage.setItem("user", JSON.stringify(user));
     }
   } catch (error) {
-    console.error('获取用户信息失败:', error);
+    console.error("获取用户信息失败:", error);
   }
 };
 
@@ -309,7 +312,7 @@ onMounted(async () => {
           reservedAmount.value = (gitMoney + withdraw).toFixed(2);
         }
       } catch (e) {
-        console.error('解析本地用户信息失败:', e);
+        console.error("解析本地用户信息失败:", e);
       }
     }
 
@@ -549,14 +552,14 @@ onMounted(async () => {
 }
 
 .reserved-text {
-  font-size: 0.75rem;
+  font-size: 0.7rem;
   color: #fff;
   flex: 1;
   margin-right: 1rem;
 }
 
 .reserved-amount {
-  font-size: 0.9rem;
+  font-size: 0.8rem;
   color: #fff;
   font-weight: 600;
 }
