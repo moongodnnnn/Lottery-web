@@ -34,8 +34,9 @@
 <script setup>
 import { ref, onMounted } from "vue";
 import { useRouter } from "vue-router";
-import { showToast } from "vant";
+import { showToast, showLoadingToast, closeToast } from "vant";
 import QrcodeVue from "qrcode.vue";
+import { API } from "../../request/api";
 
 const router = useRouter();
 const downloadLink = ref("");
@@ -43,24 +44,53 @@ const androidLink = ref("");
 const iosLink = ref("");
 
 onMounted(async () => {
+  const loading = showLoadingToast({
+    message: "加载中...",
+    forbidClick: true,
+    duration: 0,
+  });
+
   try {
-    // 暂时使用百度链接作为占位符
-    downloadLink.value = "https://www.baidu.com/";
-    androidLink.value = "https://www.baidu.com/";
-    iosLink.value = "https://www.baidu.com/";
+    // 调用 initConfig 接口获取配置
+    const res = await API.initConfig();
     
-    // 后续可以从 localStorage 读取配置
-    // const configStr = localStorage.getItem("config");
-    // if (configStr) {
-    //   const config = JSON.parse(configStr);
-    //   if (config.download_url) {
-    //     downloadLink.value = config.download_url;
-    //   }
-    //   androidLink.value = config.android_url || config.download_url || downloadLink.value;
-    //   iosLink.value = config.ios_url || config.download_url || downloadLink.value;
-    // }
+    if (res.code === 1 && res.data) {
+      const config = res.data;
+      
+      // 获取 Android 下载链接（使用 user_apk_url）
+      if (config.user_apk_url) {
+        androidLink.value = config.user_apk_url;
+        console.log("Android下载链接:", androidLink.value);
+      } else {
+        androidLink.value = "https://www.baidu.com/";
+        console.warn("未配置 Android 下载链接，使用默认链接");
+      }
+      
+      // 获取 iOS 下载链接（使用 user_ios_url）
+      if (config.user_ios_url) {
+        iosLink.value = config.user_ios_url;
+        console.log("iOS下载链接:", iosLink.value);
+      } else {
+        iosLink.value = "https://www.baidu.com/";
+        console.warn("未配置 iOS 下载链接，使用默认链接");
+      }
+      
+      // 二维码使用 Android 链接
+      downloadLink.value = androidLink.value;
+      
+      // 保存配置到 localStorage（可选）
+      localStorage.setItem("config", JSON.stringify(config));
+    } else {
+      throw new Error(res.msg || "获取配置失败");
+    }
+    
+    closeToast();
   } catch (e) {
     console.error("获取下载链接失败:", e);
+    closeToast();
+    showToast(e.message || "获取下载链接失败");
+    
+    // 使用默认链接
     downloadLink.value = "https://www.baidu.com/";
     androidLink.value = "https://www.baidu.com/";
     iosLink.value = "https://www.baidu.com/";
@@ -72,8 +102,8 @@ function downloadAndroid() {
     showToast("下载链接为空");
     return;
   }
+  console.log("打开 Android 下载链接:", androidLink.value);
   window.open(androidLink.value, "_blank");
- 
 }
 
 function downloadIOS() {
@@ -81,8 +111,8 @@ function downloadIOS() {
     showToast("下载链接为空");
     return;
   }
+  console.log("打开 iOS 下载链接:", iosLink.value);
   window.open(iosLink.value, "_blank");
-
 }
 
 function onClickLeft() {
@@ -186,7 +216,7 @@ function onClickLeft() {
 }
 
 .download-img {
-  width: 100%;
+  width: 80%;
   height: auto;
   display: block;
   cursor: pointer;
@@ -226,7 +256,7 @@ function onClickLeft() {
 
   .download-bottom-img {
     width: 60%;
-    margin: 20px auto 15px;
+    margin: 12px auto 15px;
   }
 
   .qrcode-section {
