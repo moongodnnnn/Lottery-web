@@ -863,7 +863,7 @@ onMounted(async () => {
 /* 表头 */
 .table-header {
   display: grid;
-  grid-template-columns: 45px 1fr 75px 70px;
+  grid-template-columns: 42px 120px 66px 80px;
   gap: 6px;
   background: #eaeaea;
   color: #5d5d5d;
@@ -880,13 +880,13 @@ onMounted(async () => {
 .col-prize {
   display: flex;
   align-items: center;
-  justify-content: center;
+  justify-content: end;
 }
 
 /* 表格行 */
 .table-row {
   display: grid;
-  grid-template-columns: 45px 1fr 75px 70px;
+ grid-template-columns: 42px 120px 66px 80px;
   gap: 6px;
   background: #fff;
   padding: 10px 6px;
@@ -973,7 +973,7 @@ onMounted(async () => {
 }
 
 .multiple-input {
-  width: 66px;
+  width: 54px;
   height: 20px;
   text-align: center;
   font-size: 0.75rem;
@@ -988,7 +988,7 @@ onMounted(async () => {
 .table-row .col-prize {
   font-size: 0.75rem;
   color: #333;
-  text-align: center;
+  text-align: right;
   font-weight: 600;
 }
 

@@ -101,8 +101,8 @@ function onTabChange(name) {
   orders.value = [];
   page.value = 1;
   finished.value = false;
-  // 加载数据
-  loadOrders();
+  loading.value = false;
+  // 不需要手动调用 loadOrders，van-list 会自动触发
 }
 
 // 上拉加载
@@ -112,6 +112,13 @@ function onLoad() {
 
 // 加载订单数据
 async function loadOrders() {
+  // 防止重复加载 - 只检查 finished 状态
+  if (finished.value) {
+    return;
+  }
+
+  loading.value = true;
+
   try {
     // 根据不同的标签页传递不同的参数
     const params = { page: page.value };
@@ -130,16 +137,18 @@ async function loadOrders() {
 
     if (res.code === 1 && res.data) {
       const newOrders = res.data.data || [];
+      const total = res.data.total || 0;
+      const currentPage = res.data.current_page || 1;
+      const lastPage = res.data.last_page || 1;
 
       // 追加数据
       orders.value = [...orders.value, ...newOrders];
 
-      // 更新分页信息
-      total.value = res.data.total;
+      // 更新页码
       page.value++;
 
-      // 判断是否加载完成
-      if (orders.value.length >= total.value) {
+      // 判断是否加载完成：当前页是最后一页 或 已加载数据量达到总数
+      if (currentPage >= lastPage || orders.value.length >= total) {
         finished.value = true;
       }
 

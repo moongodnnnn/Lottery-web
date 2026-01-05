@@ -174,11 +174,11 @@
             <textarea
               v-model="declaration"
               rows="4"
-              maxlength="200"
+              maxlength="100"
               placeholder="请输入发单宣言，让更多人关注您的方案..."
               class="declaration-textarea"
             ></textarea>
-            <span class="word-count">{{ declaration.length }}/200</span>
+            <span class="word-count">{{ declaration.length }}/100</span>
           </div>
         </label>
       </div>
@@ -243,6 +243,16 @@ function onClickLeft() {
 async function confirmPublish() {
   if (!canPublish.value) {
     showToast("请完善发单信息");
+    return;
+  }
+
+  // 验证发单宣言字数
+  if (declaration.value.length < 20) {
+    showToast("发单宣言至少需要20个字");
+    return;
+  }
+  if (declaration.value.length > 100) {
+    showToast("发单宣言最多100个字");
     return;
   }
 

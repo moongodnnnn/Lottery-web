@@ -75,13 +75,13 @@ body {
   }
 
   .van-tabbar {
-    z-index: var(--van-tabbar-z-index);
+    z-index: 99;
     display: flex;
     box-sizing: border-box;
     width: 100%;
     max-width: 430px;
-    height: var(--van-tabbar-height);
-    background: var(--van-tabbar-background);
+    height: 52px;
+    background: #fff;
     margin-left: auto;
     margin-right: auto;
     left: 50%;

@@ -13,7 +13,7 @@
           </div>
           <div class="inner-search-btn">搜索</div>
         </div>
-        <div class="favorite-icon">
+        <div class="favorite-icon" @click="goToFollow">
           <van-icon name="like" size="24"/>
         </div>
       </div>
@@ -120,8 +120,8 @@
           <!-- 盈利率展示 -->
    
           
-          <div class="expert-card-avatar">
-            <img :src="expert.avatar" :alt="expert.name" />
+          <div class="expert-card-avatar" >
+            <img :src="expert.avatar" :alt="expert.name" @click="handleAvatarClick(expert.user_id)"/>
           </div>
           <div class="expert-card-info">
             <div class="expert-card-name">{{ expert.name }}</div>
@@ -261,6 +261,10 @@ const gotoSearchPage = () => {
   router.push('/search');
 };
 
+const goToFollow = () => {
+  router.push('/follow?type=follow');
+};
+
 
 
 // 专家分类选项卡
@@ -334,6 +338,7 @@ const get_gendan = async () => {
         return {
           id: item.id,
           name: item.nickname || '未知用户',
+          user_id:item.user_id|| '未知用户',
           avatar: item.avatar || '/icons/avatar.png',
           yl_7: item.yl_7 || '0',  // 7日盈利率
           profitRate: item.yl_7 || '0',
@@ -377,6 +382,8 @@ const rankData = ref({ mz: [], yl: [], tj: [] });
 
 // 点击头像获取用户详情
 const handleAvatarClick = async (userId) => {
+  console.log(userId);
+  
   try {
     router.push({
       path: '/user-detail',

@@ -44,7 +44,7 @@ import Match_analysis from "../view/Game/Match_analysis.vue";
 import Download from "../view/My/Download.vue";
 
 const routes = [
-  { path: "/", redirect: "/login" },
+  { path: "/", redirect: "/home" },
   { path: "/login", name: "Login", component: Login },
   { path: "/register", name: "Register", component: Register },
   { path: "/home", name: "Home", component: Home },

@@ -45,15 +45,15 @@
       </div>
       <div class="profile-row">
         <span class="profile-label">版本号</span>
-        <span class="profile-value">1.0.1</span>
+        <span class="profile-value">1.0.2</span>
       </div>
 
-      <div class="profile-row" @click="gopassword">
+      <!-- <div class="profile-row" @click="gopassword">
         <span class="profile-label">清除缓存</span>
         <div class="profile-right">
           <van-icon name="arrow" color="#969799" size="16" />
         </div>
-      </div>
+      </div> -->
     </div>
     <div class="logout-btn-wrap">
       <button class="logout-btn" @click="logout">退出登录</button>

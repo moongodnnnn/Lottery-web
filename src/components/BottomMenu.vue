@@ -1,32 +1,32 @@
 <template>
-  <van-tabbar route fixed :safe-area-inset-bottom="true" active-color="#fc3c3c" inactive-color="#b7b7b7" placeholder>
+  <van-tabbar route fixed :safe-area-inset-bottom="true" :placeholder="true" active-color="#fc3c3c" inactive-color="#b7b7b7">
     <van-tabbar-item to="/home">
       <span style="font-weight: 500">首页</span>
       <template #icon="props">
-        <img style="width: 1.8rem; height: 1.8rem" :src="props.active ? icon1.active : icon1.inactive" />
+        <img style="width: 1.7rem; height: 1.7rem" :src="props.active ? icon1.active : icon1.inactive" />
       </template>
     </van-tabbar-item>
     <van-tabbar-item to="/game">
       <span style="font-weight: 500">赛事</span>
       <template #icon="props">
-        <img style="width: 1.8rem; height: 1.8rem" :src="props.active ? iconlive.active : iconlive.inactive" />
+        <img style="width: 1.7rem; height: 1.7rem" :src="props.active ? iconlive.active : iconlive.inactive" />
       </template>
     </van-tabbar-item>
     <van-tabbar-item to="/expert">
       <template #icon="props">
-        <img style="width: 3.4rem; height: 3.4rem;" :src="props.active ? icon2.active : icon2.inactive" />
+        <img style="width: 3rem; height: 3rem;" :src="props.active ? icon2.active : icon2.inactive" />
       </template>
     </van-tabbar-item>
     <van-tabbar-item to="/community">
       <span style="font-weight: 500">消息</span>
       <template #icon="props">
-        <img style="width: 1.8rem; height: 1.8rem" :src="props.active ? icon3.active : icon3.inactive" />
+        <img style="width: 1.7rem; height: 1.7rem" :src="props.active ? icon3.active : icon3.inactive" />
       </template>
     </van-tabbar-item>
     <van-tabbar-item to="/my">
       <span style="font-weight: 500">我的</span>
       <template #icon="props">
-        <img style="width: 2rem; height: 2rem" :src="props.active ? icon4.active : icon4.inactive" />
+        <img style="width: 1.8rem; height: 1.8rem" :src="props.active ? icon4.active : icon4.inactive" />
       </template>
     </van-tabbar-item>
   </van-tabbar>
