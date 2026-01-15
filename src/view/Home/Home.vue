@@ -58,11 +58,21 @@
       </van-swipe>
 
       <div class="notice-wrapper content">
-        <van-notice-bar @click="gotoastDetail(gonggaoid)">
+        <van-notice-bar :scrollable="false">
           <template #left-icon>
             <img src="/icons/notice.png" alt="notice" class="notice-icon" />
           </template>
-          {{ gonggao }}
+          <van-swipe
+            vertical
+            class="notice-swipe-content"
+            :autoplay="3000"
+            :touchable="false"
+            :show-indicators="false"
+          >
+            <van-swipe-item v-for="item in gonggaoList" :key="item.id" @click="gotoastDetail(item.id)">
+              {{ item.title }}
+            </van-swipe-item>
+          </van-swipe>
         </van-notice-bar>
       </div>
 
@@ -390,12 +400,11 @@ const go = (code) => {
 };
 
 const gamelist = ref([]);
-const gonggao = ref("");
+const gonggaoList = ref([]); // 公告列表
 const show = ref(false);
 const loading = ref(false);
 const Noticeimg = ref("");
 const lslist = ref([]);
-const gonggaoid = ref("");
 
 const Ranking_list = ref({ yl: [], mz: [], tj: [] });
 const activeRankingTab = ref("yl"); // 当前激活的排行榜tab，默认红单榜
@@ -477,7 +486,7 @@ onMounted(async () => {
       cache = JSON.parse(localStorage.getItem(CACHE_KEY));
       if (cache) {
         news.value = cache.news || [];
-        gonggao.value = cache.gonggao || "";
+        gonggaoList.value = cache.gonggaoList || [];
         banner.value = cache.banner || [];
         winners.value = cache.winners || [];
         gamelist.value = cache.gamelist || [];
@@ -507,8 +516,7 @@ onMounted(async () => {
       // 公告
       const ggRes = await API.toast("gg");
       if (ggRes.code === 1) {
-        gonggao.value = ggRes.data[0]?.title || "";
-        gonggaoid.value = ggRes.data[0]?.id;
+        gonggaoList.value = ggRes.data || [];
       } else {
         handleError(ggRes, "获取公告失败");
       }
@@ -549,7 +557,7 @@ onMounted(async () => {
         CACHE_KEY,
         JSON.stringify({
           news: news.value,
-          gonggao: gonggao.value,
+          gonggaoList: gonggaoList.value,
           banner: banner.value,
           winners: winners.value,
           gamelist: gamelist.value,
@@ -719,6 +727,20 @@ const recommendListRanking = computed(() => Ranking_list.value.tj || []); // 推
   width: 32px;
   object-fit: contain;
   padding-right: 8px;
+}
+
+.notice-swipe-content {
+  height: 32px;
+  line-height: 32px;
+}
+
+.notice-swipe-content .van-swipe-item {
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
 }
 
 /* 结果卡片通用样式 */

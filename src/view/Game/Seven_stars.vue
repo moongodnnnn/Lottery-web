@@ -12,7 +12,9 @@
         <div
             style="display: flex; justify-content: space-between; align-items: center; background-color: #fff; padding: 10px 12px">
             <div style="font-size: 0.75rem">
-                {{ currentPeriod }}期 &nbsp; 距离截至还有 <span style="color: #ff1744">{{ countdownDisplay }} </span>
+                {{ currentPeriod }}期 &nbsp; 
+                <span v-if="countdownDisplay !== '已截止'">距离截止还有 <span style="color: #ff1744">{{ countdownDisplay }}</span></span>
+                <span v-else style="color: #999">{{ countdownDisplay }}</span>
             </div>
 
             <div style="font-size: 0.75rem; cursor: pointer; display: flex; align-items: center; gap: 4px"
@@ -259,8 +261,8 @@ const fourthBalls = ref([]); // 第四位
 const fifthBalls = ref([]); // 第五位
 const sixthBalls = ref([]); // 第六位
 const seventhBalls = ref([]); // 第七位（后区 0-14）
-const currentPeriod = ref("2025100");
-const countdownDisplay = ref("06:38:31");
+const currentPeriod = ref("加载中...");
+const countdownDisplay = ref("加载中...");
 
 // 开奖历史相关
 const showHistory = ref(false);
@@ -506,13 +508,19 @@ function updateCountdown() {
     const distance = targetTime.value - now;
 
     if (distance > 0) {
+        const days = Math.floor(distance / (1000 * 60 * 60 * 24));
         const hours = Math.floor((distance % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60));
         const minutes = Math.floor((distance % (1000 * 60 * 60)) / (1000 * 60));
         const seconds = Math.floor((distance % (1000 * 60)) / 1000);
 
-        countdownDisplay.value = `${String(hours).padStart(2, "0")}:${String(minutes).padStart(2, "0")}:${String(seconds).padStart(2, "0")}`;
+        // 如果超过24小时,显示天数
+        if (days > 0) {
+            countdownDisplay.value = `${days}天 ${String(hours).padStart(2, "0")}:${String(minutes).padStart(2, "0")}:${String(seconds).padStart(2, "0")}`;
+        } else {
+            countdownDisplay.value = `${String(hours).padStart(2, "0")}:${String(minutes).padStart(2, "0")}:${String(seconds).padStart(2, "0")}`;
+        }
     } else {
-        countdownDisplay.value = "00:00:00";
+        countdownDisplay.value = "已截止";
         clearInterval(countdownTimer);
     }
 }
@@ -541,13 +549,13 @@ onMounted(() => {
                     historyData.value = res.data.done_phase.map(item => ({
                         period: item.phase,
                         numbers: [
-                            String(item.xuhao1),
-                            String(item.xuhao2),
-                            String(item.xuhao3),
-                            String(item.xuhao4 || 0),
-                            String(item.xuhao5 || 0),
-                            String(item.xuhao6 || 0),
-                            String(item.xuhao7 || 0)
+                            String(item.n1),
+                            String(item.n2),
+                            String(item.n3),
+                            String(item.n4),
+                            String(item.n5),
+                            String(item.n6),
+                            String(item.n7)
                         ]
                     }));
                 }

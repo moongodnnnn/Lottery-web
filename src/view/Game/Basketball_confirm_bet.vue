@@ -72,6 +72,17 @@
 
     <!-- 底部操作区域 - 紧凑版 -->
     <div class="bottom-action-bar">
+      <!-- 上传票据复选框 -->
+      <div class="upload-bill-row">
+        <van-checkbox-group v-model="uploadBillChecked" shape="square">
+          <van-checkbox name="upload" icon-size="18px" checked-color="#fc3c3c">
+            <div class="upload-bill-label">
+              <span>要求店主拍照上传票据,您可在方案详情页查看</span>
+            </div>
+          </van-checkbox>
+        </van-checkbox-group>
+      </div>
+
       <!-- 投注设置行 -->
       <div class="settings-row">
         <div class="setting-group">
@@ -233,6 +244,7 @@ const showRule = ref(false);
 const showBannerPopup = ref(false); // Banner详情弹窗
 const showBetTypePopup = ref(false); // 串关方式弹窗
 const userBalance = ref(0); // 用户余额
+const uploadBillChecked = ref([]); // 是否上传票据照片(使用数组存储checkbox值)
 
 // 快捷倍数选项
 const quickMultipleOptions = [20, 50, 100, 200, 500, 1000, 5000];
@@ -757,7 +769,7 @@ function prepareOrderParams() {
     odds: odds,
     rate_type: rate_type,
     rules: rules,
-    upload_bill: 1,
+    upload_bill: uploadBillChecked.value.includes('upload') ? 1 : 0, // 根据复选框设置
   };
 }
 
@@ -1155,6 +1167,26 @@ onMounted(async () => {
   z-index: 100;
   padding: 8px 10px 0px 10px;
   border-top: 1px solid #f0f0f0;
+}
+
+/* 上传票据复选框行 */
+.upload-bill-row {
+  padding: 4px 18px 10px 18px;
+  border-bottom: 1px solid #f5f5f5;
+}
+
+.upload-bill-label {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 0.85rem;
+  color: #333;
+  margin-left: 4px;
+}
+
+.upload-bill-label span {
+  font-weight: 500;
+  color: #666;
 }
 
 /* 投注设置行 */

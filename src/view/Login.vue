@@ -33,6 +33,7 @@
 
             <div style="display: flex; justify-content: space-between; font-size: 12px; color: #bc4749">
               <div @click="go('/forgotusername')">忘记用户名</div>
+              <div @click="openKefu">在线客服</div>
               <div @click="go('/forgetpassword')">忘记密码</div>
             </div>
           </form>
@@ -83,7 +84,9 @@
 
             <div style="font-size: 0.8rem; display: flex; align-items: center; color: #999">
               <van-checkbox v-model="checked" checked-color="#ee0a24" icon-size="16px" style="padding-right: 6px"></van-checkbox>
-              注册即表示您同意 <span style="color: #c8391c">《用户协议》 </span> <span style="color: #c8391c">《跟单服务条款》</span>
+              注册即表示您同意 
+              <span style="color: #c8391c; cursor: pointer;" @click.stop="viewUserAgreement">《用户协议》</span> 
+              <span style="color: #c8391c; cursor: pointer;" @click.stop="viewGdAgreement">《跟单服务条款》</span>
             </div>
           </form>
         </van-tab>
@@ -116,7 +119,7 @@
 <script setup>
 import { ref, computed, onBeforeUnmount, onMounted } from "vue";
 import { useRouter } from "vue-router";
-import { showToast } from "vant";
+import { showToast, showDialog } from "vant";
 import { useCascaderAreaData } from "@vant/area-data";
 import { API } from "../request/api";
 
@@ -135,6 +138,13 @@ const pintext = ref("获取验证码");
 const sending = ref(false);
 const countdown = ref(0);
 const loading = ref(false);
+
+// 协议ID
+const userAgreeId = ref("");
+const gdAgreeId = ref("");
+
+// 客服URL
+const kefuUrl = ref("");
 
 let timer = null;
 
@@ -175,6 +185,15 @@ function refreshImgCode() {
 
 function go(path) {
   router.push(path);
+}
+
+// 打开在线客服
+function openKefu() {
+  if (!kefuUrl.value) {
+    showToast("客服暂不可用");
+    return;
+  }
+  window.open(kefuUrl.value, '_blank');
 }
 
 function login() {
@@ -270,6 +289,9 @@ function register() {
       if (res && res.code === 1) {
         showToast(res.msg || "注册成功");
         activeName.value = "a";
+           setTimeout(() => {
+          router.push("/download");
+        }, 1500);
       } else {
         showToast(res.msg || "注册失败");
         refreshImgCode();
@@ -330,9 +352,69 @@ function onSubmit() {
   }
 }
 
-onMounted(() => {
+// 查看用户协议
+async function viewUserAgreement() {
+  if (!userAgreeId.value) {
+    showToast("协议加载中，请稍后");
+    return;
+  }
+  try {
+    const res = await API.toastDetail(userAgreeId.value);
+    if (res.code === 1) {
+      showDialog({
+        title: res.data.title || "用户协议",
+        message: res.data.content || "",
+        confirmButtonText: "我知道了",
+        allowHtml: true,
+        messageAlign: "left",
+      });
+    } else {
+      showToast(res.msg || "获取协议失败");
+    }
+  } catch (error) {
+    showToast("获取协议失败");
+  }
+}
+
+// 查看跟单服务条款
+async function viewGdAgreement() {
+  if (!gdAgreeId.value) {
+    showToast("协议加载中，请稍后");
+    return;
+  }
+  try {
+    const res = await API.toastDetail(gdAgreeId.value);
+    if (res.code === 1) {
+      showDialog({
+        title: res.data.title || "跟单服务条款",
+        message: res.data.content || "",
+        confirmButtonText: "我知道了",
+        allowHtml: true,
+        messageAlign: "left",
+      });
+    } else {
+      showToast(res.msg || "获取协议失败");
+    }
+  } catch (error) {
+    showToast("获取协议失败");
+  }
+}
+
+onMounted(async () => {
   uniqid.value = getUniqId();
-  imgurl.value = `https://atc.lxwdlz.cn/index/captcha/index/id/${uniqid.value}`;
+  imgurl.value = ` https://atc.lxwdlz.cn/index/captcha/index/id/${uniqid.value}`;
+
+  // 获取协议ID和客服URL
+  try {
+    const configRes = await API.initConfig();
+    if (configRes.code === 1) {
+      userAgreeId.value = configRes.data.user_agree || "";
+      gdAgreeId.value = configRes.data.gd_agree || "";
+      kefuUrl.value = configRes.data.kefu_url || "";
+    }
+  } catch (error) {
+    console.error("获取配置失败:", error);
+  }
 });
 
 onBeforeUnmount(() => {

@@ -37,7 +37,7 @@ view/
 ## Critical Development Patterns
 
 ### 1. API Integration (`src/request/api.js`)
-- **Base URL**: `https://atc.lxwdlz.cn/api`
+- **Base URL**: ` https://atc.lxwdlz.cn/api`
 - **Auth**: Token stored in `localStorage.getItem("token")`, auto-injected via interceptors as `Authorization: Bearer <token>` and `TOKEN` header
 - **Error Handling**: 401 responses auto-redirect to `/login` and clear token
 - **Usage**: Import as `import { API } from '@/request/api'`, call like `API.login(payload)`

@@ -492,61 +492,34 @@ function onDateClick(idx) {
   if (idx === 4) key = next1.value;
   if (idx === 5) key = next2.value;
   if (idx === 6) key = next3.value;
-  footballMatchesOneday.value = footballMatches.value[key] || [];
+  
+  // 根据当前激活的tab加载对应的数据
+  if (active.value === 0) {
+    // 足球
+    loadFootballData(key);
+  } else {
+    // 篮球
+    loadBasketballData(key);
+  }
 }
 
 const onTabChange = (index) => {
-  // 如果切换到篮球tab且还没有数据，加载篮球数据
-  if (index === 1 && basketballMatches.value.length === 0) {
-    loading.value = true;
+  // 获取当前选择的日期
+  let selectedDate = today.value;
+  if (dateActive.value === 0) selectedDate = prev3.value;
+  if (dateActive.value === 1) selectedDate = prev2.value;
+  if (dateActive.value === 2) selectedDate = prev1.value;
+  if (dateActive.value === 3) selectedDate = today.value;
+  if (dateActive.value === 4) selectedDate = next1.value;
+  if (dateActive.value === 5) selectedDate = next2.value;
+  if (dateActive.value === 6) selectedDate = next3.value;
 
-    API.gameScore("basketball")
-      .then((res) => {
-        if (res.code === 1) {
-          // 将篮球数据转换为数组格式
-          const allMatches = [];
-          Object.keys(res.data).forEach(date => {
-            if (res.data[date] && res.data[date].length > 0) {
-              res.data[date].forEach(match => {
-                allMatches.push({
-                  id: match.id,
-                  league: match.match?.name || '未知联赛',
-                  dateTime: formatMatchTime(match.start_time),
-                  homeTeam: match.home_team_name,
-                  awayTeam: match.guest_team_name,
-                  homeScore: match.basketball?.home_total ? parseInt(match.basketball.home_total) : null,
-                  awayScore: match.basketball?.guest_total ? parseInt(match.basketball.guest_total) : null,
-                  status: match.basketball?.current_jie_f || '未开始',
-                  quarters: match.basketball ? {
-                    home: [
-                      match.basketball.home_t1 || 0,
-                      match.basketball.home_t2 || 0,
-                      match.basketball.home_t3 || 0,
-                      match.basketball.home_t4 || 0
-                    ],
-                    away: [
-                      match.basketball.guest_t1 || 0,
-                      match.basketball.guest_t2 || 0,
-                      match.basketball.guest_t3 || 0,
-                      match.basketball.guest_t4 || 0
-                    ]
-                  } : null
-                });
-              });
-            }
-          });
-          basketballMatches.value = allMatches;
-        } else {
-          showToast(res.msg || "获取篮球数据失败");
-        }
-      })
-      .catch((err) => {
-        console.error('获取篮球数据失败:', err);
-        showToast(err.msg || "获取篮球数据失败");
-      })
-      .finally(() => {
-        loading.value = false;
-      });
+  // 切换到篮球tab
+  if (index === 1) {
+    loadBasketballData(selectedDate);
+  } else {
+    // 切换到足球tab
+    loadFootballData(selectedDate);
   }
 };
 
@@ -561,72 +534,136 @@ const formatMatchTime = (timestamp) => {
   return `${month}-${day} ${hours}:${minutes}`;
 };
 
+// 将 MM-DD 格式转换为 YYYY-MM-DD 格式
+const convertToFullDate = (shortDate) => {
+  const year = new Date().getFullYear();
+  return `${year}-${shortDate}`;
+};
+
+// 加载足球数据
+const loadFootballData = async (date) => {
+  loading.value = true;
+  const fullDate = convertToFullDate(date);
+  let allMatches = [];
+  
+  try {
+    // 获取第一页数据
+    const firstPageRes = await API.gameScore('football', { date: fullDate, page: 1 });
+    
+    if (firstPageRes.code === 1) {
+      const { data, last_page } = firstPageRes.data;
+      allMatches = data || [];
+      
+      // 如果有多页,继续获取剩余页面
+      if (last_page > 1) {
+        const pagePromises = [];
+        for (let page = 2; page <= last_page; page++) {
+          pagePromises.push(API.gameScore('football', { date: fullDate, page }));
+        }
+        
+        // 并行请求所有剩余页面
+        const results = await Promise.all(pagePromises);
+        results.forEach(res => {
+          if (res.code === 1 && res.data?.data) {
+            allMatches = allMatches.concat(res.data.data);
+          }
+        });
+      }
+      
+      footballMatchesOneday.value = allMatches;
+    } else {
+      showToast(firstPageRes.msg || '获取足球数据失败');
+      footballMatchesOneday.value = [];
+    }
+  } catch (err) {
+    console.error('获取足球数据失败:', err);
+    showToast(err.msg || '获取足球数据失败');
+    footballMatchesOneday.value = [];
+  } finally {
+    loading.value = false;
+  }
+};
+
+// 加载篮球数据
+const loadBasketballData = async (date) => {
+  loading.value = true;
+  const fullDate = convertToFullDate(date);
+  let allMatches = [];
+  
+  try {
+    // 获取第一页数据
+    const firstPageRes = await API.gameScore('basketball', { date: fullDate, page: 1 });
+    
+    if (firstPageRes.code === 1) {
+      const { data, last_page } = firstPageRes.data;
+      allMatches = data || [];
+      
+      // 如果有多页,继续获取剩余页面
+      if (last_page > 1) {
+        const pagePromises = [];
+        for (let page = 2; page <= last_page; page++) {
+          pagePromises.push(API.gameScore('basketball', { date: fullDate, page }));
+        }
+        
+        // 并行请求所有剩余页面
+        const results = await Promise.all(pagePromises);
+        results.forEach(res => {
+          if (res.code === 1 && res.data?.data) {
+            allMatches = allMatches.concat(res.data.data);
+          }
+        });
+      }
+      
+      // 转换篮球数据格式
+      basketballMatches.value = allMatches.map(match => ({
+        id: match.id,
+        league: match.match?.name || '未知联赛',
+        dateTime: formatMatchTime(match.start_time),
+        homeTeam: match.home_team_name,
+        awayTeam: match.guest_team_name,
+        homeScore: match.basketball?.home_total ? parseInt(match.basketball.home_total) : null,
+        awayScore: match.basketball?.guest_total ? parseInt(match.basketball.guest_total) : null,
+        status: match.basketball?.current_jie_f || '未开始',
+        quarters: match.basketball ? {
+          home: [
+            match.basketball.home_t1 || 0,
+            match.basketball.home_t2 || 0,
+            match.basketball.home_t3 || 0,
+            match.basketball.home_t4 || 0
+          ],
+          away: [
+            match.basketball.guest_t1 || 0,
+            match.basketball.guest_t2 || 0,
+            match.basketball.guest_t3 || 0,
+            match.basketball.guest_t4 || 0
+          ]
+        } : null
+      }));
+    } else {
+      showToast(firstPageRes.msg || '获取篮球数据失败');
+      basketballMatches.value = [];
+    }
+  } catch (err) {
+    console.error('获取篮球数据失败:', err);
+    showToast(err.msg || '获取篮球数据失败');
+    basketballMatches.value = [];
+  } finally {
+    loading.value = false;
+  }
+};
+
 onMounted(() => {
   // 根据 query 参数设置初始标签页
   const type = route.query.type;
   if (type === 'basketball') {
     active.value = 1; // 切换到篮球标签页
+    // 加载篮球数据
+    loadBasketballData(today.value);
   } else {
     active.value = 0; // 默认足球标签页
+    // 加载足球数据
+    loadFootballData(today.value);
   }
-
-  loading.value = true;
-
-  // 根据类型加载对应的数据
-  const apiType = type === 'basketball' ? 'basketball' : 'football';
-
-  API.gameScore(apiType)
-    .then((res) => {
-      if (res.code === 1) {
-        if (apiType === 'football') {
-          footballMatches.value = res.data;
-          // 默认展示当天的数据
-          footballMatchesOneday.value = footballMatches.value[today.value] || [];
-        } else {
-          // 篮球数据处理 - 将数据转换为数组格式
-          const allMatches = [];
-          Object.keys(res.data).forEach(date => {
-            if (res.data[date] && res.data[date].length > 0) {
-              res.data[date].forEach(match => {
-                allMatches.push({
-                  id: match.id,
-                  league: match.match?.name || '未知联赛',
-                  dateTime: formatMatchTime(match.start_time),
-                  homeTeam: match.home_team_name,
-                  awayTeam: match.guest_team_name,
-                  homeScore: match.basketball?.home_total ? parseInt(match.basketball.home_total) : null,
-                  awayScore: match.basketball?.guest_total ? parseInt(match.basketball.guest_total) : null,
-                  status: match.basketball?.current_jie_f || '未开始',
-                  quarters: match.basketball ? {
-                    home: [
-                      match.basketball.home_t1 || 0,
-                      match.basketball.home_t2 || 0,
-                      match.basketball.home_t3 || 0,
-                      match.basketball.home_t4 || 0
-                    ],
-                    away: [
-                      match.basketball.guest_t1 || 0,
-                      match.basketball.guest_t2 || 0,
-                      match.basketball.guest_t3 || 0,
-                      match.basketball.guest_t4 || 0
-                    ]
-                  } : null
-                });
-              });
-            }
-          });
-          basketballMatches.value = allMatches;
-        }
-      } else {
-        showToast(res.msg || `获取${apiType === 'football' ? '足球' : '篮球'}数据失败`);
-      }
-    })
-    .catch((err) => {
-      showToast(err.msg || `获取${apiType === 'football' ? '足球' : '篮球'}数据失败`);
-    })
-    .finally(() => {
-      loading.value = false;
-    });
 });
 </script>
 

@@ -2,6 +2,9 @@ import axios from "axios";
 import router from "../router/index.js";
 
 // axios 实例
+//  https://atc.lxwdlz.cn 测试
+//  https://atc.lxwdlz.cn 正式
+
 const instance = axios.create({
   baseURL: "https://atc.lxwdlz.cn/api",
   timeout: 10000,
@@ -94,8 +97,13 @@ export const API = {
     return instance.get("/lottery/loto", { params: { type: payload } });
   },
 
-  gameScore(payload) {
-    return instance.get("/lottery/gameScore", { params: { type: payload } });
+  gameScore(type, params = {}) {
+    return instance.get("/lottery/gameScore", { 
+      params: { 
+        type,
+        ...params
+      } 
+    });
   },
 
   lsList() {

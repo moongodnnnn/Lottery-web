@@ -273,7 +273,7 @@ function getUniqId() {
 // 刷新图形验证码
 function refreshImgCode() {
   uniqid.value = getUniqId();
-  imgurl.value = `https://atc.lxwdlz.cn/index/captcha/index/id/${uniqid.value}`;
+  imgurl.value = ` https://atc.lxwdlz.cn/index/captcha/index/id/${uniqid.value}`;
 }
 
 function clearTimer() {
@@ -446,7 +446,7 @@ onMounted(async () => {
 
   // 初始化图形验证码
   uniqid.value = getUniqId();
-  imgurl.value = `https://atc.lxwdlz.cn/index/captcha/index/id/${uniqid.value}`;
+  imgurl.value = ` https://atc.lxwdlz.cn/index/captcha/index/id/${uniqid.value}`;
 
   getAccountList();
 });
